@@ -9,7 +9,7 @@
 
 <style>
 	div :global(svg) {
-		width: var(--size, 1rem);
-		height: var(--size, 1rem);
+		width: var(--size, 1.4rem);
+		height: var(--size, 1.4rem);
 	}
 </style>
