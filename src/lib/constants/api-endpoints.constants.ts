@@ -1,3 +1,35 @@
+/**
+ * Tilekit, the HTTP surface the Tiles daemon exposes on port 1729.
+ *
+ * Everything else in this file predates the move off llama-server and is only
+ * still reachable through features that are switched off in $lib/features.
+ */
+const TILEKIT = '/v1/tilekit';
+
+export const API_TILEKIT = {
+	ACCOUNT: {
+		CREATE: `${TILEKIT}/account/create`,
+		STATUS: `${TILEKIT}/account/status`
+	},
+	AGENT: {
+		END_SESSION: `${TILEKIT}/agent/end_session`,
+		PROMPT: `${TILEKIT}/agent/prompt`,
+		START: `${TILEKIT}/agent/start`,
+		STATE: `${TILEKIT}/agent/state`
+	},
+	SERVER: {
+		PING: `${TILEKIT}/server/ping`,
+		START: `${TILEKIT}/server/start`,
+		STOP: `${TILEKIT}/server/stop`
+	},
+	SESSION: {
+		CHAT: `${TILEKIT}/session/chat`,
+		chats: (sessionId: string) => `${TILEKIT}/session/${encodeURIComponent(sessionId)}/chats`,
+		LIST: `${TILEKIT}/session/list`,
+		NEW: `${TILEKIT}/session/new`
+	}
+} as const;
+
 export const API_MODELS = {
 	LIST: '/v1/models',
 	LOAD: '/models/load',
@@ -7,13 +39,13 @@ export const API_MODELS = {
 
 // chat completion routes, the control route drives realtime inference (e.g. end reasoning)
 export const API_CHAT = {
-	COMPLETIONS: './v1/chat/completions',
-	CONTROL: './v1/chat/completions/control'
+	COMPLETIONS: '/v1/chat/completions',
+	CONTROL: '/v1/chat/completions/control'
 };
 
 // slot introspection, requires the --slots flag on the server
 export const API_SLOTS = {
-	LIST: './slots'
+	LIST: '/slots'
 };
 
 export const API_TOOLS = {
@@ -27,8 +59,8 @@ export const API_TOOLS = {
 export const STREAM_RESUME_RETRY_MS = 2000;
 
 export const API_STREAM = {
-	BASE: './v1/stream',
-	LOOKUP: './v1/streams/lookup'
+	BASE: '/v1/stream',
+	LOOKUP: '/v1/streams/lookup'
 };
 
 // query params for the resumable stream routes

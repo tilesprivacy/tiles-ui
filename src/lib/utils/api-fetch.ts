@@ -95,7 +95,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
  *
  * @example
  * ```typescript
- * const props = await apiFetchWithParams<ApiProps>('./props', {
+ * const props = await apiFetchWithParams<ApiProps>('/props', {
  *   model: 'gpt-4',
  *   autoload: 'false'
  * });

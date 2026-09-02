@@ -39,7 +39,7 @@ export class PropsService {
 			params.autoload = 'false';
 		}
 
-		return apiFetchWithParams<ApiServerProps>('./props', params, { authOnly: true });
+		return apiFetchWithParams<ApiServerProps>('/props', params, { authOnly: true });
 	}
 
 	/**
@@ -60,6 +60,6 @@ export class PropsService {
 			params.autoload = 'false';
 		}
 
-		return apiFetchWithParams<ApiServerProps>('./props', params, { authOnly: true });
+		return apiFetchWithParams<ApiServerProps>('/props', params, { authOnly: true });
 	}
 }
