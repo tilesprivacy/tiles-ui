@@ -6,7 +6,19 @@
  * the model props manager.
  */
 
+import { ServerRole } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import { apiFetchWithParams } from '$lib/utils';
+
+/**
+ * Stand-in for what `/props` would return. Tiles has no such endpoint, and the
+ * store only ever reads a handful of these fields, so a partial object is
+ * enough to keep the app out of its "server is broken" state.
+ */
+const TILES_PROPS = {
+	modalities: { audio: false, video: false, vision: false },
+	role: ServerRole.MODEL
+} as unknown as ApiServerProps;
 
 export class PropsService {
 	/**
@@ -19,6 +31,8 @@ export class PropsService {
 	 * @throws {Error} If the request fails or returns invalid data
 	 */
 	static async fetch(autoload = false): Promise<ApiServerProps> {
+		if (!FEATURES.SERVER_PROPS) return TILES_PROPS;
+
 		const params: Record<string, string> = {};
 
 		if (!autoload) {
@@ -38,6 +52,8 @@ export class PropsService {
 	 * @throws {Error} If the request fails, model not found, or model not loaded
 	 */
 	static async fetchForModel(modelId: string, autoload = false): Promise<ApiServerProps> {
+		if (!FEATURES.SERVER_PROPS) return TILES_PROPS;
+
 		const params: Record<string, string> = { model: modelId };
 
 		if (!autoload) {

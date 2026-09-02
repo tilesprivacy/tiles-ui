@@ -9,6 +9,7 @@
 import { base } from '$app/paths';
 import { API_MODELS, MODEL_ID } from '$lib/constants';
 import { ServerModelStatus } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import type { ParsedModelId } from '$lib/types/models';
 import {
 	apiFetch,
@@ -57,6 +58,8 @@ export class ModelsService {
 	 * @returns List of available models with basic metadata
 	 */
 	static async list(): Promise<ApiModelListResponse> {
+		if (!FEATURES.MODEL_SWITCHING) return { data: [], object: 'list' } as ApiModelListResponse;
+
 		return apiFetch<ApiModelListResponse>(API_MODELS.LIST);
 	}
 
@@ -68,6 +71,9 @@ export class ModelsService {
 	 * @returns List of models with detailed status and configuration info
 	 */
 	static async listRouter(): Promise<ApiRouterModelsListResponse> {
+		if (!FEATURES.MODEL_SWITCHING)
+			return { data: [], object: 'list' } as unknown as ApiRouterModelsListResponse;
+
 		return apiFetch<ApiRouterModelsListResponse>(API_MODELS.LIST);
 	}
 

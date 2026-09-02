@@ -16,7 +16,6 @@ import type {
 	ApiChatMessageData,
 	ApiContextSizeError,
 	ApiErrorResponse,
-	ApiServerProps,
 	ApiModelDataEntry,
 	ApiModelListResponse,
 	ApiModelLoadStage,
@@ -32,6 +31,7 @@ import type {
 	ApiRouterModelsStatusResponse,
 	ApiRouterModelsUnloadRequest,
 	ApiRouterModelsUnloadResponse,
+	ApiServerProps,
 	ChatAttachmentDisplayItem,
 	// Chat types
 	ChatMessagePromptProgress,

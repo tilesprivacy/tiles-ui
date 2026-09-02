@@ -12,6 +12,7 @@
 	} from '$lib/constants';
 	import { getChatFormActionsContext } from '$lib/contexts';
 	import { AttachmentAction, AttachmentItemEnabledWhen } from '$lib/enums';
+	import { ATTACHMENTS_ENABLED, FEATURES } from '$lib/features';
 	import { useAttachmentMenu } from '$lib/hooks/use-attachment-menu.svelte';
 
 	interface Props {
@@ -92,32 +93,34 @@
 				}
 			}}
 		>
-			<DropdownMenu.Item
-				class="flex cursor-pointer items-center gap-2"
-				onclick={() => attachmentMenu.callbacks[AttachmentAction.FILE_UPLOAD]()}
-			>
-				<File class={ICON_CLASS_DEFAULT} />
+			{#if ATTACHMENTS_ENABLED}
+				<DropdownMenu.Item
+					class="flex cursor-pointer items-center gap-2"
+					onclick={() => attachmentMenu.callbacks[AttachmentAction.FILE_UPLOAD]()}
+				>
+					<File class={ICON_CLASS_DEFAULT} />
 
-				<span class="flex min-w-0 items-center gap-2">
-					<span>Add files</span>
+					<span class="flex min-w-0 items-center gap-2">
+						<span>Add files</span>
 
-					{#if supportedModalities.length > 0}
-						<span class="flex items-center gap-0.75 text-muted-foreground">
-							{#each supportedModalities as modality (modality.label)}
-								<Tooltip.Root>
-									<Tooltip.Trigger>
-										<modality.icon class="size-2.75" />
-									</Tooltip.Trigger>
+						{#if supportedModalities.length > 0}
+							<span class="flex items-center gap-0.75 text-muted-foreground">
+								{#each supportedModalities as modality (modality.label)}
+									<Tooltip.Root>
+										<Tooltip.Trigger>
+											<modality.icon class="size-2.75" />
+										</Tooltip.Trigger>
 
-									<Tooltip.Content>
-										<p>{modality.label}</p>
-									</Tooltip.Content>
-								</Tooltip.Root>
-							{/each}
-						</span>
-					{/if}
-				</span>
-			</DropdownMenu.Item>
+										<Tooltip.Content>
+											<p>{modality.label}</p>
+										</Tooltip.Content>
+									</Tooltip.Root>
+								{/each}
+							</span>
+						{/if}
+					</span>
+				</DropdownMenu.Item>
+			{/if}
 
 			<DropdownMenu.Item
 				class="flex cursor-pointer items-center gap-2"
@@ -131,16 +134,20 @@
 				<span>System Message</span>
 			</DropdownMenu.Item>
 
-			<ChatFormActionAddToolsSubmenu />
+			{#if FEATURES.SERVER_TOOLS}
+				<ChatFormActionAddToolsSubmenu />
+			{/if}
 
-			<DropdownMenu.Item
-				class="flex cursor-pointer items-center gap-2"
-				onclick={chatFormActions.onMcpSettingsClick}
-			>
-				<McpLogo class={ICON_CLASS_DEFAULT} />
+			{#if FEATURES.MCP}
+				<DropdownMenu.Item
+					class="flex cursor-pointer items-center gap-2"
+					onclick={chatFormActions.onMcpSettingsClick}
+				>
+					<McpLogo class={ICON_CLASS_DEFAULT} />
 
-				<span>MCP Servers</span>
-			</DropdownMenu.Item>
+					<span>MCP Servers</span>
+				</DropdownMenu.Item>
+			{/if}
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 </div>

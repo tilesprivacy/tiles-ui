@@ -17,6 +17,7 @@ import {
 import { SyncableParameterType } from '$lib/enums';
 import { SettingsFieldType } from '$lib/enums/settings.enums';
 import { ColorMode } from '$lib/enums/ui.enums';
+import { FEATURES } from '$lib/features';
 import type {
 	SettingsConfigValue,
 	SettingsEntry,
@@ -658,11 +659,26 @@ export const SETTING_CONFIG_INFO: Record<string, string> = Object.fromEntries(
 	getAllSettings().map((s) => [s.key, s.help])
 ) as Record<string, string>;
 
+/** Individual fields whose backing feature is switched off. */
+const HIDDEN_SETTING_KEYS = new Set<string>();
+
+// the daemon has no auth, so there is no key to set
+HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.API_KEY);
+
+if (!FEATURES.ATTACHMENTS_AUDIO) HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.AUTO_MIC_ON_EMPTY);
+
+if (!FEATURES.ATTACHMENTS_PDF) HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.PDF_AS_IMAGE);
+
+if (!FEATURES.MESSAGE_STATS) {
+	HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.SHOW_MESSAGE_STATS);
+	HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.SHOW_AGENTIC_TURN_STATS);
+}
+
 /** Sidebar sections + field configs (as consumed by UI). */
 function toSettingsSection(section: SettingsSectionEntry): SettingsSection {
 	return {
 		fields: section.settings
-			.filter((s) => s.standaloneField !== false)
+			.filter((s) => s.standaloneField !== false && !HIDDEN_SETTING_KEYS.has(s.key))
 			.map((s) => ({
 				dependsOn: s.dependsOn,
 				help: s.help,
@@ -684,8 +700,21 @@ function toSettingsSection(section: SettingsSectionEntry): SettingsSection {
 	};
 }
 
+/** Sections whose backing feature is switched off, so they are hidden from the dialog. */
+const HIDDEN_SECTION_SLUGS = new Set<string>();
+
+if (!FEATURES.AGENTIC) HIDDEN_SECTION_SLUGS.add(SETTINGS_SECTION_SLUGS.AGENTIC);
+
+if (!FEATURES.SERVER_TOOLS) HIDDEN_SECTION_SLUGS.add(SETTINGS_SECTION_SLUGS.TOOLS);
+
+if (!FEATURES.IMPORT_EXPORT) HIDDEN_SECTION_SLUGS.add(SETTINGS_SECTION_SLUGS.IMPORT_EXPORT);
+
+if (!FEATURES.SAMPLING_PARAMS) HIDDEN_SECTION_SLUGS.add(SETTINGS_SECTION_SLUGS.SAMPLING_PENALTIES);
+
 /** Sidebar sections in custom display order (the registry array order). */
-export const SETTINGS_CHAT_SECTIONS: SettingsSection[] = SETTINGS_REGISTRY.map(toSettingsSection);
+export const SETTINGS_CHAT_SECTIONS: SettingsSection[] = SETTINGS_REGISTRY.filter(
+	(section) => !HIDDEN_SECTION_SLUGS.has(section.slug)
+).map(toSettingsSection);
 
 /** INPUT-type settings whose value is a number. */
 export const NUMERIC_FIELDS = getAllSettings()

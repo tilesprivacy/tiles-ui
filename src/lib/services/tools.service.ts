@@ -8,6 +8,7 @@
 import { base } from '$app/paths';
 import { API_TOOLS, HEADERS } from '$lib/constants';
 import { ToolResponseField } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import type { ServerToolInfo, ToolExecutionResult } from '$lib/types';
 import { apiFetch } from '$lib/utils';
 import { getJsonHeaders } from '$lib/utils/api-headers';
@@ -80,6 +81,8 @@ export class ToolsService {
 	 * @returns Array of tool definitions in OpenAI-compatible format
 	 */
 	static async list(): Promise<ServerToolInfo[]> {
+		if (!FEATURES.SERVER_TOOLS) return [];
+
 		return apiFetch<ServerToolInfo[]>(API_TOOLS.LIST);
 	}
 

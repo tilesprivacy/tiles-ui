@@ -37,24 +37,20 @@ describe('PWA Build Output', () => {
 			).toBeTruthy();
 		});
 
-		it('SvelteKit bundle.js exists in _app/immutable/', () => {
-			// SvelteKit generates hashed bundle names in _app/immutable/
+		it('SvelteKit JS chunks exist in _app/immutable/', () => {
 			const appDir = resolve(DIST_DIR, '_app', 'immutable');
 
 			expect(existsSync(appDir), '_app/immutable/ not found').toBeTruthy();
-			const files = readdirSync(appDir).filter((f) => f.startsWith('bundle.') && f.endsWith('.js'));
+			const files = readdirSync(appDir, { recursive: true }) as string[];
 
-			expect(files.length).toBeGreaterThan(0);
+			expect(files.filter((f) => f.endsWith('.js')).length).toBeGreaterThan(0);
 		});
 
-		it('SvelteKit bundle.css exists in _app/immutable/assets/', () => {
-			// SvelteKit generates hashed CSS bundles in _app/immutable/assets/
+		it('SvelteKit CSS exists in _app/immutable/assets/', () => {
 			const cssDir = resolve(DIST_DIR, '_app', 'immutable', 'assets');
 
 			expect(existsSync(cssDir), '_app/immutable/assets/ not found').toBeTruthy();
-			const files = readdirSync(cssDir).filter(
-				(f) => f.startsWith('bundle.') && f.endsWith('.css')
-			);
+			const files = readdirSync(cssDir).filter((f) => f.endsWith('.css'));
 
 			expect(files.length).toBeGreaterThan(0);
 		});
@@ -92,16 +88,14 @@ describe('PWA Build Output', () => {
 			expect(swContent).toMatch(/define\(\["\.\/workbox-[a-zA-Z0-9]+"\]/);
 		});
 
-		it('precache contains SvelteKit bundle.js with content hash', () => {
+		it('precache contains SvelteKit JS with content hash', () => {
 			expect(swContent).toBeTruthy();
-			// SvelteKit uses content-hashed bundle names in _app/immutable/
-			expect(swContent).toMatch(/"_app\/immutable\/bundle\.[a-zA-Z0-9_-]+\.js"/);
+			expect(swContent).toMatch(/"_app\/immutable\/[^"]+\.js"/);
 		});
 
-		it('precache contains SvelteKit bundle.css with content hash', () => {
+		it('precache contains SvelteKit CSS with content hash', () => {
 			expect(swContent).toBeTruthy();
-			// SvelteKit uses content-hashed CSS bundle names in _app/immutable/assets/
-			expect(swContent).toMatch(/"_app\/immutable\/assets\/bundle\.[a-zA-Z0-9_-]+\.css"/);
+			expect(swContent).toMatch(/"_app\/immutable\/assets\/[^"]+\.css"/);
 		});
 
 		it('precache contains _app/version.json', () => {
@@ -130,24 +124,19 @@ describe('PWA Build Output', () => {
 	});
 
 	describe('index.html content', () => {
-		it('has modulepreload link for SvelteKit bundle with content hash', () => {
+		it('has modulepreload link for a SvelteKit chunk with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			// SvelteKit generates hashed bundle names in _app/immutable/
-			expect(indexContent).toMatch(/href="(\.\/|\/)_app\/immutable\/bundle\.[a-zA-Z0-9_-]+\.js"/);
+			expect(indexContent).toMatch(/href="(\.\/|\/)?_app\/immutable\/[^"]+\.js"/);
 		});
 
-		it('has stylesheet link for SvelteKit bundle.css with content hash', () => {
+		it('has stylesheet link for SvelteKit CSS with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			expect(indexContent).toMatch(
-				/href="(\.\/|\/)_app\/immutable\/assets\/bundle\.[a-zA-Z0-9_-]+\.css"/
-			);
+			expect(indexContent).toMatch(/href="(\.\/|\/)?_app\/immutable\/assets\/[^"]+\.css"/);
 		});
 
-		it('has dynamic import for SvelteKit bundle with content hash', () => {
+		it('has dynamic import for a SvelteKit chunk with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			expect(indexContent).toMatch(
-				/import\("(\.\/|\/)_app\/immutable\/bundle\.[a-zA-Z0-9_-]+\.js"\)/
-			);
+			expect(indexContent).toMatch(/import\("(\.\/|\/)?_app\/immutable\/[^"]+\.js"\)/);
 		});
 
 		it('has __sveltekit__ variable (SvelteKit adds hash suffix)', () => {

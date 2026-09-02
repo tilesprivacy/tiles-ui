@@ -16,6 +16,7 @@
 		SETTINGS_KEYS,
 		TOOLTIP_DELAY_DURATION
 	} from '$lib/constants';
+	import { FEATURES } from '$lib/features';
 	import { useKeyboardShortcuts } from '$lib/hooks/use-keyboard-shortcuts.svelte';
 	import { usePwa } from '$lib/hooks/use-pwa.svelte';
 	import { RouterService } from '$lib/services/router.service';
@@ -235,6 +236,8 @@
 	let routerModelsFetched = false;
 
 	$effect(() => {
+		if (!FEATURES.MODEL_SWITCHING) return;
+
 		const isRouter = serverStore.isRouterMode;
 		const modelsCount = modelsStore.models.length;
 
@@ -251,6 +254,8 @@
 	// Live model status and load progress via the /models/sse feed (router mode)
 	$effect(() => {
 		if (!browser) return;
+
+		if (!FEATURES.MODEL_SWITCHING) return;
 
 		if (!serverStore.isRouterMode) return;
 
@@ -274,6 +279,8 @@
 	// every other card back through skeleton state.
 	$effect(() => {
 		if (!browser) return;
+
+		if (!FEATURES.MCP) return;
 
 		const mcpServers = mcpStore.getServers();
 		const serversWithUrls = mcpServers.filter((s) => s.url.trim());

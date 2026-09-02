@@ -12,6 +12,7 @@
 	import { ICON_CLASS_DEFAULT } from '$lib/constants';
 	import { setChatFormActionsContext } from '$lib/contexts';
 	import { FileTypeCategory, MessageRole } from '$lib/enums';
+	import { FEATURES } from '$lib/features';
 	import { ChatService } from '$lib/services';
 	import { chatStore, conversationsStore, settingsStore } from '$lib/stores';
 	import { getFileTypeCategory } from '$lib/utils';
@@ -53,6 +54,8 @@
 	}: Props = $props();
 
 	let currentConfig = $derived(settingsStore.config);
+
+	let modelSelectorVisible = $derived(showModelSelector && FEATURES.MODEL_SWITCHING);
 
 	let hasAudioModality = $state(false);
 	let hasVideoModality = $state(false);
@@ -155,11 +158,11 @@
 	{/if}
 
 	<div class="flex items-center gap-1.5">
-		{#if hasProcessedTokens}
+		{#if hasProcessedTokens && FEATURES.CONTEXT_GAUGE}
 			<ChatFormContextGauge />
 		{/if}
 
-		{#if showModelSelector}
+		{#if modelSelectorVisible}
 			<ChatFormActionModels
 				bind:hasAudioModality
 				bind:hasModelSelected
@@ -209,9 +212,10 @@
 		<ChatFormActionRecord {disabled} {hasAudioModality} {isLoading} {isRecording} {onMicClick} />
 	{:else}
 		<ChatFormActionSubmit
-			canSend={canSend && (showModelSelector ? hasModelSelected && isSelectedModelInCache : true)}
+			canSend={canSend &&
+				(modelSelectorVisible ? hasModelSelected && isSelectedModelInCache : true)}
 			{disabled}
-			showErrorState={showModelSelector && hasModelSelected && !isSelectedModelInCache}
+			showErrorState={modelSelectorVisible && hasModelSelected && !isSelectedModelInCache}
 			tooltipLabel={submitTooltip}
 		/>
 	{/if}
