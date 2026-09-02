@@ -15,6 +15,13 @@ commit above records where the copy was taken from.
 
 ---
 
+src/lib/assets/logo.svg is the Tiles mark, taken from the brand kit in
+tilesprivacy/tiles-next (public/tiles_tlogo_banner_v1.2/svg/tiles_tlogo_clean_blk.svg)
+and normalised into a square viewBox with fill="currentColor" so it follows
+the theme. Every favicon and PWA icon is generated from it.
+
+---
+
 The following are vendored inside src/lib/vendors/ and keep their own license
 files alongside the source:
 
