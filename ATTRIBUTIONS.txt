@@ -1,0 +1,30 @@
+This project includes code derived from third-party open-source projects.
+
+---
+
+Project: llama.cpp (tools/ui)
+Author: The ggml authors
+Source: https://github.com/ggml-org/llama.cpp
+Commit: 43d87ff2dd0e5706d3ce974fd67d7bbc69768109
+License: MIT (see LICENSE-llama.cpp)
+
+Description:
+Tiles UI started as a copy of the llama-server web interface at tools/ui and was
+then decoupled from llama.cpp and rebuilt against the Tiles Tilekit APIs. The
+commit above records where the copy was taken from.
+
+---
+
+The following are vendored inside src/lib/vendors/ and keep their own license
+files alongside the source:
+
+Project: big-integer
+License: Unlicense (public domain) - src/lib/vendors/big-integer/LICENSE
+
+Project: decimal.js
+Author: Michael Mclaughlin
+License: MIT - src/lib/vendors/decimal.js/LICENCE.md
+
+Project: nerdamer-prime
+Author: together-science
+License: MIT - src/lib/vendors/nerdamer-prime/LICENSE
