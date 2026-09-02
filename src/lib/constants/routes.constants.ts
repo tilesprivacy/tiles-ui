@@ -10,11 +10,11 @@ export const URL_PARAMS = {
 
 export const ROUTES = {
 	/** Chat base — for dynamic chat URLs use RouterService. */
-	CHAT: '#/chat',
+	CHAT: '/chat',
 	/** MCP servers. */
-	MCP_SERVERS: '#/mcp-servers',
+	MCP_SERVERS: '/mcp-servers',
 	/** Search — mobile-only full-page conversation search. */
-	SEARCH: '#/search',
+	SEARCH: '/search',
 	/** Root — start of the app. */
-	START: '#/'
+	START: '/'
 } as const;

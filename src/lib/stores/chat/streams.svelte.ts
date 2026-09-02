@@ -10,6 +10,7 @@
 
 import { CONVERSATION_ID_SEPARATOR, STREAM_RESUME_RETRY_MS } from '$lib/constants';
 import { MessageRole, MessageType, StreamConnectionState } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import { ChatService } from '$lib/services/chat.service';
 import { DatabaseService } from '$lib/services/database.service';
 import type { ChatActivityStore } from '$lib/stores/chat/activity.svelte';
@@ -176,6 +177,8 @@ export class ChatStreamManager {
 	 * finalized while the browser was elsewhere are dropped naturally.
 	 */
 	async syncRemoteRunningStreams(): Promise<void> {
+		if (!FEATURES.STREAM_RESUME) return;
+
 		// the conversations store loads from IndexedDB asynchronously, the +layout onMount caller
 		// fires before that finishes. read ids straight from the DB so the result does not depend
 		// on the store init race, and the sidebar spinners light up at first paint for every conv

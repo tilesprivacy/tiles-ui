@@ -35,6 +35,9 @@ export const FEATURES = {
 	/** Running model-authored JavaScript in a worker. Not wanted for now. */
 	JS_SANDBOX: false,
 
+	/** Asking the model to name a conversation. Needs a plain completion endpoint. */
+	LLM_TITLES: false,
+
 	/** MCP servers. Pi owns tool access today and does not expose it over HTTP. */
 	MCP: false,
 

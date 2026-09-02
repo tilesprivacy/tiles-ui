@@ -17,8 +17,10 @@ import {
 	ReasoningEffort,
 	StreamConnectionState
 } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import { ChatService } from '$lib/services/chat.service';
 import { DatabaseService } from '$lib/services/database.service';
+import { TilekitService } from '$lib/services/tilekit.service';
 // direct imports between stores, not via the barrel, to avoid circular deps
 import { agenticStore } from '$lib/stores/agentic/index.svelte';
 import { chatActivityStore } from '$lib/stores/chat/activity.svelte';
@@ -795,6 +797,8 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 		const streamStateForStop = this.chatStreamingStates.get(convId);
 		const modelForStop = streamStateForStop?.model ?? ChatService.getStreamState(convId)?.model;
 
+		// aborting the fetch alone would leave Pi generating, so tell it to stop too
+		void TilekitService.endAgentSession().catch(console.error);
 		void ChatService.cancelServerStream(convId, modelForStop);
 		// an explicit stop leaves nothing to resume and kills a pending resume retry
 		ChatService.clearStreamState(convId);
@@ -1137,7 +1141,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			disabledTools: conversationsStore.preferences.getDisabledTools()
 		};
 
-		{
+		if (FEATURES.AGENTIC) {
 			const agenticResult = await agenticStore.runAgenticFlow({
 				callbacks: streamCallbacks,
 				conversationId: convId,
@@ -1168,77 +1172,76 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			}
 		}
 
-		await ChatService.sendMessage(
-			allMessages,
-			{
-				...this.getApiOptions(),
-				...(effectiveModel ? { model: effectiveModel } : {}),
-				onChunk: streamCallbacks.onChunk,
-				onComplete: async (
-					finalContent?: string,
-					reasoningContent?: string,
-					timings?: ChatMessageTimings,
-					toolCalls?: string
-				) => {
-					const content = streamedContent || finalContent || '';
-					const reasoning = streamedReasoningContent || reasoningContent;
-					const updateData: Record<string, unknown> = {
-						content,
-						reasoningContent: reasoning || undefined,
-						timings,
-						toolCalls: toolCalls || ''
-					};
+		const chatOptions = {
+			...this.getApiOptions(),
+			...(effectiveModel ? { model: effectiveModel } : {}),
+			onChunk: streamCallbacks.onChunk,
+			onComplete: async (
+				finalContent?: string,
+				reasoningContent?: string,
+				timings?: ChatMessageTimings,
+				toolCalls?: string
+			) => {
+				const content = streamedContent || finalContent || '';
+				const reasoning = streamedReasoningContent || reasoningContent;
+				const updateData: Record<string, unknown> = {
+					content,
+					reasoningContent: reasoning || undefined,
+					timings,
+					toolCalls: toolCalls || ''
+				};
 
-					if (resolvedModel && !modelPersisted) updateData.model = resolvedModel;
+				if (resolvedModel && !modelPersisted) updateData.model = resolvedModel;
 
-					await DatabaseService.updateMessage(currentMessageId, updateData);
-					const idx = conversationsStore.findMessageIndex(currentMessageId);
-					const uiUpdate: Partial<DatabaseMessage> = {
-						content,
-						reasoningContent: reasoning || undefined,
-						toolCalls: toolCalls || ''
-					};
+				await DatabaseService.updateMessage(currentMessageId, updateData);
+				const idx = conversationsStore.findMessageIndex(currentMessageId);
+				const uiUpdate: Partial<DatabaseMessage> = {
+					content,
+					reasoningContent: reasoning || undefined,
+					toolCalls: toolCalls || ''
+				};
 
-					if (timings) uiUpdate.timings = timings;
+				if (timings) uiUpdate.timings = timings;
 
-					if (resolvedModel) uiUpdate.model = resolvedModel;
+				if (resolvedModel) uiUpdate.model = resolvedModel;
 
-					conversationsStore.updateMessageAtIndex(idx, uiUpdate);
-					await conversationsStore.updateCurrentNode(currentMessageId);
-					cleanupStreamingState();
+				conversationsStore.updateMessageAtIndex(idx, uiUpdate);
+				await conversationsStore.updateCurrentNode(currentMessageId);
+				cleanupStreamingState();
 
-					if (onComplete) await onComplete(content);
+				if (onComplete) await onComplete(content);
 
-					if (serverStore.isRouterMode) modelsStore.fetchRouterModels().catch(console.error);
+				if (serverStore.isRouterMode) modelsStore.fetchRouterModels().catch(console.error);
 
-					// Generate LLM based title for new conversations (avoids stale reference
-					// issue when user switches conversations while streaming)
-					if (firstUserMessageContent) {
-						await this.generateTitleWithLLM(firstUserMessageContent, streamedContent, convId);
-					}
+				// Generate LLM based title for new conversations (avoids stale reference
+				// issue when user switches conversations while streaming)
+				if (firstUserMessageContent) {
+					await this.generateTitleWithLLM(firstUserMessageContent, streamedContent, convId);
+				}
 
-					// Check if there's a pending message queued during streaming
-					const pending = this.consumePendingMessage(convId);
+				// Check if there's a pending message queued during streaming
+				const pending = this.consumePendingMessage(convId);
 
-					if (pending) {
-						await this.sendMessage(pending.content, pending.extras);
-					}
-				},
-				onCompletionId: streamCallbacks.onCompletionId,
-				onConnectionState: (state: StreamConnectionState) => {
-					if (convId === conversationsStore.activeConversation?.id) {
-						this.streamConnectionState = state;
-					}
-				},
-				onError: streamCallbacks.onError,
-				onModel: streamCallbacks.onModel,
-				onReasoningChunk: streamCallbacks.onReasoningChunk,
-				onTimings: streamCallbacks.onTimings,
-				stream: true
+				if (pending) {
+					await this.sendMessage(pending.content, pending.extras);
+				}
 			},
-			convId,
-			abortController.signal
-		);
+			onCompletionId: streamCallbacks.onCompletionId,
+			onConnectionState: (state: StreamConnectionState) => {
+				if (convId === conversationsStore.activeConversation?.id) {
+					this.streamConnectionState = state;
+				}
+			},
+			onError: streamCallbacks.onError,
+			onModel: streamCallbacks.onModel,
+			onReasoningChunk: streamCallbacks.onReasoningChunk,
+			onTimings: streamCallbacks.onTimings,
+			stream: true
+		};
+		// Pi keeps the conversation on its side, so only the newest user turn is sent
+		const prompt = [...allMessages].reverse().find((m) => m.role === MessageRole.USER)?.content;
+
+		await ChatService.sendTilekitPrompt(prompt ?? '', chatOptions, abortController.signal);
 	}
 
 	syncLoadingStateForChat(convId: string): void {
@@ -1287,6 +1290,8 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 		assistantContent: string,
 		convId: string
 	): Promise<void> {
+		if (!FEATURES.LLM_TITLES) return;
+
 		const effectiveModel =
 			serverStore.isRouterMode && modelsStore.selectedModelName
 				? modelsStore.selectedModelName

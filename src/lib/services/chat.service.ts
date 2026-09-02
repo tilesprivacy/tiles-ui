@@ -8,10 +8,12 @@
 
 import { getAudioInputFormat } from '../utils/audio-format';
 import { capImageDataURLSize } from '../utils/cap-img-size';
+import { base } from '$app/paths';
 import {
 	API_CHAT,
 	API_SLOTS,
 	API_STREAM,
+	API_TILEKIT,
 	CONTROL_ACTION,
 	HEADERS,
 	LEGACY_AGENTIC_REGEX,
@@ -46,6 +48,12 @@ import { ApiError } from '$lib/utils/api-fetch';
 import { getAuthHeaders, getJsonHeaders } from '$lib/utils/api-headers';
 import { formatAttachmentText } from '$lib/utils/formatters';
 import { streamIdentity } from '$lib/utils/stream-identity';
+import {
+	parseTilekitStream,
+	PI_DELTA,
+	PI_EVENT,
+	readMessageDelta
+} from '$lib/utils/tilekit-sse';
 
 interface ResumableStreamState {
 	bytesReceived: number;
@@ -1009,16 +1017,6 @@ export class ChatService {
 		return running.reduce((best, cur) => (cur.started_at > best.started_at ? cur : best));
 	}
 
-	/**
-	 * Sends a chat completion request to the llama-server.
-	 * Supports both streaming and non-streaming responses with comprehensive parameter configuration.
-	 * Automatically converts database messages with attachments to the appropriate API format.
-	 *
-	 * @param messages - Array of chat messages to send to the API (supports both ApiChatMessageData and DatabaseMessage with attachments)
-	 * @param options - Configuration options for the chat completion request. See `SettingsChatServiceOptions` type for details.
-	 * @returns {Promise<string | void>} that resolves to the complete response string (non-streaming) or void (streaming)
-	 * @throws {Error} if the request fails or is aborted
-	 */
 	static async sendMessage(
 		messages: ApiChatMessageData[] | (DatabaseMessage & { extra?: DatabaseMessageExtra[] })[],
 		options: SettingsChatServiceOptions = {},
@@ -1315,6 +1313,87 @@ export class ChatService {
 			}
 
 			throw userFriendlyError;
+		}
+	}
+
+	/**
+	 * Sends a chat completion request to the llama-server.
+	 * Supports both streaming and non-streaming responses with comprehensive parameter configuration.
+	 * Automatically converts database messages with attachments to the appropriate API format.
+	 *
+	 * @param messages - Array of chat messages to send to the API (supports both ApiChatMessageData and DatabaseMessage with attachments)
+	 * @param options - Configuration options for the chat completion request. See `SettingsChatServiceOptions` type for details.
+	 * @returns {Promise<string | void>} that resolves to the complete response string (non-streaming) or void (streaming)
+	 * @throws {Error} if the request fails or is aborted
+	 */
+	/**
+	 * Sends one prompt to Pi through the daemon and streams the reply back.
+	 *
+	 * Pi keeps the conversation itself, so only the newest user message goes
+	 * over the wire - there is no history to resend. Errors arrive as an
+	 * in-band `error` event rather than a bad status, because the daemon has
+	 * already sent its headers by the time anything can go wrong.
+	 */
+	static async sendTilekitPrompt(
+		message: string,
+		options: SettingsChatServiceOptions = {},
+		signal?: AbortSignal
+	): Promise<void> {
+		const { onChunk, onComplete, onError, onReasoningChunk } = options;
+
+		let content = '';
+		let reasoning = '';
+
+		try {
+			const response = await fetch(`${base}${API_TILEKIT.AGENT.PROMPT}`, {
+				body: JSON.stringify({ message }),
+				headers: getJsonHeaders(),
+				method: 'POST',
+				signal
+			});
+
+			if (!response.ok) {
+				const error = await ChatService.parseErrorResponse(response);
+
+				onError?.(error);
+
+				throw error;
+			}
+
+			for await (const event of parseTilekitStream(response, signal)) {
+				if (event.event === PI_EVENT.ERROR) {
+					const error = new Error(event.data || 'The agent reported an error');
+
+					onError?.(error);
+
+					throw error;
+				}
+
+				if (event.event !== PI_EVENT.MESSAGE_UPDATE) continue;
+
+				const update = readMessageDelta(event.data);
+
+				if (!update) continue;
+
+				if (update.kind === PI_DELTA.TEXT) {
+					content += update.delta;
+					onChunk?.(update.delta);
+				} else if (update.kind === PI_DELTA.THINKING) {
+					reasoning += update.delta;
+					onReasoningChunk?.(update.delta);
+				}
+			}
+
+			onComplete?.(content, reasoning || undefined, undefined, undefined);
+		} catch (error) {
+			if (isAbortError(error)) {
+				// a stopped turn still keeps whatever streamed before the stop
+				onComplete?.(content, reasoning || undefined, undefined, undefined);
+
+				return;
+			}
+
+			throw error;
 		}
 	}
 
