@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import {
+		AccountBadge,
 		ActionIcon,
 		DialogConversationRename,
 		DialogSettingsChat,
@@ -437,7 +438,12 @@
 						visibleCount={visibleSelectionStats.visibleCount}
 					/>
 				</div>
+			{:else}
+				<!-- keeps the account badge on the floor of the collapsed rail -->
+				<div class="flex-1"></div>
 			{/if}
+
+			<AccountBadge expanded={uiStore.isSidebarExpanded || isOnMobile} />
 		</div>
 	</aside>
 {/if}

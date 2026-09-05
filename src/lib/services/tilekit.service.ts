@@ -33,6 +33,14 @@ export class TilekitService {
 		return apiFetch<TilekitResponse<TilekitAgentState>>(API_TILEKIT.AGENT.STATE).then(unwrap);
 	}
 
+	/** Creates the local identity. Fails with 409 if one already exists. */
+	static async createAccount(nickname: string): Promise<TilekitAccount> {
+		return apiPost<TilekitResponse<TilekitAccount>, { nickname: string }>(
+			API_TILEKIT.ACCOUNT.CREATE,
+			{ nickname }
+		).then(unwrap);
+	}
+
 	/** Asks Pi to abort the turn it is working on. */
 	static async endAgentSession(): Promise<void> {
 		await apiFetch(API_TILEKIT.AGENT.END_SESSION);

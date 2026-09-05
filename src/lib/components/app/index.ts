@@ -1,3 +1,4 @@
+export * from './account';
 export * from './actions';
 export * from './badges';
 export * from './chat';

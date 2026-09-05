@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
-	import { SidebarNavigation } from '$lib/components/app';
+	import { OnboardingScreen, SidebarNavigation } from '$lib/components/app';
 	import { PwaMetaTags, PwaRefreshAlert } from '$lib/components/pwa';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import {
@@ -31,6 +31,7 @@
 		tabsStore,
 		versionStore
 	} from '$lib/stores';
+	import { accountStore } from '$lib/stores/account.svelte';
 	import { initStores } from '$lib/stores/init';
 	import { ModeWatcher } from 'mode-watcher';
 	import { untrack } from 'svelte';
@@ -321,21 +322,26 @@
 <svelte:document onvisibilitychange={handleVisibilityChange} />
 
 <Tooltip.Provider delayDuration={TOOLTIP_DELAY_DURATION}>
-	<div class="flex flex-col md:flex-row">
-		<SidebarNavigation
-			onSearchClick={() => {
-				if (deviceStore.isMobile) {
-					goto(ROUTES.SEARCH);
-				} else if (chatSidebar?.activateSearchMode) {
-					chatSidebar.activateSearchMode();
-				}
-			}}
-		/>
+	{#if accountStore.state === 'missing'}
+		<!-- nothing works without a local identity, so this comes before the app -->
+		<OnboardingScreen />
+	{:else}
+		<div class="flex flex-col md:flex-row">
+			<SidebarNavigation
+				onSearchClick={() => {
+					if (deviceStore.isMobile) {
+						goto(ROUTES.SEARCH);
+					} else if (chatSidebar?.activateSearchMode) {
+						chatSidebar.activateSearchMode();
+					}
+				}}
+			/>
 
-		<div class="flex-1">
-			{@render children?.()}
+			<div class="flex-1">
+				{@render children?.()}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<ModeWatcher />
 
