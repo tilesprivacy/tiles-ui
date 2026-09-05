@@ -6,8 +6,11 @@
  * state; consumed by conversationsStore and the chat flows.
  */
 
+import { TilekitService } from './tilekit.service';
+import { chatsToMessages, sessionToConversation } from './tilekit-adapter';
 import { IDXDB_STORES, IDXDB_TABLES, STORAGE_APP_NAME } from '$lib/constants';
 import { MessageRole } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import type { McpServerOverride } from '$lib/types/database';
 import type { ExportedConversation } from '$lib/types/database';
 import { filterByLeafNodeId, findDescendantMessages, uuid } from '$lib/utils';
@@ -36,6 +39,8 @@ export class DatabaseService {
 	 * @param ids - Conversation IDs to delete
 	 */
 	static async bulkDeleteConversations(ids: string[]): Promise<void> {
+		if (!FEATURES.SESSION_DELETE) return;
+
 		const cleanIds = ids.filter((id): id is string => typeof id === 'string' && id.length > 0);
 
 		if (cleanIds.length === 0) return;
@@ -133,9 +138,17 @@ export class DatabaseService {
 		name: string,
 		fields?: Partial<Omit<DatabaseConversation, 'id' | 'name' | 'lastModified'>>
 	): Promise<DatabaseConversation> {
+		let id = uuid();
+
+		try {
+			id = await TilekitService.newSession();
+		} catch (error) {
+			console.warn('[db] could not open a session on the daemon:', error);
+		}
+
 		const conversation: DatabaseConversation = {
 			currNode: '',
-			id: uuid(),
+			id,
 			lastModified: Date.now(),
 			name,
 			...fields
@@ -274,6 +287,8 @@ export class DatabaseService {
 		id: string,
 		options?: { deleteWithForks?: boolean }
 	): Promise<void> {
+		if (!FEATURES.SESSION_DELETE) return;
+
 		await db.transaction(
 			'rw',
 			[db[IDXDB_TABLES.conversations], db[IDXDB_TABLES.messages]],
@@ -447,6 +462,16 @@ export class DatabaseService {
 	 * @returns Array of conversations
 	 */
 	static async getAllConversations(): Promise<DatabaseConversation[]> {
+		// the daemon's SQLite is the record; IndexedDB is only a fallback for
+		// when it cannot be reached
+		try {
+			const sessions = await TilekitService.listSessions();
+
+			return sessions.map(sessionToConversation);
+		} catch (error) {
+			console.warn('[db] session list unavailable, falling back to local:', error);
+		}
+
 		return await db[IDXDB_TABLES.conversations].orderBy('lastModified').reverse().toArray();
 	}
 
@@ -457,6 +482,16 @@ export class DatabaseService {
 	 * @returns The conversation if found, otherwise undefined
 	 */
 	static async getConversation(id: string): Promise<DatabaseConversation | undefined> {
+		// there is no per-session endpoint yet, so the list is the lookup
+		try {
+			const sessions = await TilekitService.listSessions();
+			const session = sessions.find((s) => s.id === id);
+
+			if (session) return sessionToConversation(session);
+		} catch (error) {
+			console.warn('[db] session lookup unavailable, falling back to local:', error);
+		}
+
 		return await db[IDXDB_TABLES.conversations].get(id);
 	}
 
@@ -467,6 +502,14 @@ export class DatabaseService {
 	 * @returns Array of messages in the conversation
 	 */
 	static async getConversationMessages(convId: string): Promise<DatabaseMessage[]> {
+		try {
+			const chats = await TilekitService.fetchChats(convId);
+
+			if (chats.length) return chatsToMessages(chats);
+		} catch (error) {
+			console.warn('[db] session chats unavailable, falling back to local:', error);
+		}
+
 		return await db[IDXDB_TABLES.messages].where('convId').equals(convId).sortBy('timestamp');
 	}
 
@@ -560,6 +603,8 @@ export class DatabaseService {
 	 * @returns The new pinned status
 	 */
 	static async toggleConversationPin(id: string): Promise<boolean> {
+		if (!FEATURES.SESSION_PIN) return false;
+
 		const conversation = await db[IDXDB_TABLES.conversations].get(id);
 
 		if (!conversation) {
@@ -585,7 +630,10 @@ export class DatabaseService {
 		id: string,
 		updates: Partial<Omit<DatabaseConversation, 'id'>>
 	): Promise<void> {
-		await db[IDXDB_TABLES.conversations].update(id, updates);
+		// only the name would need the daemon, and there is no endpoint for it
+		const { name: _name, ...local } = updates;
+
+		await db[IDXDB_TABLES.conversations].update(id, FEATURES.SESSION_RENAME ? updates : local);
 	}
 
 	/**

@@ -21,6 +21,7 @@ import { FEATURES } from '$lib/features';
 import { ChatService } from '$lib/services/chat.service';
 import { DatabaseService } from '$lib/services/database.service';
 import { TilekitService } from '$lib/services/tilekit.service';
+import { accountStore } from '$lib/stores/account.svelte';
 // direct imports between stores, not via the barrel, to avoid circular deps
 import { agenticStore } from '$lib/stores/agentic/index.svelte';
 import { chatActivityStore } from '$lib/stores/chat/activity.svelte';
@@ -1194,6 +1195,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 				if (resolvedModel && !modelPersisted) updateData.model = resolvedModel;
 
 				await DatabaseService.updateMessage(currentMessageId, updateData);
+				await this.persistTurn(convId, MessageRole.ASSISTANT, content, savedUserChatId);
 				const idx = conversationsStore.findMessageIndex(currentMessageId);
 				const uiUpdate: Partial<DatabaseMessage> = {
 					content,
@@ -1239,7 +1241,11 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			stream: true
 		};
 		// Pi keeps the conversation on its side, so only the newest user turn is sent
-		const prompt = [...allMessages].reverse().find((m) => m.role === MessageRole.USER)?.content;
+		const userTurn = [...allMessages].reverse().find((m) => m.role === MessageRole.USER);
+		const prompt = userTurn?.content;
+		// the daemon creates the session row off the first user turn, so this has
+		// to land before the reply does
+		const savedUserChatId = await this.persistTurn(convId, MessageRole.USER, prompt ?? '');
 
 		await ChatService.sendTilekitPrompt(prompt ?? '', chatOptions, abortController.signal);
 	}
@@ -1271,6 +1277,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 	async updateMessage(messageId: string, newContent: string): Promise<void> {
 		return this.flows.updateMessage(messageId, newContent);
 	}
+
 	private abortRequest(convId?: string): void {
 		if (convId) {
 			const c = this.abortControllers.get(convId);
@@ -1284,7 +1291,6 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			this.abortControllers.clear();
 		}
 	}
-
 	private async generateTitleWithLLM(
 		userContent: string,
 		assistantContent: string,
@@ -1337,6 +1343,39 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 		convId: string
 	): { response: string; messageId: string } | undefined {
 		return this.chatStreamingStates.get(convId);
+	}
+
+	/**
+	 * Writes one turn to the daemon. Best effort: a chat that fails to save
+	 * should not take the conversation down with it, since the reply is already
+	 * on screen either way.
+	 */
+	private async persistTurn(
+		convId: string,
+		role: MessageRole,
+		text: string,
+		parentChatId?: string | null
+	): Promise<string | null> {
+		const userId = accountStore.account?.id;
+
+		if (!userId || !text.trim()) return null;
+
+		try {
+			const saved = await TilekitService.saveTurn({
+				model: modelsStore.selectedModelName ?? undefined,
+				parentChatId,
+				role,
+				sessionId: convId,
+				text,
+				userId
+			});
+
+			return saved.id;
+		} catch (error) {
+			console.warn('[chat] could not save turn to the daemon:', error);
+
+			return null;
+		}
 	}
 
 	private async savePartialResponseIfNeeded(convId?: string): Promise<void> {

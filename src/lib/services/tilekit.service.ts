@@ -96,6 +96,30 @@ export class TilekitService {
 		).then(unwrap);
 	}
 
+	/**
+	 * Saves one turn against a session, filling in the fields the daemon wants
+	 * but the UI does not carry: the local account id, and the model that was
+	 * used. The session row is created lazily on the first user turn, so a user
+	 * message has to be saved before the reply to it.
+	 */
+	static async saveTurn(args: {
+		sessionId: string;
+		text: string;
+		role: string;
+		parentChatId?: string | null;
+		userId: string;
+		model?: string;
+	}): Promise<TilekitChat> {
+		return TilekitService.saveChat({
+			model_used: args.model ?? '',
+			parent_chat_id: args.parentChatId ?? null,
+			role: args.role,
+			session_id: args.sessionId,
+			text: args.text,
+			user_id: args.userId
+		});
+	}
+
 	/** Starts the Python inference server. */
 	static async startServer(): Promise<void> {
 		await apiFetch(API_TILEKIT.SERVER.START);

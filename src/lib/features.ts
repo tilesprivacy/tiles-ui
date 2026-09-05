@@ -43,15 +43,24 @@ export const FEATURES = {
 
 	/** Per-message token and timing stats. Same dependency as the gauge. */
 	MESSAGE_STATS: false,
+
 	/** Picking and loading models. Needs Tilekit endpoints to list and load models. */
 	MODEL_SWITCHING: false,
+
 	/** Sampling and penalty settings. The daemon serves config read-only. */
 	SAMPLING_PARAMS: false,
+
 	/** Server capability probe. Tilekit has no `/props` equivalent. */
 	SERVER_PROPS: false,
-
 	/** Server-provided tools. Same reason as MCP. */
 	SERVER_TOOLS: false,
+	/** Deleting a session. `core/chats.rs` has no delete, so there is nothing to call. */
+	SESSION_DELETE: false,
+	/** Pinning a session. No column for it on the daemon side. */
+	SESSION_PIN: false,
+
+	/** Renaming a session. `sessions.name` is only ever written at creation. */
+	SESSION_RENAME: false,
 
 	/** Reconnecting to a stream after a refresh. Tilekit streams are not replayable. */
 	STREAM_RESUME: false,
