@@ -1,0 +1,67 @@
+# License
+
+Tiles UI is dual-licensed under either of
+
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+
+at your option. This matches the licensing of [Tiles](https://github.com/tilesprivacy/tiles)
+itself. The motivation for the dual license is the additional software patent assurance
+provided by Apache 2.0.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for
+inclusion in this work shall be dual-licensed as above, without any additional terms or
+conditions.
+
+## Third-party code
+
+This project contains code that is not ours. The terms below are in addition to, not
+instead of, the choice above — retaining these notices is a condition of using that code.
+
+### llama.cpp
+
+Tiles UI began as a copy of the llama-server web interface (`tools/ui`) from
+[ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp), which is MIT licensed:
+
+> Copyright (c) 2023-2026 The ggml authors
+
+The full text is in [LICENSE-llama.cpp](LICENSE-llama.cpp) and must be retained in
+distributions of this software. MIT permits sublicensing, which is what allows the combined
+work to be offered under the dual license above; it does not remove the MIT terms from the
+original code.
+
+### Geist and Geist Mono
+
+The fonts vendored via `@fontsource-variable/geist` and `@fontsource-variable/geist-mono`
+are licensed under the SIL Open Font License 1.1:
+
+> Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)
+
+The full text is in [LICENSE-GEIST](LICENSE-GEIST). Note the OFL's Reserved Font Name
+clause: a modified version of these fonts may not be distributed under the name "Geist".
+
+### Vendored libraries
+
+Under `src/lib/vendors/`, each keeping its own license file alongside the source:
+
+| Library | License |
+| --- | --- |
+| `big-integer` | Unlicense (public domain) |
+| `decimal.js` | MIT — Copyright (c) Michael Mclaughlin |
+| `nerdamer-prime` | MIT — Copyright (c) 2023 together-science |
+
+### Bundled dependencies
+
+The built application includes code from its npm dependencies, overwhelmingly MIT, ISC,
+Apache-2.0 and BSD. Two are worth calling out:
+
+- **DOMPurify** is offered under `MPL-2.0 OR Apache-2.0`. This project takes it under
+  **Apache-2.0**, which is compatible with the dual license above.
+- **sharp**, **lightningcss**, **ico-endec** and **axe-core** carry LGPL-3.0 or MPL-2.0
+  terms, but are build- and development-time only and are not part of the shipped bundle,
+  so their reciprocal obligations are not triggered by distributing this application.
+
+### Tiles brand
+
+`src/lib/assets/logo.svg` and the icons generated from it are the Tiles mark, and are not
+covered by the licenses above. See [ATTRIBUTIONS.txt](ATTRIBUTIONS.txt).

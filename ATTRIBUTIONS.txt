@@ -22,6 +22,26 @@ the theme. Every favicon and PWA icon is generated from it.
 
 ---
 
+Project: Geist and Geist Mono
+Author: The Geist Project Authors
+Source: https://github.com/vercel/geist-font
+License: SIL Open Font License 1.1 (see LICENSE-GEIST)
+
+Description:
+Vendored through @fontsource-variable/geist and @fontsource-variable/geist-mono so the
+app never fetches from a font host. The OFL reserves the name "Geist": a modified
+version of the fonts may not be distributed under that name.
+
+---
+
+Project: DOMPurify
+License: MPL-2.0 OR Apache-2.0 - taken here under Apache-2.0
+
+Description:
+Bundled into the build, used to sanitize inline SVG.
+
+---
+
 The following are vendored inside src/lib/vendors/ and keep their own license
 files alongside the source:
 
