@@ -67,7 +67,7 @@
 						{...props}
 						class={cn(
 							buttonVariants({ variant: 'secondary' }),
-							'file-upload-button h-8 w-8 cursor-pointer rounded-full p-0'
+							'file-upload-button h-8 w-8 cursor-pointer rounded-none cut bg-steel text-slate hover:text-bone p-0'
 						)}
 						disabled={chatFormActions.disabled}
 					>

@@ -18,9 +18,10 @@
 {#snippet submitButton(props = {})}
 	<Button
 		class={[
-			'md:h-8 md:w-8 h-9 w-9 rounded-full p-0',
-			showErrorState &&
-				'bg-red-400/10 text-red-400 hover:bg-red-400/20 hover:text-red-400 disabled:opacity-100'
+			'md:h-8 md:w-8 h-9 w-9 rounded-none cut p-0',
+			'bg-signal text-void hover:bg-signal hover:brightness-110',
+			'disabled:bg-steel disabled:text-slate disabled:opacity-100',
+			showErrorState && 'bg-alert! text-void! hover:brightness-110'
 		]}
 		disabled={isDisabled}
 		type="submit"

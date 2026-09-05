@@ -38,7 +38,7 @@
 	{:else}
 		<ChatMessageUserBubble
 			attachments={extras}
-			cardBgClass="dark:bg-primary/8"
+			cardBgClass="bg-steel/60"
 			{content}
 			maxHeightStyle="overflow-wrap: anywhere; word-break: break-word;"
 			textColorClass="text-muted-foreground"

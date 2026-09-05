@@ -664,6 +664,8 @@ const HIDDEN_SETTING_KEYS = new Set<string>();
 
 // the daemon has no auth, so there is no key to set
 HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.API_KEY);
+// the palette is dark only, so the theme picker has nothing to switch between
+HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.THEME);
 
 if (!FEATURES.ATTACHMENTS_AUDIO) HIDDEN_SETTING_KEYS.add(SETTINGS_KEYS.AUTO_MIC_ON_EMPTY);
 

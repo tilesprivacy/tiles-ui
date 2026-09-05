@@ -576,7 +576,7 @@
 	></div>
 
 	<div
-		class="{INPUT_CLASSES} overflow-hidden rounded-4xl md:rounded-3xl backdrop-blur-md {disabled
+		class="{INPUT_CLASSES} overflow-hidden rounded-lg backdrop-blur-md {disabled
 			? 'cursor-not-allowed opacity-60'
 			: ''}"
 		data-slot="input-area"
@@ -592,7 +592,7 @@
 		/>
 
 		<div
-			class="flex-column relative min-h-12 items-center rounded-4xl md:rounded-3xl py-2 pb-2.25 shadow-sm transition-all focus-within:shadow-md md:py-3!"
+			class="flex-column relative min-h-12 items-center rounded-lg py-2 pb-2.25 transition-all md:py-3!"
 		>
 			<ChatFormInput
 				bind:this={inputRef}

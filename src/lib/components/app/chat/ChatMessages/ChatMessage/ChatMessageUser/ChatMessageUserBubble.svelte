@@ -15,7 +15,7 @@
 
 	let {
 		attachments = [],
-		cardBgClass = 'dark:bg-primary/15',
+		cardBgClass = 'bg-steel',
 		content,
 		maxHeightStyle = '',
 		renderMarkdown = false,
@@ -60,7 +60,7 @@
 
 {#if content.trim()}
 	<Card
-		class="chat-message-user-bubble max-w-[80%] overflow-y-auto rounded-[1.125rem] border-none bg-primary/5 px-3.75 py-1.5 {textColorClass} backdrop-blur-md data-multiline:py-2.5 {cardBgClass}"
+		class="chat-message-user-bubble max-w-[80%] overflow-y-auto rounded-lg border border-border px-3.75 py-1.5 {textColorClass} backdrop-blur-md data-multiline:py-2.5 {cardBgClass}"
 		data-multiline={isMultiline ? '' : undefined}
 		style="{maxHeightStyle} overflow-wrap: anywhere; word-break: break-word;"
 	>
