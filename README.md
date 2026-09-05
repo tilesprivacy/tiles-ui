@@ -1,734 +1,196 @@
-# llama-ui
+<!-- LOGO -->
 
-A modern, feature-rich web interface for llama-server built with SvelteKit. This UI provides an intuitive chat interface with advanced file handling, conversation management, and comprehensive model interaction capabilities.
+<p align="center">
+  <a href="https://github.com/tilesprivacy/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://tiles.run/realdark.png" />
+      <source media="(prefers-color-scheme: light)" srcset="https://tiles.run/reallight.png" />
+      <img src="https://tiles.run/realdark.png" alt="Tiles Logo" width="128" />
+    </picture>
+  </a>
+</p>
 
-Llama UI supports two server operation modes:
+<h1 align="center">Tiles UI</h1>
 
-- **MODEL mode** - Single model operation (standard llama-server)
-- **ROUTER mode** - Multi-model operation with dynamic model loading/unloading
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Tech Stack](#tech-stack)
-- [Build Pipeline](#build-pipeline)
-- [Architecture](#architecture)
-- [Data Flows](#data-flows)
-- [Architectural Patterns](#architectural-patterns)
-- [Testing](#testing)
-
----
-
-## Features
-
-### Chat Interface
-
-- **Streaming responses** with real-time updates
-- **Reasoning content** - Support for models with thinking/reasoning blocks
-- **Dark/light theme** with system preference detection
-- **Responsive design** for desktop and mobile
-
-### File Attachments
-
-- **Images** - JPEG, PNG, GIF, WebP, SVG (with PNG conversion)
-- **Documents** - PDF (text extraction or image conversion for vision models)
-- **Audio** - MP3, WAV for audio-capable models
-- **Text files** - Source code, markdown, and other text formats
-- **Drag-and-drop** and paste support with rich previews
-
-### Conversation Management
-
-- **Branching** - Branch messages conversations at any point by editing messages or regenerating responses, navigate between branches
-- **Regeneration** - Regenerate responses with optional model switching (ROUTER mode)
-- **Import/Export** - JSON format for backup and sharing
-- **Search** - Find conversations by title or content
-
-### Advanced Rendering
-
-- **Syntax highlighting** - Code blocks with language detection
-- **Math formulas** - KaTeX rendering for LaTeX expressions
-- **Markdown** - Full GFM support with tables, lists, and more
-
-### Multi-Model Support (ROUTER mode)
-
-- **Model selector** with Loaded/Available groups
-- **Automatic loading** - Models load on selection
-- **Modality validation** - Prevents sending images to non-vision models
-- **LRU unloading** - Server auto-manages model cache
-
-### Keyboard Shortcuts
-
-| Shortcut           | Action               |
-| ------------------ | -------------------- |
-| `Shift+Ctrl/Cmd+O` | New chat             |
-| `Shift+Ctrl/Cmd+E` | Edit conversation    |
-| `Shift+Ctrl/Cmd+D` | Delete conversation  |
-| `Ctrl/Cmd+K`       | Search conversations |
-| `Ctrl/Cmd+B`       | Toggle sidebar       |
-
-### Developer Experience
-
-- **Request tracking** - Monitor token generation with `/slots` endpoint
-- **Storybook** - Component library with visual testing
-- **Hot reload** - Instant updates during development
+<p align="center">
+  A web interface for <a href="https://github.com/tilesprivacy/tiles">Tiles</a>, talking to the local daemon over Tilekit<br/>
+  <a href="#getting-started">Getting Started</a> ·
+  <a href="#how-it-works">How It Works</a> ·
+  <a href="#what-is-and-is-not-wired-up">Status</a> ·
+  <a href="#contributing">Contributing</a> ·
+  <a href="#license">License</a>
+</p>
 
 ---
+
+> **Status: Early**
+> The chat loop works end to end against a local model. A lot of the interface is switched
+> off because the APIs behind it do not exist yet — see
+> [what is and is not wired up](#what-is-and-is-not-wired-up) and [ISSUES.md](ISSUES.md).
+
+Tiles is a private, local-first AI assistant. Until now the only way to use it was the
+terminal. Tiles UI is the graphical client: it runs in a browser, talks to the Tiles daemon
+on your own machine, and never sends anything anywhere else.
 
 ## Getting Started
 
-### Prerequisites
+You need a working [Tiles](https://github.com/tilesprivacy/tiles) install — the daemon, the
+inference server, the Pi agent binary and a model. Follow that repository's
+[HACKING.md](https://github.com/tilesprivacy/tiles/blob/main/HACKING.md) first.
 
-- **Node.js** 18+ (20+ recommended)
-- **npm** 9+
-- **llama-server** running locally (for API access)
+**Prerequisites**
 
-### 1. Install Dependencies
+- Node.js 20.19+ (Vite 7 requires it)
+- A Tiles daemon listening on `127.0.0.1:1729`
 
-```bash
-cd tools/ui
+**Run it**
+
+```sh
 npm ci
-```
-
-### 2. Start llama-server
-
-In a separate terminal, start the backend server:
-
-```bash
-# Single model (MODEL mode)
-./llama-server -m model.gguf
-
-# Multi-model (ROUTER mode)
-./llama-server --models-dir /path/to/models
-```
-
-### 3. Start Development Servers
-
-```bash
 npm run dev
 ```
 
-This starts:
+That starts Vite on <http://localhost:5173> and Storybook on <http://localhost:6006>. Vite
+proxies `/v1` to the daemon, which is why there is no CORS setup to do.
 
-- **Vite dev server** at `http://localhost:5173` - The main UI frontend app
-- **Storybook** at `http://localhost:6006` - Component documentation
+Point it somewhere else with an environment variable:
 
-The Vite dev server proxies API requests to `SERVER_ORIGIN` (with fallback to default llama-server `8080` port):
-
-```typescript
-// vite.config.ts proxy configuration
-proxy: {
-	'/v1': SERVER_ORIGIN,
-	'/props': SERVER_ORIGIN,
-	'/models': SERVER_ORIGIN,
-	'/tools': SERVER_ORIGIN,
-	'/slots': SERVER_ORIGIN,
-	'/cors-proxy': SERVER_ORIGIN
-},
+```sh
+VITE_PUBLIC_SERVER_ORIGIN=http://127.0.0.1:1730 npm run dev
 ```
 
-### Development Workflow
+**Build it**
 
-1. Open `http://localhost:5173` in your browser
-2. Make changes to `.svelte`, `.ts`, or `.css` files
-3. Changes hot-reload instantly
-4. Use Storybook at `http://localhost:6006` for isolated component development
-
----
-
-## Tech Stack
-
-| Layer             | Technology                      | Purpose                                                  |
-| ----------------- | ------------------------------- | -------------------------------------------------------- |
-| **Framework**     | SvelteKit + Svelte 5            | Reactive UI with runes (`$state`, `$derived`, `$effect`) |
-| **UI Components** | shadcn-svelte + bits-ui         | Accessible, customizable component library               |
-| **Styling**       | TailwindCSS 4                   | Utility-first CSS with design tokens                     |
-| **Database**      | IndexedDB (Dexie)               | Client-side storage for conversations and messages       |
-| **Build**         | Vite                            | Fast bundling with static adapter                        |
-| **Testing**       | Playwright + Vitest + Storybook | E2E, unit, and visual testing                            |
-| **Markdown**      | remark + rehype                 | Markdown processing with KaTeX and syntax highlighting   |
-
-### Key Dependencies
-
-```json
-{
-	"svelte": "^5.0.0",
-	"bits-ui": "^2.8.11",
-	"dexie": "^4.0.11",
-	"pdfjs-dist": "^5.4.54",
-	"highlight.js": "^11.11.1",
-	"rehype-katex": "^7.0.1"
-}
+```sh
+npm run build     # generates PWA assets, then bundles to ./dist
+npm run preview   # serve the build locally
 ```
 
----
+The output is a static SPA. How it ships alongside Tiles — served by the daemon, or wrapped
+in a desktop shell — is not settled yet.
 
-## Build Pipeline
+## How It Works
 
-### Development Build
+Tiles runs several processes on your machine. This UI talks to exactly one of them.
 
-```bash
-npm run dev
+```
+Tiles UI  (this repo, browser)
+    │  HTTP + SSE, /v1/tilekit/*
+    ▼
+Tiles daemon  (Rust, axum, :1729)
+    ├── SQLite (SQLCipher) — accounts, sessions, chats
+    ├── Pi     — the agent harness, driven over stdin/stdout JSON
+    └── Python inference server (:6969) → llama-server → your model
 ```
 
-Runs Vite in development mode with:
+Everything goes through **Tilekit**, the daemon's public HTTP surface. The UI has no model
+access of its own, no cloud calls, and no storage of record — conversations live in the
+daemon's database, which is the same one the Tiles terminal client uses. A chat started in
+the REPL shows up here, and the other way round.
 
-- Hot Module Replacement (HMR)
-- Source maps
-- Proxy to llama-server
+The endpoints in use:
 
-### Production Build
+| Group   | Used for                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------- |
+| Account | `GET /account/status`, `POST /account/create` — onboarding and identity                   |
+| Session | `POST /session/new`, `GET /session/list`, `GET /session/{id}/chats`, `POST /session/chat` |
+| Agent   | `POST /agent/prompt` (SSE), `GET /agent/state`, `GET /agent/end_session`                  |
+| Server  | `GET /server/{start,stop,ping}` — the inference server                                    |
 
-```bash
-npm run build
+Replies stream as Server-Sent Events. Each event is named after the Pi event it carries, so
+`src/lib/utils/tilekit-sse.ts` reads the event name as well as the payload — reasoning and
+answer text arrive as separate delta kinds and render into different parts of the message.
+
+Tilekit is documented in the Tiles repository at `docs/adr/tilekit.md`, and there is a Bruno
+collection under `docs/apis/` for poking at it by hand.
+
+## What Is and Is Not Wired Up
+
+**Working:** onboarding and local account creation, the account badge with your `did:key`,
+the conversation list, opening a past conversation, streaming replies with reasoning,
+stopping a reply, markdown with syntax highlighting, KaTeX and mermaid.
+
+**Switched off.** The interface came from llama.cpp's web UI, which was written against a
+much larger API than Tiles exposes. Rather than delete those features, each one sits behind
+a flag in `src/lib/features.ts` with a note on what it needs. When the API lands, flip the
+flag.
+
+| Off                                    | Waiting on                           |
+| -------------------------------------- | ------------------------------------ |
+| Delete, rename, pin a conversation     | endpoints for them                   |
+| Search across conversations            | `GET /session/search`                |
+| Model picker                           | model list and load endpoints        |
+| Attachments — image, audio, video, PDF | `/agent/prompt` takes text only      |
+| Token and timing stats, context gauge  | per-request accounting               |
+| Message branching                      | no branch model server-side          |
+| Tools, MCP, agentic loop, JS sandbox   | Pi owns tools; not exposed over HTTP |
+| Sampling parameters                    | config is read-only over HTTP        |
+
+**One limitation worth stating plainly:** `POST /agent/prompt` takes no session id and there
+is a single agent process, so replying inside an older conversation talks to whichever
+session Pi is currently in. Reading history back is fine. This is the main thing blocking
+multi-conversation use, and it needs a daemon change.
+
+## Design
+
+The interface follows the same system as the Tiles macOS menubar panel, kept in
+[`docs/menubar-design-system.md`](docs/menubar-design-system.md): eight colour tokens, dark
+only, Geist and Geist Mono vendored so nothing is fetched from a font host, one radius, and
+a chamfer on anything that reads as a plate. Yellow means live, and nothing else.
+
+Panel-specific rules in that document — a global `user-select: none`, no focus ring anywhere,
+26px rows — are deliberately not carried over. This is a window with selectable text and real
+inputs in it.
+
+## Development
+
+```sh
+npm run check       # svelte-check, strict
+npm run lint        # prettier + eslint
+npm run format      # fix both
+npm run test:unit   # vitest, node
+npm run test:client # vitest, browser (needs `npx playwright install chromium`)
+npm run test:e2e    # playwright, needs a running backend
+npm run storybook   # component workshop on :6006
 ```
 
-The build process:
+Built with SvelteKit 2 and Svelte 5 runes, Tailwind 4, and shadcn-svelte over bits-ui. State
+lives in rune-based store classes under `src/lib/stores`; anything that talks HTTP is a
+stateless service in `src/lib/services`.
 
-1. **Vite Build** - Bundles all TypeScript, Svelte, and CSS
-2. **Static Adapter** - Outputs to `../../build/tools/ui/dist` (llama-server's static file directory)
-3. **Post-Build Script** - Cleans up intermediate files
-4. **Custom Plugin** - Creates `index.html` with:
-   - Inlined favicon as base64
-   - GZIP compression (level 9)
-   - Deterministic output (zeroed timestamps)
+Notable files:
 
-```text
-tools/ui/        →  build  →  build/tools/ui/dist/
-├── src/                                 ├── index.html  (served by llama-server)
-├── static/                              └── (favicon inlined)
-└── ...
-```
+| Path                                  | What                                        |
+| ------------------------------------- | ------------------------------------------- |
+| `src/lib/features.ts`                 | Every feature flag and what it waits on     |
+| `src/lib/services/tilekit.service.ts` | The Tilekit client                          |
+| `src/lib/services/tilekit-adapter.ts` | Translates daemon rows into the UI's shapes |
+| `src/lib/utils/tilekit-sse.ts`        | Reader for the `/agent/prompt` stream       |
+| `src/lib/stores/account.svelte.ts`    | Local identity and onboarding state         |
+| `src/app.css`                         | The palette and design tokens               |
 
-### SvelteKit Configuration
+## Contributing
 
-```javascript
-// svelte.config.js
-adapter: adapter({
-  pages: '../../build/tools/ui/dist',      // Output directory
-  assets: '../../build/tools/ui/dist',     // Static assets
-  fallback: 'index.html',  // SPA fallback
-  strict: true
-}),
-output: {
-  bundleStrategy: 'inline' // Single-file bundle
-}
-```
+Issues and pull requests are welcome. [ISSUES.md](ISSUES.md) is the current list of what is
+missing or broken — most of it is daemon-side rather than in this repository, with file and
+line references into `tilesprivacy/tiles`.
 
-### Integration with llama-server
+Contribution standards follow the main project:
+[CONTRIBUTING.md](https://github.com/tilesprivacy/tiles/blob/main/CONTRIBUTING.md) and
+[AGENTS.md](https://github.com/tilesprivacy/tiles/blob/main/AGENTS.md).
 
-llama-ui is embedded directly into the llama-server binary:
+## About
 
-1. `npm run build` outputs `index.html` to `build/tools/ui/dist/`
-2. llama-server compiles this into the binary at build time
-3. When accessing `/`, llama-server serves the bundled HTML
+Tiles is part of the [User & Agents](https://www.userandagents.org) network, and Tiles
+Privacy is a signatory to the [European Social Stack](https://european.social/#signatories)
+initiative. Full documentation lives in the [Tiles Book](https://tiles.run/book).
 
-This results in a **single portable binary** with the full Llama UI included.
+## License
 
----
+Dual-licensed under [MIT](LICENSE-MIT) and [Apache 2.0](LICENSE-APACHE), at your option.
 
-## Architecture
-
-Llama UI follows a layered architecture with unidirectional data flow:
-
-```text
-Routes → Components → Hooks → Stores → Services → Storage/API
-```
-
-### High-Level Architecture
-
-```mermaid
-flowchart TB
-    subgraph Routes["📍 Routes"]
-        R1["/ (Welcome)"]
-        R2["/chat/[id]"]
-        R3["/mcp-servers"]
-        R4["/search"]
-        R5["/settings"]
-        RL["+layout.svelte"]
-    end
-
-    subgraph Components["🧩 Components"]
-        C_Screen["ChatScreen"]
-        C_Form["ChatForm"]
-        C_Messages["ChatMessages"]
-        C_Sidebar["ChatSidebar"]
-        C_Models["ModelsSelector"]
-        C_Settings["ChatSettings"]
-        C_Mcp["McpServers"]
-    end
-
-    subgraph Hooks["🔌 Hooks"]
-        H1["use-chat-screen-active-model"]
-        H2["use-processing-state"]
-        H3["use-context-gauge"]
-        H4["use-models-selector"]
-        H5["use-tools-panel"]
-    end
-
-    subgraph Stores["🗄️ Stores"]
-        S1["chatStore"]
-        S2["conversationsStore"]
-        S3["modelsStore"]
-        S4["mcpStore"]
-        S5["agenticStore"]
-        S6["serverStore"]
-        S7["settingsStore"]
-        S8["toolsStore"]
-    end
-
-    subgraph Services["⚙️ Services"]
-        SV1["ChatService"]
-        SV2["ModelsService"]
-        SV3["PropsService"]
-        SV4["DatabaseService"]
-        SV5["MCPService"]
-        SV6["ToolsService"]
-        SV7["SandboxService"]
-    end
-
-    subgraph Storage["💾 Storage"]
-        ST1["IndexedDB"]
-        ST2["LocalStorage"]
-    end
-
-    subgraph APIs["🌐 llama-server"]
-        API1["/v1/chat/completions"]
-        API2["/props"]
-        API3["/models/*"]
-        API4["/tools"]
-    end
-
-    R1 & R2 --> C_Screen
-    RL --> C_Sidebar
-    C_Screen --> C_Form & C_Messages & C_Settings
-    C_Screen --> H1 & H2 & H3
-    C_Models --> H4
-    C_Mcp --> S4
-    C_Screen --> S1 & S2 & S3
-    C_Models --> S3
-    H1 --> S3
-    S1 --> SV1 & SV4
-    S2 --> SV4
-    S3 --> SV2 & SV3
-    S4 --> SV5
-    S5 --> SV1 & SV5 & SV6 & SV7
-    SV4 --> ST1
-    SV1 --> API1
-    SV2 --> API3
-    SV3 --> API2
-    SV6 --> API4
-```
-
-### Layer Breakdown
-
-#### Routes (`src/routes/`)
-
-- **`/`** - Welcome screen, creates new conversation
-- **`/chat/[id]`** - Active chat interface
-- **`/mcp-servers`** - MCP server management
-- **`/search`** - Conversation search
-- **`/settings`** - Settings (optional `[[section]]`)
-- **`+layout.svelte`** - Sidebar, navigation, global initialization
-
-#### Components (`src/lib/components/`)
-
-Components are organized in `app/` (application-specific) and `ui/` (shadcn-svelte primitives).
-
-**Chat Components** (`app/chat/`):
-
-| Component          | Responsibility                                                              |
-| ------------------ | --------------------------------------------------------------------------- |
-| `ChatScreen/`      | Main chat container, coordinates message list, input form, and attachments  |
-| `ChatForm/`        | Message input textarea with file upload, paste handling, keyboard shortcuts |
-| `ChatMessages/`    | Message list with branch navigation, regenerate/continue/edit actions       |
-| `ChatAttachments/` | File attachment previews, drag-and-drop, PDF/image/audio handling           |
-| `ChatSettings/`    | Parameter sliders (temperature, top-p, etc.) with server default sync       |
-| `ChatSidebar/`     | Conversation list, search, import/export, navigation                        |
-
-**Dialog Components** (`app/dialogs/`):
-
-| Component                       | Responsibility                                           |
-| ------------------------------- | -------------------------------------------------------- |
-| `DialogChatSettings`            | Full-screen settings configuration                       |
-| `DialogModelInformation`        | Model details (context size, modalities, parallel slots) |
-| `DialogChatAttachmentPreview`   | Full preview for images, PDFs (text or page view), code  |
-| `DialogConfirmation`            | Generic confirmation for destructive actions             |
-| `DialogConversationTitleUpdate` | Edit conversation title                                  |
-
-**Server/Model Components** (`app/server/`, `app/models/`):
-
-| Component           | Responsibility                                            |
-| ------------------- | --------------------------------------------------------- |
-| `ServerErrorSplash` | Error display when server is unreachable                  |
-| `ModelsSelector`    | Model dropdown with Loaded/Available groups (ROUTER mode) |
-
-**Shared UI Components** (`app/misc/`):
-
-| Component                        | Responsibility                                                   |
-| -------------------------------- | ---------------------------------------------------------------- |
-| `MarkdownContent`                | Markdown rendering with KaTeX, syntax highlighting, copy buttons |
-| `SyntaxHighlightedCode`          | Code blocks with language detection and highlighting             |
-| `ActionButton`, `ActionDropdown` | Reusable action buttons and menus                                |
-| `BadgeModality`, `BadgeInfo`     | Status and capability badges                                     |
-
-#### Hooks (`src/lib/hooks/`)
-
-Hooks are the thin view-layer between components and stores: they own UI concerns (scroll, drag-and-drop, keyboard shortcuts, pickers, selection) and translate store state into view state.
-
-| Hook                            | Responsibility                                                 |
-| ------------------------------- | -------------------------------------------------------------- |
-| `use-chat-screen-active-model`  | Active model resolution + modality capability detection        |
-| `use-processing-state`          | View over `chatStore.processing` for streaming progress/tokens |
-| `use-context-gauge`             | View over `contextStatsStore` for the context usage gauge      |
-| `use-models-selector`           | Model selector dropdown state (loaded/available groups)        |
-| `use-tools-panel`               | Tools panel state                                              |
-| `use-reasoning-menu`            | Reasoning-effort menu state                                    |
-| `use-attachment-menu`           | Attachment menu + modality flags                               |
-| `use-draft-messages`            | Per-chat draft message/files persistence                       |
-| `use-chat-form-pickers`         | Chat form pickers (commands, mentions)                         |
-| `use-debounced-search`          | Shared debounced async search for pickers                      |
-| `use-picker-navigation`         | Picker keyboard navigation                                     |
-| `use-chat-message-edit-context` | Message edit context (content + extras)                        |
-| `use-chat-screen-drag-and-drop` | Drag-and-drop state machine                                    |
-| `use-chat-screen-file-upload`   | File upload queue + capability validation                      |
-| `use-chat-screen-scroll`        | Scroll container binding + navigation guard                    |
-| `use-auto-scroll`               | Auto-scroll controller for streaming                           |
-| `use-marquee-selection`         | Shift+click / marquee range selection                          |
-| `use-keyboard-shortcuts`        | Global keyboard shortcuts                                      |
-| `use-settings-navigation`       | Settings section navigation                                    |
-| `use-pwa`                       | PWA install/update + version mismatch detection                |
-
-#### Stores (`src/lib/stores/`)
-
-Stores own reactive application state as Svelte 5 runes. Larger stores are split into directories and compose focused sub-stores behind a narrow host interface (see Architectural Patterns).
-
-| Store                | Responsibility                                                                                                  |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `chatStore`          | Chat lifecycle, streaming, abort control, error handling; composes `processing`, `activity`, `streams`, `flows` |
-| `conversationsStore` | Conversation CRUD, message branching, navigation, import/export; composes `preferences`                         |
-| `modelsStore`        | Model list, selection, loading/unloading (ROUTER); composes `props`, `status`                                   |
-| `mcpStore`           | MCP host role: multi-server lifecycle, tool routing; composes `health`, `resources`                             |
-| `agenticStore`       | Multi-turn agentic loop orchestration, tool execution; composes `gates`                                         |
-| `serverStore`        | Server connection state, `/props`, role detection, modalities                                                   |
-| `settingsStore`      | User preferences, theme, parameter sync with server defaults                                                    |
-| `toolsStore`         | Tool registry: server + MCP tools, enabled set for the LLM                                                      |
-| `permissionsStore`   | Persisted tool permission grants                                                                                |
-| `contextStatsStore`  | Context window usage for the active conversation                                                                |
-| `draftMessagesStore` | Per-chat draft message/files                                                                                    |
-| `deviceStore`        | Browser environment signals (mobile, OS, theme)                                                                 |
-| `versionStore`       | Build version information                                                                                       |
-
-#### Services (`src/lib/services/`)
-
-Services are a stateless protocol layer: static methods, pure I/O, no reactive state. Stores consume them for all API and storage access.
-
-| Service                       | Responsibility                                                            |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| `ChatService`                 | `/v1/chat/completions` streaming + SSE parsing, message format conversion |
-| `ModelsService`               | `/models`, `/models/load`, `/models/unload`                               |
-| `PropsService`                | `/props`, `/props?model=`                                                 |
-| `DatabaseService`             | IndexedDB operations via Dexie                                            |
-| `MCPService`                  | MCP protocol: transports, connect, list/execute tools, prompts, resources |
-| `ToolsService`                | Server tool list/execute/stream (`/tools`)                                |
-| `SandboxService`              | Browser JS execution in a sandboxed worker                                |
-| `ParameterSyncService`        | Syncs settings with server defaults                                       |
-| `ConversationTransferService` | Conversation import/export JSONL + ZIP format                             |
-| `MigrationService`            | Non-destructive localStorage/IndexedDB migrations                         |
-| `RouterService`               | Dynamic route URL construction                                            |
-
----
-
-## Data Flows
-
-### MODEL Mode (Single Model)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant UI
-    participant Stores
-    participant DB as IndexedDB
-    participant API as llama-server
-
-    Note over User,API: Initialization
-    UI->>Stores: initStores() (awaited by route loads)
-    Stores->>Stores: run migrations
-    Stores->>DB: load conversations (background)
-    Stores->>API: GET /props
-    API-->>Stores: server config
-    Stores->>API: GET /v1/models
-    API-->>Stores: single model (auto-selected)
-
-    Note over User,API: Chat Flow
-    User->>UI: send message
-    Stores->>DB: save user message
-    Stores->>API: POST /v1/chat/completions (stream)
-    loop streaming
-        API-->>Stores: SSE chunks
-        Stores-->>UI: reactive update
-    end
-    Stores->>DB: save assistant message
-```
-
-### ROUTER Mode (Multi-Model)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant UI
-    participant Stores
-    participant API as llama-server
-
-    Note over User,API: Initialization
-    Stores->>API: GET /props
-    API-->>Stores: {role: "router"}
-    Stores->>API: GET /models
-    API-->>Stores: models[] with status
-
-    Note over User,API: Model Selection
-    User->>UI: select model
-    alt model not loaded
-        Stores->>API: POST /models/load
-        loop poll status
-            Stores->>API: GET /models
-        end
-        Stores->>API: GET /props?model=X
-    end
-    Stores->>Stores: validate modalities
-
-    Note over User,API: Chat Flow
-    Stores->>API: POST /v1/chat/completions {model: X}
-    loop streaming
-        API-->>Stores: SSE chunks + model info
-    end
-```
-
----
-
-## Architectural Patterns
-
-### 1. Reactive State with Svelte 5 Runes
-
-All stores use Svelte 5's fine-grained reactivity:
-
-```typescript
-// Store with reactive state
-class ChatStore {
-	#isLoading = $state(false);
-	#currentResponse = $state('');
-
-	// Derived values auto-update
-	get isStreaming() {
-		return $derived(this.#isLoading && this.#currentResponse.length > 0);
-	}
-}
-
-// Exported reactive accessors
-export const isLoading = () => chatStore.isLoading;
-export const currentResponse = () => chatStore.currentResponse;
-```
-
-### 2. Unidirectional Data Flow
-
-Data flows in one direction, making state predictable:
-
-```mermaid
-flowchart LR
-    subgraph UI["UI Layer"]
-        A[User Action] --> B[Component]
-    end
-
-    subgraph State["State Layer"]
-        B --> C[Store Method]
-        C --> D[State Update]
-    end
-
-    subgraph IO["I/O Layer"]
-        C --> E[Service]
-        E --> F[API / IndexedDB]
-        F -.->|Response| D
-    end
-
-    D -->|Reactive| B
-```
-
-Components dispatch actions to stores, stores coordinate with services for I/O, and state updates reactively propagate back to the UI.
-
-### 3. Per-Conversation State
-
-Enables concurrent streaming across multiple conversations. Loading is tracked
-per conversation by the activity ledger (`chatStore.activity`), while streaming
-state and abort controllers live in per-conversation maps:
-
-```typescript
-class ChatStore {
-	chatStreamingStates = new SvelteMap<string, { response: string; messageId: string }>();
-	abortControllers = new SvelteMap<string, AbortController>();
-}
-```
-
-### 4. Message Branching with Tree Structure
-
-Conversations are stored as a tree, not a linear list:
-
-```typescript
-interface DatabaseMessage {
-	id: string;
-	parent: string | null; // Points to parent message
-	children: string[]; // List of child message IDs
-	// ...
-}
-
-interface DatabaseConversation {
-	currentNode: string; // Currently viewed branch tip
-	// ...
-}
-```
-
-Navigation between branches updates `currentNode` without losing history.
-
-### 5. Layered Service Architecture
-
-Stores handle state; services handle I/O:
-
-```text
-┌─────────────────┐
-│     Stores      │  Business logic, state management
-├─────────────────┤
-│    Services     │  API calls, database operations
-├─────────────────┤
-│   Storage/API   │  IndexedDB, LocalStorage, HTTP
-└─────────────────┘
-```
-
-### 6. Server Role Abstraction
-
-Single codebase handles both MODEL and ROUTER modes:
-
-```typescript
-// serverStore.ts
-get isRouterMode() {
-  return this.role === ServerRole.ROUTER;
-}
-
-// Components conditionally render based on mode
-{#if isRouterMode()}
-  <ModelsSelector />
-{/if}
-```
-
-### 7. Modality Validation
-
-Prevents sending attachments to incompatible models. The
-`use-chat-screen-active-model` hook derives the active model's capabilities
-from `modelsStore.props`:
-
-```typescript
-// use-chat-screen-active-model hook
-const hasVisionModality = $derived.by(() => modelsStore.props.modelSupportsVision(activeModelId));
-const hasAudioModality = $derived.by(() => modelsStore.props.modelSupportsAudio(activeModelId));
-```
-
-### 8. Persistent Storage Strategy
-
-Data is persisted across sessions using two storage mechanisms:
-
-```mermaid
-flowchart TB
-    subgraph Browser["Browser Storage"]
-        subgraph IDB["IndexedDB (Dexie)"]
-            C[Conversations]
-            M[Messages]
-        end
-        subgraph LS["LocalStorage"]
-            S[Settings Config]
-            O[User Overrides]
-            T[Theme Preference]
-        end
-    end
-
-    subgraph Stores["Svelte Stores"]
-        CS[conversationsStore] --> C
-        CS --> M
-        SS[settingsStore] --> S
-        SS --> O
-        SS --> T
-    end
-```
-
-- **IndexedDB**: Conversations and messages (large, structured data)
-- **LocalStorage**: Settings, user parameter overrides, theme (small key-value data)
-- **Memory only**: Server props, model list (fetched fresh on each session)
-
----
-
-## Testing
-
-### Test Types
-
-| Type          | Tool               | Location         | Command             |
-| ------------- | ------------------ | ---------------- | ------------------- |
-| **Unit**      | Vitest             | `tests/unit/`    | `npm run test:unit` |
-| **UI/Visual** | Storybook + Vitest | `tests/stories/` | `npm run test:ui`   |
-| **E2E**       | Playwright         | `tests/e2e/`     | `npm run test:e2e`  |
-| **Client**    | Vitest             | `tests/client/`. | `npm run test:unit` |
-
-### Running Tests
-
-```bash
-# All tests
-npm run test
-
-# Individual test suites
-npm run test:e2e      # End-to-end (requires llama-server)
-npm run test:client   # Client-side unit tests
-npm run test:server   # Server-side unit tests
-npm run test:ui       # Storybook visual tests
-```
-
-### Storybook Development
-
-```bash
-npm run storybook     # Start Storybook dev server on :6006
-npm run build-storybook  # Build static Storybook
-```
-
-### Linting and Formatting
-
-```bash
-npm run lint          # Check code style
-npm run format        # Auto-format with Prettier
-npm run check         # TypeScript type checking
-```
-
----
-
-## Project Structure
-
-```text
-tools/ui/
-├── src/
-│   ├── lib/
-│   │   ├── components/   # UI components (app/, ui/)
-│   │   ├── hooks/        # Svelte hooks
-│   │   ├── stores/       # State management
-│   │   ├── services/     # API and database services
-│   │   ├── types/        # TypeScript interfaces
-│   │   └── utils/        # Utility functions
-│   ├── routes/           # SvelteKit routes
-│   └── styles/           # Global styles
-├── static/               # Static assets
-├── tests/                # Test files
-└── .storybook/           # Storybook configuration
-```
-
----
-
-## Related Documentation
-
-- [llama.cpp Server README](../server/README.md) - Full server documentation
-- [Multimodal Documentation](../../docs/multimodal.md) - Image and audio support
-- [Function Calling](../../docs/function-calling.md) - Tool use capabilities
+This project began as a copy of the llama-server web interface (`tools/ui`) from
+[ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp), MIT licensed, and was then
+decoupled from it and rebuilt against Tilekit. See [LICENSE](LICENSE) for the full picture,
+including the fonts and vendored libraries, and [ATTRIBUTIONS.txt](ATTRIBUTIONS.txt) for
+provenance.
