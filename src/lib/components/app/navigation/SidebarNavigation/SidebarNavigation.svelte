@@ -314,18 +314,24 @@
 {#if innerWidth > 768 || !page.url.hash.includes(ROUTES.SEARCH)}
 	<aside
 		class={[
-			'fixed md:sticky top-2 left-2 md:left-0 md:ml-2 md:mt-2 pt-2 z-10 w-[calc(100dvw-1rem)]',
-			'md:h-[calc(100dvh-1.125rem)]',
+			'fixed md:sticky top-2 left-2 pt-2 z-10 w-[calc(100dvw-1rem)]',
+			// on desktop it is a panel flush to the edge, not a floating card
+			'md:top-0 md:left-0 md:ml-0 md:mt-0 md:h-dvh md:pt-3',
 			uiStore.isSidebarExpanded &&
 				(deviceStore.isStandalone
 					? 'h-[calc(100dvh-2rem)]'
 					: deviceStore.isIOSDevice
 						? 'h-[calc(100dvh-0.5rem)]'
 						: 'h-[calc(100dvh-1rem)]'),
-			'rounded-3xl md:rounded-2xl',
+			// the panel is the only rounded thing, and only while it floats on mobile
+			'rounded-3xl md:rounded-none',
 			'flex flex-col justify-between',
 			'md:transition-[width,padding] duration-200 ease-out',
-			isStripExpanded && 'md:w-72 md:bg-muted/60 md:backdrop-blur-xl shadow-md',
+			// on a signal ground everything is void ink, including children that set
+			// their own colour
+			'md:[&_button]:text-void md:[&_a]:text-void md:[&_svg]:text-void',
+			'md:border-r md:border-void/25 md:bg-signal md:text-void',
+			isStripExpanded && 'md:w-72',
 			!isStripExpanded && 'md:w-12',
 			uiStore.isSidebarExpanded && 'is-expanded'
 		]}

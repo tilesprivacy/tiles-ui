@@ -169,7 +169,7 @@
 	}
 
 	*:hover {
-		scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+		scrollbar-color: var(--slate) transparent;
 	}
 
 	*::-webkit-scrollbar {
@@ -183,20 +183,29 @@
 
 	*::-webkit-scrollbar-thumb {
 		background: transparent;
-		border-radius: 3px;
-		transition: background 0.2s ease;
+		transition: background var(--dur-state) ease-out;
 	}
 
 	*:hover::-webkit-scrollbar-thumb {
-		background: hsl(var(--muted-foreground) / 0.3);
+		background: var(--steel);
 	}
 
 	*::-webkit-scrollbar-thumb:hover {
-		background: hsl(var(--muted-foreground) / 0.5);
+		background: var(--signal);
 	}
 
 	:where(code, pre, kbd, samp) {
 		font-family: var(--font-mono);
+	}
+
+	::selection {
+		background: var(--signal);
+		color: var(--void);
+	}
+
+	/* machine text lines up in columns */
+	:where(code, pre, kbd, samp, time) {
+		font-variant-numeric: tabular-nums;
 	}
 }
 
@@ -223,12 +232,7 @@
 	}
 
 	.shimmer-text {
-		background: linear-gradient(
-			90deg,
-			var(--muted-foreground),
-			var(--foreground),
-			var(--muted-foreground)
-		);
+		background: linear-gradient(90deg, var(--slate), var(--signal), var(--slate));
 		background-size: 200% 100%;
 		background-clip: text;
 		-webkit-background-clip: text;

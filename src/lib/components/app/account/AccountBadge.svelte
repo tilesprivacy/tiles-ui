@@ -38,19 +38,20 @@
 </script>
 
 {#if account}
-	<div class="border-t border-border px-2 py-2">
+	<div class="border-t border-void/15 px-2 py-2 md:border-void/15">
 		<Popover.Root>
 			<Popover.Trigger
-				class="flex w-full items-center gap-2 px-1.5 py-1.5 text-left hover:bg-steel"
+				class="cut flex w-full items-center gap-2 px-2 py-2 text-left transition-colors hover:bg-void/10"
 			>
 				<span
-					class="cut relative flex h-6 w-6 shrink-0 items-center justify-center bg-steel text-[11px] font-semibold text-ash"
+					class="cut relative flex h-7 w-7 shrink-0 items-center justify-center bg-void text-[12px] font-semibold text-signal"
 				>
 					{initial}
 
 					{#if atproto}
 						<!-- a connected identity is worth showing without opening the panel -->
-						<span class="absolute -right-0.5 -bottom-0.5 h-1.5 w-1.5 bg-signal"></span>
+						<span class="absolute -right-0.5 -bottom-0.5 h-1.5 w-1.5 bg-signal ring-1 ring-void"
+						></span>
 					{/if}
 				</span>
 
@@ -65,8 +66,8 @@
 				{/if}
 			</Popover.Trigger>
 
-			<Popover.Content align="start" class="w-80 border-border bg-steel" side="top">
-				<div class="flex flex-col gap-4">
+			<Popover.Content align="start" class="w-[17rem] border-border bg-steel p-4" side="top">
+				<div class="flex flex-col gap-5">
 					<!-- Tiles account -->
 					<div class="flex flex-col gap-2">
 						<div class="flex items-center gap-2">
@@ -109,7 +110,9 @@
 
 					<!-- AT Protocol -->
 					<div class="flex flex-col gap-2">
-						<span class="text-[11px] font-medium text-slate">AT Protocol</span>
+						<span class="text-[11px] font-medium tracking-wide text-slate uppercase"
+							>AT Protocol</span
+						>
 
 						{#if atproto}
 							<div class="cut flex flex-col gap-0.5 bg-background p-2">

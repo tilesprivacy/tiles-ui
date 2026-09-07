@@ -59,17 +59,17 @@
 <div
 	{...{ [UI_DATA_ATTRS.ACTIVE_TAB]: isActive ? 'true' : undefined }}
 	class={cn(
-		'relative flex h-8 max-w-52 min-w-0 shrink-0 items-center gap-1 rounded-lg pr-1 text-sm whitespace-nowrap border backdrop-blur-xl first:ml-2',
+		'cut relative flex h-8 max-w-52 min-w-0 shrink-0 items-center gap-1 pr-1 text-[13px] whitespace-nowrap border-b-2 backdrop-blur-xl first:ml-2 transition-colors',
 		isLoading ? 'pl-1' : 'pl-3',
 		isActive
-			? 'bg-muted/60 border-border/10 shadow-sm text-accent-foreground hover:bg-primary/15'
-			: 'border-transparent hover:bg-primary/10 hover:border-border/10 hover:shadow-sm'
+			? 'bg-steel border-signal text-bone'
+			: 'border-transparent text-slate hover:bg-steel/60 hover:text-ash'
 	)}
 >
 	<a
 		aria-current={isActive ? 'page' : undefined}
 		aria-label={tab.name}
-		class="absolute inset-0 z-0 rounded-lg"
+		class="absolute inset-0 z-0"
 		{href}
 		onauxclick={(e) => onAuxClick?.(tab.id, e)}
 		onclick={handleActivate}
