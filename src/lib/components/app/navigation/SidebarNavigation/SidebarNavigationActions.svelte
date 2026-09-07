@@ -163,7 +163,7 @@
 		{/each}
 	</div>
 {:else}
-	<div class="{className} flex-col gap-1 hidden md:flex">
+	<div class="{className} flex-col items-center gap-1 hidden md:flex">
 		{#each SIDEBAR_ACTIONS_ITEMS as item, i (item.tooltip)}
 			{@const isActive = isItemActive(item)}
 			{@const isSearchOnMobile = item.icon === Search && deviceStore.isMobile}

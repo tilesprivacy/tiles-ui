@@ -327,16 +327,13 @@
 			'rounded-3xl md:rounded-none',
 			'flex flex-col justify-between',
 			'md:transition-[width,padding] duration-200 ease-out',
-			// on a signal ground everything is void ink, including children that set
-			// their own colour
-			'md:[&_button]:text-void md:[&_a]:text-void md:[&_svg]:text-void',
-			'md:border-r md:border-void/25 md:bg-signal md:text-void',
+			'md:border-r md:border-border md:bg-background',
 			isStripExpanded && 'md:w-72',
 			!isStripExpanded && 'md:w-12',
 			uiStore.isSidebarExpanded && 'is-expanded'
 		]}
 	>
-		<div class="px-2 flex items-center justify-between">
+		<div class="px-2 flex items-center {isStripExpanded ? 'justify-between' : 'justify-center'}">
 			<div
 				class="relative"
 				onmouseenter={() => (logoHovered = true)}

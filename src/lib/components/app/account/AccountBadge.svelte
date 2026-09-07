@@ -38,13 +38,13 @@
 </script>
 
 {#if account}
-	<div class="border-t border-void/15 px-2 py-2 md:border-void/15">
+	<div class="border-t border-border px-2 py-2">
 		<Popover.Root>
 			<Popover.Trigger
-				class="cut flex w-full items-center gap-2 px-2 py-2 text-left transition-colors hover:bg-void/10"
+				class="cut flex w-full items-center gap-2 px-2 py-2 text-left transition-colors hover:bg-steel"
 			>
 				<span
-					class="cut relative flex h-7 w-7 shrink-0 items-center justify-center bg-void text-[12px] font-semibold text-signal"
+					class="cut relative flex h-7 w-7 shrink-0 items-center justify-center bg-steel text-[12px] font-semibold text-ash"
 				>
 					{initial}
 
