@@ -63,6 +63,12 @@ export interface TilekitAccount {
 	nickname: string;
 }
 
+/** An ATproto identity, from `/atproto/status`. Absent means a 404. */
+export interface TilekitAtprotoAccount {
+	handle: string;
+	did: string;
+}
+
 /** Pi's view of itself, from `/agent/state`. */
 export interface TilekitAgentState {
 	sessionId: string;

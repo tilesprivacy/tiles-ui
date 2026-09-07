@@ -12,16 +12,28 @@
 
 import { browser } from '$app/environment';
 import { TilekitService } from '$lib/services/tilekit.service';
-import type { TilekitAccount } from '$lib/types/tilekit';
+import type { TilekitAccount, TilekitAtprotoAccount } from '$lib/types/tilekit';
 import { ApiError } from '$lib/utils';
 
 export type AccountState = 'loading' | 'missing' | 'ready' | 'unreachable';
 
+/**
+ * `connecting` covers the whole browser round trip. The daemon opens the
+ * browser and holds the request open until the user authorises, so this can
+ * last minutes and has to be cancellable.
+ */
+export type AtprotoState = 'loading' | 'absent' | 'connecting' | 'ready';
+
 class AccountStore {
 	account = $state<TilekitAccount | null>(null);
+	atproto = $state<TilekitAtprotoAccount | null>(null);
+
+	atprotoError = $state<string | null>(null);
+	atprotoState = $state<AtprotoState>('loading');
 	creating = $state(false);
 	error = $state<string | null>(null);
 	state = $state<AccountState>('loading');
+	private connectAbort: AbortController | null = null;
 
 	/** Shortened did:key for places that cannot fit the whole thing. */
 	get shortDid(): string {
@@ -30,6 +42,52 @@ class AccountStore {
 		if (!id) return '';
 
 		return id.length > 24 ? `${id.slice(0, 16)}…${id.slice(-6)}` : id;
+	}
+
+	/**
+	 * Gives up on this side only. The daemon keeps its callback listener open,
+	 * so finishing in the browser afterwards still signs you in - a refresh
+	 * will show it.
+	 */
+	cancelConnect(): void {
+		this.connectAbort?.abort();
+		this.connectAbort = null;
+		this.atprotoState = 'absent';
+		this.atprotoError = null;
+	}
+
+	/**
+	 * Resolves the handle, hands off to the browser, and waits. Resolves true
+	 * once the daemon confirms; false if it failed or the user cancelled.
+	 */
+	async connectAtproto(handle: string): Promise<boolean> {
+		const trimmed = handle.trim().replace(/^@/, '');
+
+		if (!trimmed || this.atprotoState === 'connecting') return false;
+
+		this.connectAbort = new AbortController();
+		this.atprotoState = 'connecting';
+		this.atprotoError = null;
+
+		try {
+			await TilekitService.atprotoLogin(trimmed, this.connectAbort.signal);
+			await this.refreshAtproto();
+
+			return this.atproto !== null;
+		} catch (error) {
+			if (this.connectAbort?.signal.aborted) {
+				this.atprotoState = 'absent';
+
+				return false;
+			}
+
+			this.atprotoError = error instanceof Error ? error.message : String(error);
+			this.atprotoState = 'absent';
+
+			return false;
+		} finally {
+			this.connectAbort = null;
+		}
 	}
 
 	async create(nickname: string): Promise<boolean> {
@@ -54,8 +112,22 @@ class AccountStore {
 		}
 	}
 
+	async disconnectAtproto(): Promise<void> {
+		this.atprotoError = null;
+
+		try {
+			await TilekitService.atprotoLogout();
+		} catch (error) {
+			this.atprotoError = error instanceof Error ? error.message : String(error);
+		}
+
+		await this.refreshAtproto();
+	}
+
 	async initialize(): Promise<void> {
 		if (!browser) return;
+
+		void this.refreshAtproto();
 
 		try {
 			this.account = await TilekitService.accountStatus();
@@ -73,6 +145,17 @@ class AccountStore {
 
 			this.state = 'unreachable';
 			this.error = error instanceof Error ? error.message : String(error);
+		}
+	}
+
+	async refreshAtproto(): Promise<void> {
+		try {
+			this.atproto = await TilekitService.atprotoStatus();
+			this.atprotoState = 'ready';
+		} catch {
+			// 404 simply means no account is connected
+			this.atproto = null;
+			this.atprotoState = 'absent';
 		}
 	}
 }

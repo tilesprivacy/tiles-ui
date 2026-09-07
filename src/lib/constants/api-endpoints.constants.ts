@@ -17,6 +17,11 @@ export const API_TILEKIT = {
 		START: `${TILEKIT}/agent/start`,
 		STATE: `${TILEKIT}/agent/state`
 	},
+	ATPROTO: {
+		LOGIN: `${TILEKIT}/atproto/login`,
+		LOGOUT: `${TILEKIT}/atproto/logout`,
+		STATUS: `${TILEKIT}/atproto/status`
+	},
 	SERVER: {
 		PING: `${TILEKIT}/server/ping`,
 		START: `${TILEKIT}/server/start`,

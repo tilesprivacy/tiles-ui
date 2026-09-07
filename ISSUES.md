@@ -116,9 +116,8 @@ Listed in `docs/adr/tilekit.md` but never routed, or needed by the UI and absent
 
 - [ ] `POST /v1/tilekit/account/set-nickname` — in the ADR, not routed, though `set_nickname`
       exists in `core/account/local.rs`.
-- [ ] `GET /account/status` does not report ATproto state even though `fetch_logged_in_data`
-      exists, so a client cannot tell whether the user is signed in.
-- [ ] No ATproto endpoints at all — see below.
+- [ ] `GET /account/status` reports only the local identity, so a client has to call
+      `/atproto/status` separately to know who is signed in.
 
 ---
 
@@ -142,30 +141,31 @@ start a fresh Pi session seeded with prior history — which is what the REPL's 
 
 ---
 
-## ATproto is not exposed
+## ATproto
 
-Making both a local and an ATproto account is the distinguishing feature, but only local is
-reachable over HTTP. The capability exists in `core/account/atproto.rs` and is wired only to
-the CLI (`tiles at login <handle>` / `tiles at logout`):
+Three endpoints landed on `feat/tilekit-apis` — `POST /atproto/login`, `POST /atproto/logout`
+and `GET /atproto/status` — and the UI uses all three. Two things about `login` still shape
+what a client can do:
 
-`login`, `logout`, `fetch_logged_in_data`, `share_session`.
+- **It blocks for the whole browser flow.** The daemon opens the browser itself, then waits
+  on `callback_rx.await` with no timeout, so the POST stays open until the user authorises.
+  If they walk away it never returns and port 8988 stays bound with a live listener. The UI
+  cancels its own side with an `AbortController`, but the daemon keeps waiting — finishing in
+  the browser afterwards still signs you in, which a client cannot know without polling
+  `/atproto/status`.
+- **Two concurrent logins collide** on port 8988.
 
-`login` cannot be wrapped as-is, because it is written for a terminal:
+A timeout, and a way to cancel server-side, would let a client model this properly.
 
-- it blocks for the entire browser flow — `start_internal_server(Some(8988), callback_tx)`
-  then `callback_rx.await`, with no timeout or cancel;
-- it `println!`s the authorize URL, which in the daemon goes to `daemon.out.log` where no
-  client can see it;
-- it spawns `open` / `xdg-open` from the daemon process;
-- the callback server is single-shot, so two concurrent logins collide on port 8988.
+`logout` also returns CLI-flavoured copy to HTTP callers: _"Please log in using tiles at
+login &lt;handle&gt;"_, which a GUI user cannot act on.
 
-Exposing it means splitting the flow: one call that resolves the handle, arms the listener
-and returns the authorize URL, and another (poll or SSE) for whether the callback landed.
+### Still missing
 
-Worth deciding early: the local `did:key` and the ATproto `did:plc` are **separate
-identities that coexist**. Signing into ATproto does not replace the local account.
-
----
+- [ ] `POST /atproto/share-session/{id}` is stubbed out in `daemon/atproto.rs` but commented
+      out, so publishing a conversation to a PDS is CLI-only.
+- [ ] `GET /account/status` still reports only the local identity, so a client has to call
+      two endpoints to know who is signed in.
 
 ## Infrastructure
 

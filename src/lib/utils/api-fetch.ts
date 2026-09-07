@@ -145,6 +145,11 @@ async function parseErrorMessage(response: Response): Promise<string> {
 	try {
 		const errorData = await response.json();
 
+		// Tilekit failures are { status: "failed", reason }
+		if (typeof errorData?.reason === 'string' && errorData.reason) {
+			return errorData.reason;
+		}
+
 		if (errorData?.error?.message) {
 			return errorData.error.message;
 		}

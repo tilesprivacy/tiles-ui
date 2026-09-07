@@ -10,6 +10,7 @@ import { API_TILEKIT } from '$lib/constants';
 import type {
 	TilekitAccount,
 	TilekitAgentState,
+	TilekitAtprotoAccount,
 	TilekitChat,
 	TilekitDeltaChat,
 	TilekitResponse,
@@ -31,6 +32,34 @@ export class TilekitService {
 	/** Pi's current session id, model and thinking level. */
 	static async agentState(): Promise<TilekitAgentState> {
 		return apiFetch<TilekitResponse<TilekitAgentState>>(API_TILEKIT.AGENT.STATE).then(unwrap);
+	}
+
+	/**
+	 * Starts the ATproto OAuth flow. The daemon opens the browser itself and
+	 * this request stays open for the whole of it, resolving only once the user
+	 * has authorised - so always pass a signal, or a user who walks away leaves
+	 * the request hanging.
+	 */
+	static async atprotoLogin(handle: string, signal?: AbortSignal): Promise<string> {
+		return apiPost<TilekitResponse<string>, { user_handle: string }>(
+			API_TILEKIT.ATPROTO.LOGIN,
+			{ user_handle: handle },
+			{ signal }
+		).then(unwrap);
+	}
+
+	static async atprotoLogout(): Promise<string> {
+		return apiPost<TilekitResponse<string>, Record<string, never>>(
+			API_TILEKIT.ATPROTO.LOGOUT,
+			{}
+		).then(unwrap);
+	}
+
+	/** The connected ATproto identity, or a 404 when there is none. */
+	static async atprotoStatus(): Promise<TilekitAtprotoAccount> {
+		return apiFetch<TilekitResponse<TilekitAtprotoAccount>>(API_TILEKIT.ATPROTO.STATUS).then(
+			unwrap
+		);
 	}
 
 	/** Creates the local identity. Fails with 409 if one already exists. */
