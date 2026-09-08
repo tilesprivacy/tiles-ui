@@ -50,6 +50,7 @@ import {
 	isAbortError,
 	normalizeModelName
 } from '$lib/utils';
+import { markShownInline, wasShownInline } from '$lib/utils/shown-inline';
 import { SvelteMap } from 'svelte/reactivity';
 
 class ChatStore implements ChatStreamHost, ChatFlowsHost {
@@ -736,11 +737,13 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 				error as Error & { contextInfo?: { n_prompt_tokens: number; n_ctx: number } }
 			).contextInfo;
 
-			this.showErrorDialog({
-				contextInfo,
-				message: error instanceof Error ? error.message : 'Unknown error',
-				type: dialogType
-			});
+			if (!wasShownInline(error)) {
+				this.showErrorDialog({
+					contextInfo,
+					message: error instanceof Error ? error.message : 'Unknown error',
+					type: dialogType
+				});
+			}
 		}
 	}
 
@@ -1046,11 +1049,18 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 					error as Error & { contextInfo?: { n_prompt_tokens: number; n_ctx: number } }
 				).contextInfo;
 
-				this.showErrorDialog({
-					contextInfo,
-					message: error.message,
-					type: error.name === 'TimeoutError' ? ErrorDialogType.TIMEOUT : ErrorDialogType.SERVER
-				});
+				// a failed turn belongs in the thread where it happened. the context
+				// dialog stays, it carries token counts an inline line cannot show
+				if (contextInfo) {
+					this.showErrorDialog({
+						contextInfo,
+						message: error.message,
+						type: error.name === 'TimeoutError' ? ErrorDialogType.TIMEOUT : ErrorDialogType.SERVER
+					});
+				} else {
+					await this.markMessageFailed(assistantMessage.id, error.message);
+					markShownInline(error);
+				}
 
 				if (onError) onError(error);
 			},
@@ -1291,6 +1301,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			this.abortControllers.clear();
 		}
 	}
+
 	private async generateTitleWithLLM(
 		userContent: string,
 		assistantContent: string,
@@ -1338,11 +1349,19 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			await conversationsStore.updateConversationName(convId, cleanTitle);
 		}
 	}
-
 	private getChatStreamingState(
 		convId: string
 	): { response: string; messageId: string } | undefined {
 		return this.chatStreamingStates.get(convId);
+	}
+
+	/** Hangs the reason on the assistant turn, so the chat shows it in place of a reply. */
+	private async markMessageFailed(messageId: string, errorMessage: string): Promise<void> {
+		const idx = conversationsStore.findMessageIndex(messageId);
+
+		if (idx !== -1) conversationsStore.updateMessageAtIndex(idx, { errorMessage });
+
+		await DatabaseService.updateMessage(messageId, { errorMessage }).catch(console.error);
 	}
 
 	/**

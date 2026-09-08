@@ -1,4 +1,10 @@
-import { parseTilekitStream, PI_DELTA, PI_EVENT, readMessageDelta } from '$lib/utils/tilekit-sse';
+import {
+	parseTilekitStream,
+	PI_DELTA,
+	PI_EVENT,
+	readMessageDelta,
+	readTurnFailure
+} from '$lib/utils/tilekit-sse';
 import { describe, expect, it } from 'vitest';
 
 /** Builds a Response whose body streams `chunks` as-is. */
@@ -83,5 +89,37 @@ describe('readMessageDelta', () => {
 
 	it('ignores malformed json rather than throwing', () => {
 		expect(readMessageDelta('not json')).toBe(null);
+	});
+});
+
+describe('readTurnFailure', () => {
+	// what the daemon really sends when the inference server is down
+	const failed = JSON.stringify({
+		message: {
+			content: [],
+			errorMessage: 'Connection error.',
+			role: 'assistant',
+			stopReason: 'error'
+		}
+	});
+
+	it('reads the reason off a failed turn', () => {
+		expect(readTurnFailure(failed)).toBe('Connection error.');
+	});
+
+	it('falls back to a reason of its own when the message carries none', () => {
+		const bare = JSON.stringify({ message: { stopReason: 'error' } });
+
+		expect(readTurnFailure(bare)).toBe('The agent could not finish the turn');
+	});
+
+	it('stays quiet for a turn that ended normally', () => {
+		const ok = JSON.stringify({ message: { role: 'assistant', stopReason: 'stop' } });
+
+		expect(readTurnFailure(ok)).toBe(null);
+	});
+
+	it('ignores malformed json rather than throwing', () => {
+		expect(readTurnFailure('not json')).toBe(null);
 	});
 });

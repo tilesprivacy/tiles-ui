@@ -9,7 +9,6 @@
 
 import {
 	ContinueIntentKind,
-	ErrorDialogType,
 	MessageRole,
 	MessageType,
 	StreamConnectionState
@@ -34,6 +33,7 @@ import {
 	findMessageById,
 	isAbortError
 } from '$lib/utils';
+import { markShownInline } from '$lib/utils/shown-inline';
 
 /**
  * The slice of chatStore the flows drive. Kept narrow on purpose so the flows
@@ -226,10 +226,12 @@ export class ChatMessageFlows {
 						});
 
 						this.host.cleanupStreaming(msg.convId);
-						this.host.showErrorDialog({
-							message: error.message,
-							type: error.name === 'TimeoutError' ? ErrorDialogType.TIMEOUT : ErrorDialogType.SERVER
+						// same as a fresh turn, the reason reads better next to the reply
+						await DatabaseService.updateMessage(msg.id, { errorMessage: error.message });
+						conversationsStore.updateMessageAtIndex(conversationsStore.findMessageIndex(msg.id), {
+							errorMessage: error.message
 						});
+						markShownInline(error);
 					},
 					onReasoningChunk: (chunk: string) => {
 						appendedReasoning += chunk;

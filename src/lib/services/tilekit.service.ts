@@ -70,6 +70,11 @@ export class TilekitService {
 		).then(unwrap);
 	}
 
+	/** Starts Pi if it is not already running. */
+	static async startAgent(): Promise<void> {
+		await apiFetch(API_TILEKIT.AGENT.START);
+	}
+
 	/** Asks Pi to abort the turn it is working on. */
 	static async endAgentSession(): Promise<void> {
 		await apiFetch(API_TILEKIT.AGENT.END_SESSION);

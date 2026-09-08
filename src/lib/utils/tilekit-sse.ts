@@ -16,6 +16,7 @@ import { SSE_DATA_PREFIX, SSE_LINE_SEPARATOR, SSE_RECORD_SEPARATOR } from '$lib/
 export const PI_EVENT = {
 	AGENT_SETTLED: 'agent_settled',
 	ERROR: 'error',
+	MESSAGE_END: 'message_end',
 	MESSAGE_UPDATE: 'message_update'
 } as const;
 
@@ -28,6 +29,14 @@ export const PI_DELTA = {
 export interface PiSseEvent {
 	event: string;
 	data: string;
+}
+
+/** The `message_end` payload. A failed turn is reported here, not as an `error`. */
+export interface PiMessageEnd {
+	message?: {
+		errorMessage?: string;
+		stopReason?: string;
+	};
 }
 
 /** The `message_update` payload, as Pi writes it. */
@@ -129,6 +138,25 @@ export function readMessageDelta(data: string): { kind: string; delta: string } 
 	if (!event?.type || typeof event.delta !== 'string') return null;
 
 	return { delta: event.delta, kind: event.type };
+}
+
+/**
+ * Reads a failed turn out of a `message_end` event. Pi answers 200 and streams a
+ * normal looking message whose stopReason is `error`, so without this a dead
+ * inference server arrives as nothing more than an empty reply.
+ */
+export function readTurnFailure(data: string): string | null {
+	let parsed: PiMessageEnd;
+
+	try {
+		parsed = JSON.parse(data) as PiMessageEnd;
+	} catch {
+		return null;
+	}
+
+	if (parsed.message?.stopReason !== 'error') return null;
+
+	return parsed.message.errorMessage || 'The agent could not finish the turn';
 }
 
 export { SSE_RECORD_SEPARATOR };

@@ -153,6 +153,10 @@
 		{/if}
 	{/if}
 
+	{#if message.errorMessage}
+		<p class="text-destructive my-2 text-sm">{message.errorMessage}</p>
+	{/if}
+
 	{#if showProcessingInfoBottom}
 		<ChatMessageAssistantProcessingInfo {modelLoadingText} position="bottom" {processingState} />
 	{/if}

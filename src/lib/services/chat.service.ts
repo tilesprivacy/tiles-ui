@@ -34,6 +34,7 @@ import {
 	ReasoningFormat,
 	StreamConnectionState
 } from '$lib/enums';
+import { TilekitService } from '$lib/services/tilekit.service';
 import { modelsStore } from '$lib/stores/models/index.svelte';
 import { settingsStore } from '$lib/stores/settings/index.svelte';
 import type { DatabaseMessageExtraMcpPrompt, DatabaseMessageExtraMcpResource } from '$lib/types';
@@ -52,7 +53,8 @@ import {
 	parseTilekitStream,
 	PI_DELTA,
 	PI_EVENT,
-	readMessageDelta
+	readMessageDelta,
+	readTurnFailure
 } from '$lib/utils/tilekit-sse';
 
 interface ResumableStreamState {
@@ -67,6 +69,9 @@ interface ResumableStreamState {
 function streamStorageKey(conversationId: string): string {
 	return STREAM_RESUME_LOCALSTORAGE_KEY_PREFIX + conversationId;
 }
+
+const SERVER_OFFLINE =
+	'The Tiles inference server is offline. Turn it on from the Tiles menu bar to continue chatting.';
 
 export class ChatService {
 	// Per-chunk localStorage writes are throttled to at most one per
@@ -1337,14 +1342,26 @@ export class ChatService {
 	static async sendTilekitPrompt(
 		message: string,
 		options: SettingsChatServiceOptions = {},
-		signal?: AbortSignal
+		signal?: AbortSignal,
+		canRetry = true
 	): Promise<void> {
 		const { onChunk, onComplete, onError, onReasoningChunk } = options;
 
 		let content = '';
 		let reasoning = '';
+		let failure = '';
 
 		try {
+			// pi retries a dead inference server three times over ~14 seconds before
+			// it gives up, so ask the daemon first rather than spin for that long
+			if (canRetry && !(await TilekitService.pingServer())) {
+				const error = new Error(SERVER_OFFLINE);
+
+				await onError?.(error);
+
+				throw error;
+			}
+
 			const response = await fetch(`${base}${API_TILEKIT.AGENT.PROMPT}`, {
 				body: JSON.stringify({ message }),
 				headers: getJsonHeaders(),
@@ -1355,18 +1372,35 @@ export class ChatService {
 			if (!response.ok) {
 				const error = await ChatService.parseErrorResponse(response);
 
-				onError?.(error);
+				await onError?.(error);
 
 				throw error;
 			}
 
 			for await (const event of parseTilekitStream(response, signal)) {
 				if (event.event === PI_EVENT.ERROR) {
+					// the agent lives in the daemon's memory, so a restart leaves the
+					// first prompt after it with nothing to talk to. start one and try
+					// again, but only before anything has streamed
+					const noAgent = /agent/i.test(event.data) && !content && !reasoning;
+
+					if (noAgent && canRetry) {
+						await TilekitService.startAgent();
+
+						return ChatService.sendTilekitPrompt(message, options, signal, false);
+					}
+
 					const error = new Error(event.data || 'The agent reported an error');
 
-					onError?.(error);
+					await onError?.(error);
 
 					throw error;
+				}
+
+				if (event.event === PI_EVENT.MESSAGE_END) {
+					failure = readTurnFailure(event.data) ?? failure;
+
+					continue;
 				}
 
 				if (event.event !== PI_EVENT.MESSAGE_UPDATE) continue;
@@ -1382,6 +1416,15 @@ export class ChatService {
 					reasoning += update.delta;
 					onReasoningChunk?.(update.delta);
 				}
+			}
+
+			// a turn that produced nothing but a failure is an error, not a reply
+			if (failure && !content && !reasoning) {
+				const error = new Error(await ChatService.explainFailure(failure));
+
+				await onError?.(error);
+
+				throw error;
 			}
 
 			onComplete?.(content, reasoning || undefined, undefined, undefined);
@@ -1453,6 +1496,11 @@ export class ChatService {
 		const offset = from === undefined ? '' : `&${STREAM_QUERY_PARAMS.FROM}=${from}`;
 
 		return `${API_STREAM.BASE}?${query}${offset}`;
+	}
+
+	/** Pi only ever says "Connection error.", so name the thing that is actually down. */
+	private static async explainFailure(reason: string): Promise<string> {
+		return (await TilekitService.pingServer()) ? reason : SERVER_OFFLINE;
 	}
 
 	/**
