@@ -3,7 +3,7 @@
 	let { class: className = '', style = '' } = $props();
 </script>
 
-<div class={className} {style}>
+<div class="{className} flex items-center justify-center" {style}>
 	{@html logoMark}
 </div>
 

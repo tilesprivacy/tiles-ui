@@ -41,16 +41,19 @@
 	<div class="border-t border-border px-2 py-2">
 		<Popover.Root>
 			<Popover.Trigger
-				class="cut flex w-full items-center gap-2 px-2 py-2 text-left transition-colors hover:bg-steel"
+				class="flex w-full items-center gap-2 rounded-lg py-2 text-left transition-colors hover:bg-steel {expanded
+					? 'px-2'
+					: 'justify-center px-0'}"
 			>
 				<span
-					class="cut relative flex h-7 w-7 shrink-0 items-center justify-center bg-steel text-[12px] font-semibold text-ash"
+					class="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-steel text-[12px] font-semibold text-ash"
 				>
 					{initial}
 
 					{#if atproto}
 						<!-- a connected identity is worth showing without opening the panel -->
-						<span class="absolute -right-0.5 -bottom-0.5 h-1.5 w-1.5 bg-signal ring-1 ring-void"
+						<span
+							class="absolute right-0 bottom-0 h-2 w-2 rounded-full bg-signal ring-2 ring-background"
 						></span>
 					{/if}
 				</span>
