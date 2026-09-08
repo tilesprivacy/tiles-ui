@@ -505,12 +505,47 @@ export class DatabaseService {
 		try {
 			const chats = await TilekitService.fetchChats(convId);
 
-			if (chats.length) return chatsToMessages(chats);
+			if (chats.length) {
+				const messages = chatsToMessages(chats);
+
+				await DatabaseService.hydrate(convId, messages);
+
+				return messages;
+			}
 		} catch (error) {
 			console.warn('[db] session chats unavailable, falling back to local:', error);
 		}
 
 		return await db[IDXDB_TABLES.messages].where('convId').equals(convId).sortBy('timestamp');
+	}
+
+	/**
+	 * Mirrors what the daemon returned into IndexedDB. The write path still runs
+	 * through here and checks that a message's parent exists locally, so a
+	 * conversation that was only ever read from the daemon has to be present
+	 * before anyone can reply into it.
+	 */
+	private static async hydrate(convId: string, messages: DatabaseMessage[]): Promise<void> {
+		try {
+			await db.transaction(
+				'rw',
+				[db[IDXDB_TABLES.conversations], db[IDXDB_TABLES.messages]],
+				async () => {
+					await db[IDXDB_TABLES.messages].bulkPut(messages);
+
+					if (!(await db[IDXDB_TABLES.conversations].get(convId))) {
+						await db[IDXDB_TABLES.conversations].put({
+							currNode: messages[messages.length - 1]?.id ?? null,
+							id: convId,
+							lastModified: messages[messages.length - 1]?.timestamp ?? Date.now(),
+							name: 'Untitled'
+						});
+					}
+				}
+			);
+		} catch (error) {
+			console.warn('[db] could not cache the conversation locally:', error);
+		}
 	}
 
 	/**
