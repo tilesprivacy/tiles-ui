@@ -100,6 +100,17 @@ export class AutoScrollController {
 	}
 
 	/**
+	 * Someone is heading up, so stop following now rather than when the scroll
+	 * event arrives. Content rendering in the meantime pins to the bottom on
+	 * every mutation, and it would win that race and drag them back.
+	 */
+	pause(): void {
+		this._programmaticUntil = 0;
+		this._userScrolledUp = true;
+		this._autoScrollEnabled = false;
+	}
+
+	/**
 	 * Resets scroll state when switching conversations.
 	 */
 	resetScrollState(): void {

@@ -262,7 +262,7 @@
 		}
 	}}
 	ontouchmove={() => autoScroll.noteUserIntent()}
-	onwheel={() => autoScroll.noteUserIntent()}
+	onwheel={(e) => (e.deltaY < 0 ? autoScroll.pause() : autoScroll.noteUserIntent())}
 />
 
 {#if isServerLoading}
@@ -294,12 +294,17 @@
 				// the composer floats over the thread, so fade the ground in behind
 				// it rather than letting a message read through from underneath
 				!isEmpty && 'chat-screen-form-fade',
+				// sits on the bottom edge and holds itself up with padding instead of
+				// an offset, so the ground behind it reaches the edge too. an offset
+				// left a strip under the composer for the thread to show through
 				deviceStore.isStandalone
-					? 'bottom-6 right-4 left-4'
+					? 'bottom-0 right-4 left-4 pb-6'
 					: deviceStore.isIOSSafari
-						? 'bottom-1 left-2 right-2'
-						: 'bottom-2 right-2 left-2',
-				isEmpty ? 'md:bottom-[calc(50dvh-7rem)] 2xl:bottom-[calc(50dvh-4rem)]' : 'md:bottom-4'
+						? 'bottom-0 left-2 right-2 pb-1'
+						: 'bottom-0 right-2 left-2 pb-2',
+				isEmpty
+					? 'md:bottom-[calc(50dvh-7rem)] 2xl:bottom-[calc(50dvh-4rem)]'
+					: 'md:bottom-0 md:pb-4'
 			]}
 		>
 			<ChatScreenGreeting {isEmpty} />

@@ -428,22 +428,14 @@
 
 <style>
 	/*
-	 * The browser skips layout and paint for messages outside the
-	 * viewport. contain-intrinsic-size reuses the last rendered size
-	 * once known; 500px sizes messages that have never been rendered.
+	 * Deliberately no content-visibility here. Skipping layout for messages off
+	 * screen means guessing their height, and a guess is wrong by whatever the
+	 * message really is: scroll up into a short one and the page shortens above
+	 * you, taking your position with it. A long back and forth is the worst of
+	 * it, every turn correcting as you reach it. If threads ever grow long
+	 * enough to need this back, it wants a real virtual list, not a guess.
 	 */
 	.chat-message {
-		--chat-message-intrinsic-size: 500px;
-		content-visibility: auto;
-		contain-intrinsic-size: auto var(--chat-message-intrinsic-size);
-	}
-
-	/*
-	 * Synthetic rows (e.g. the working-directory change) are small, so an
-	 * accurate placeholder keeps the injected row from inflating the
-	 * auto-scroll offset; the 500px default is for ordinary bubbles.
-	 */
-	.chat-message--synthetic {
-		--chat-message-intrinsic-size: 40px;
+		content-visibility: visible;
 	}
 </style>

@@ -90,3 +90,18 @@ describe('AutoScrollController', () => {
 		expect(c.userScrolledUp).toBe(false);
 	});
 });
+
+describe('AutoScrollController.pause', () => {
+	it('stops following before the scroll event has a chance to arrive', () => {
+		const box = { clientHeight: 500, scrollHeight: 1000, scrollTop: 500 } as HTMLElement;
+		const c = createAutoScrollController();
+
+		c.setContainer(box);
+		c.scrollToBottom();
+		// a wheel up, while content is still landing and pinning every mutation
+		c.pause();
+
+		expect(c.autoScrollEnabled).toBe(false);
+		expect(c.userScrolledUp).toBe(true);
+	});
+});
