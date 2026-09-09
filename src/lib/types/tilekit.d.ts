@@ -70,6 +70,12 @@ export interface TilekitAtprotoAccount {
 }
 
 /** Pi's view of itself, from `/agent/state`. */
+export interface TilekitSharedSession {
+	/** chat.tiles.run link. A private one carries its key in the fragment. */
+	url: string;
+	is_private: boolean;
+}
+
 export interface TilekitModelfile {
 	content: string;
 	/** false while the shipped modelfile is still in use, nothing has been saved over it */

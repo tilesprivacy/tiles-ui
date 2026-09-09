@@ -9,6 +9,7 @@
 		ChatScreenForm,
 		ChatScreenServerError,
 		ChatScreenStreamResumeStatus,
+		ChatShareButton,
 		ServerLoadingSplash
 	} from '$lib/components/app';
 	import { LANDING_SETTLE_MAX_MS, LANDING_STABLE_FRAMES, ROUTES } from '$lib/constants';
@@ -277,6 +278,14 @@
 		ondrop={dragAndDrop.dragHandlers.drop}
 		role="main"
 	>
+		{#if page.params.id}
+			<div class="pointer-events-none fixed right-4 top-3 z-30 md:absolute md:right-2 md:top-2">
+				<div class="pointer-events-auto relative">
+					<ChatShareButton sessionId={page.params.id} />
+				</div>
+			</div>
+		{/if}
+
 		{#if !isEmpty}
 			<ChatMessages
 				messages={conversationsStore.activeMessages}

@@ -21,6 +21,8 @@ export const API_TILEKIT = {
 	ATPROTO: {
 		LOGIN: `${TILEKIT}/atproto/login`,
 		LOGOUT: `${TILEKIT}/atproto/logout`,
+		shareSession: (sessionId: string) =>
+			`${TILEKIT}/atproto/share-session/${encodeURIComponent(sessionId)}`,
 		STATUS: `${TILEKIT}/atproto/status`
 	},
 	MODELFILE: `${TILEKIT}/modelfile`,

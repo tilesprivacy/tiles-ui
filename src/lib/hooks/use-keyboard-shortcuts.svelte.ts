@@ -1,6 +1,7 @@
 import { page } from '$app/state';
 import { NEW_CHAT_TAB_ID } from '$lib/constants';
 import { KeyboardKey } from '$lib/enums';
+import { FEATURES } from '$lib/features';
 import { conversationsStore, settingsStore, tabsStore } from '$lib/stores';
 
 interface KeyboardShortcutsCallbacks {
@@ -55,7 +56,7 @@ export function useKeyboardShortcuts(callbacks: KeyboardShortcutsCallbacks) {
 			if (event.defaultPrevented) return;
 
 			// close-tab only makes sense with conversation tabs enabled
-			if (!settingsStore.config.conversationTabs) return;
+			if (!FEATURES.CONVERSATION_TABS || !settingsStore.config.conversationTabs) return;
 
 			event.preventDefault();
 

@@ -29,6 +29,9 @@ export const FEATURES = {
 	/** Full-text search across conversations. Needs `/session/search`. */
 	CONVERSATION_SEARCH: false,
 
+	/** Browser-style tabs above the chat. The sidebar marks the open chat instead. */
+	CONVERSATION_TABS: false,
+
 	/** Conversation import/export. Revisit once sessions live on the daemon. */
 	IMPORT_EXPORT: false,
 

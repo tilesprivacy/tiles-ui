@@ -16,7 +16,8 @@ import type {
 	TilekitModelfile,
 	TilekitResponse,
 	TilekitSaveChatRequest,
-	TilekitSession
+	TilekitSession,
+	TilekitSharedSession
 } from '$lib/types/tilekit';
 import { apiFetch, apiPost } from '$lib/utils';
 
@@ -176,6 +177,18 @@ export class TilekitService {
 	}
 
 	/** Starts Pi if it is not already running. */
+	/**
+	 * Publishes a session to the user's ATmosphere PDS and returns the link.
+	 * A private share is encrypted first and the key rides in the URL fragment,
+	 * so it never reaches the PDS. Needs an ATproto login.
+	 */
+	static async shareSession(sessionId: string, isPrivate: boolean): Promise<TilekitSharedSession> {
+		return apiPost<TilekitResponse<TilekitSharedSession>, { is_private: boolean }>(
+			API_TILEKIT.ATPROTO.shareSession(sessionId),
+			{ is_private: isPrivate }
+		).then(unwrap);
+	}
+
 	static async startAgent(): Promise<void> {
 		await apiFetch(API_TILEKIT.AGENT.START);
 	}

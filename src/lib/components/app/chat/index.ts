@@ -49,6 +49,7 @@
  * />
  * ```
  */
+export { default as ChatShareButton } from './ChatShareButton.svelte';
 export { default as ChatAttachmentsList } from './ChatAttachments/ChatAttachmentsList/ChatAttachmentsList.svelte';
 
 /**
