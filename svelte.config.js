@@ -13,17 +13,7 @@ const config = {
 			pages: './dist',
 			precompress: false,
 			strict: true
-		}),
-		// the Tiles app bundle embeds this at /ui and serves it by exact path with
-		// no fallback, so the build has to know its subpath. empty by default, this
-		// still runs on its own at the root
-		paths: {
-			base: process.env.TILES_UI_BASE || '',
-			relative: false
-		},
-		router: {
-			type: 'hash'
-		}
+		})
 	},
 
 	// Consult https://svelte.dev/docs/kit/integrations

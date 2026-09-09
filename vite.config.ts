@@ -37,7 +37,13 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			tailwindcss(),
 			sveltekit(),
-			SvelteKitPWA(SVELTEKIT_PWA_OPTIONS),
+			// a desktop shell has no offline story, and a worker scoped to the app
+			// root takes over navigation, which is the shell's job. disable keeps
+			// the virtual modules the layout imports and ships no worker at all
+			SvelteKitPWA({
+				...SVELTEKIT_PWA_OPTIONS,
+				disable: env.VITE_PUBLIC_NO_PWA === '1'
+			}),
 			splashScreenPlugin(),
 			buildInfoPlugin(),
 			nerdamerPlugin()
