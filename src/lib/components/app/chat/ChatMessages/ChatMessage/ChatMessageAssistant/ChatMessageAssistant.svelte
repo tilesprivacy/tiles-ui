@@ -79,42 +79,12 @@
 	);
 
 	let assistantEl: HTMLDivElement | undefined = $state();
-	let lastUserMessageHeight = $state(0);
 	let assistantMarginTop = $state(0);
 
 	$effect(() => {
 		if (!assistantEl) return;
 
 		assistantMarginTop = Math.round(parseFloat(getComputedStyle(assistantEl).marginTop));
-
-		const chatMessageEl = assistantEl.closest('.chat-message');
-		const previousChatMessage = chatMessageEl?.previousElementSibling;
-		const userMessageEl = previousChatMessage?.querySelector(
-			'.chat-message-user'
-		) as HTMLElement | null;
-
-		if (!userMessageEl) {
-			lastUserMessageHeight = 0;
-
-			return;
-		}
-
-		const updateHeight = () => {
-			const rect = userMessageEl.getBoundingClientRect();
-			const marginTop = Math.round(parseFloat(getComputedStyle(userMessageEl).marginTop));
-
-			lastUserMessageHeight = Math.round(rect.height + marginTop);
-		};
-
-		updateHeight();
-
-		const resizeObserver = new ResizeObserver(updateHeight);
-
-		resizeObserver.observe(userMessageEl);
-
-		return () => {
-			resizeObserver.disconnect();
-		};
 	});
 
 	$effect(() => {
@@ -127,9 +97,6 @@
 <div
 	bind:this={assistantEl}
 	style:--assistant-margin-top={assistantMarginTop > 0 ? `${assistantMarginTop}px` : undefined}
-	style:--last-user-message-height={lastUserMessageHeight > 0
-		? `${lastUserMessageHeight}px`
-		: undefined}
 	aria-label="Assistant message with actions"
 	class="chat-message-assistant text-md group w-full leading-7.5 {className}"
 	role="group"
@@ -194,22 +161,3 @@
 		/>
 	{/if}
 </div>
-
-<style>
-	:global(.chat-message):last-child .chat-message-assistant {
-		--assistant-min-height-offset: calc(
-			var(--last-user-message-height, 19rem) + var(--chat-form-height, 6rem) +
-				var(--chat-form-bottom-position, 0.5rem) + var(--chat-form-padding-top, 6rem) +
-				var(--assistant-margin-top, 3rem) + var(--chat-tabs-offset, 0px)
-		);
-		min-height: calc(100dvh - var(--assistant-min-height-offset));
-
-		@media (width > 768px) {
-			--assistant-min-height-offset: calc(
-				var(--last-user-message-height, 18rem) + var(--chat-form-height, 6rem) +
-					var(--chat-form-bottom-position, 1rem) + var(--chat-form-padding-top, 6rem) +
-					var(--assistant-margin-top, 3rem) + var(--chat-tabs-offset, 0px)
-			);
-		}
-	}
-</style>

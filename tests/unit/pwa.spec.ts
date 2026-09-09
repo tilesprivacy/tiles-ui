@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 const DIST_DIR = resolve(__dirname, '../../dist');
 const distExists = existsSync(DIST_DIR);
+// a build with VITE_PUBLIC_NO_PWA ships no worker on purpose, see vite.config.ts
+const swExists = existsSync(resolve(DIST_DIR, 'sw.js'));
 
 // PWA Build Output tests are integration tests that require a built dist/.
 // CI builds first then runs these tests; local devs should run `npm run build` or use `npm run test:pwa`.
@@ -11,6 +13,13 @@ describe('PWA Build Output', () => {
 	if (!distExists) {
 		console.warn(`⚠ Skipping PWA Build Output tests - dist/ not found (run 'npm run build' first)`);
 		it('skipped - dist/ not found', () => {});
+
+		return;
+	}
+
+	if (!swExists) {
+		console.warn('⚠ Skipping PWA Build Output tests - this build was made with VITE_PUBLIC_NO_PWA');
+		it('skipped - built without the service worker', () => {});
 
 		return;
 	}
@@ -131,7 +140,9 @@ describe('PWA Build Output', () => {
 
 		it('has stylesheet link for SvelteKit CSS with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			expect(indexContent).toMatch(/href="(\.\/|\/[^"]*\/|\/)?_app\/immutable\/assets\/[^"]+\.css"/);
+			expect(indexContent).toMatch(
+				/href="(\.\/|\/[^"]*\/|\/)?_app\/immutable\/assets\/[^"]+\.css"/
+			);
 		});
 
 		it('has dynamic import for a SvelteKit chunk with content hash', () => {

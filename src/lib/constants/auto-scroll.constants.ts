@@ -5,9 +5,13 @@ export const AUTO_SCROLL_INTERVAL = 100;
 // for this many consecutive frames, bounded by the time cap below.
 export const LANDING_STABLE_FRAMES = 10;
 export const LANDING_SETTLE_MAX_MS = 1000;
-// Chat main view: tight threshold because scroll-here events come from
-// discrete assistant-message appends.
-export const AUTO_SCROLL_AT_BOTTOM_THRESHOLD = 10;
+// Chat main view. Generous enough to survive a reflow nudging the scroll
+// position a pixel or two, which used to read as the user scrolling away.
+export const AUTO_SCROLL_AT_BOTTOM_THRESHOLD = 32;
+// How long a scroll the controller performed itself stays recognisable. The
+// scroll event lands a frame or two later, and isTrusted cannot tell it from a
+// real one: the browser fires both.
+export const PROGRAMMATIC_SCROLL_GRACE_MS = 150;
 // Reasoning block: stickier because reasoning fires many small
 // incremental DOM writes that easily drift a few pixels off bottom.
 export const REASONING_SCROLL_AT_BOTTOM_THRESHOLD_PX = 64;

@@ -15,8 +15,9 @@ export function useChatScreenScroll(autoScroll: AutoScrollController) {
 	let isNavigating = $state(false);
 
 	function handleScroll(event: UIEvent) {
-		// Ignore scroll events caused by navigation layout changes or by our own
-		// programmatic scrolls so they don't accidentally disable auto-scroll.
+		// navigation shifts the layout, and the events that fall out of that are
+		// nobody scrolling. the controller sorts out its own scrolls, isTrusted
+		// cannot: the browser fires those too
 		if (isNavigating || !event.isTrusted) return;
 
 		autoScroll.handleScroll();

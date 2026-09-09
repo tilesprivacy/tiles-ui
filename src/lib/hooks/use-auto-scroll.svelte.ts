@@ -1,4 +1,8 @@
-import { AUTO_SCROLL_AT_BOTTOM_THRESHOLD, AUTO_SCROLL_INTERVAL } from '$lib/constants';
+import {
+	AUTO_SCROLL_AT_BOTTOM_THRESHOLD,
+	AUTO_SCROLL_INTERVAL,
+	PROGRAMMATIC_SCROLL_GRACE_MS
+} from '$lib/constants';
 
 export interface AutoScrollOptions {
 	disabled?: boolean;
@@ -19,6 +23,7 @@ export class AutoScrollController {
 	private _lastScrollTop = $state(0);
 	private _mutationObserver: MutationObserver | null = null;
 	private _observerEnabled = false;
+	private _programmaticUntil = 0;
 	private _rafPending = false;
 	private _scrollInterval: ReturnType<typeof setInterval> | undefined;
 	private _userScrolledUp = $state(false);
@@ -59,14 +64,25 @@ export class AutoScrollController {
 		if (this._disabled || !this._container) return;
 
 		const { clientHeight, scrollHeight, scrollTop } = this._container;
-		const distanceFromBottom = scrollHeight - clientHeight - scrollTop;
-		const isScrollingUp = scrollTop < this._lastScrollTop;
-		const isAtBottom = distanceFromBottom < AUTO_SCROLL_AT_BOTTOM_THRESHOLD;
 
-		if (isScrollingUp && !isAtBottom) {
+		// our own scrolls come back through here, and a reflow that shortens the
+		// page drags the position with it. either one used to look like the user
+		// scrolling up, which is what stopped a reply following mid-stream
+		if (performance.now() < this._programmaticUntil) {
+			this._lastScrollTop = scrollTop;
+
+			return;
+		}
+
+		const isAtBottom = scrollHeight - clientHeight - scrollTop < AUTO_SCROLL_AT_BOTTOM_THRESHOLD;
+
+		// only moving away from the bottom counts. content arriving underneath
+		// grows the page without anyone scrolling, and that must not read as a
+		// person leaving
+		if (scrollTop < this._lastScrollTop && !isAtBottom) {
 			this._userScrolledUp = true;
 			this._autoScrollEnabled = false;
-		} else if (isAtBottom && this._userScrolledUp) {
+		} else if (isAtBottom) {
 			this._userScrolledUp = false;
 			this._autoScrollEnabled = true;
 		}
@@ -75,15 +91,33 @@ export class AutoScrollController {
 	}
 
 	/**
+	 * A wheel or a finger, which outranks anything the controller is doing. The
+	 * landing pin repeats every frame, so without this a person could not scroll
+	 * away from a conversation until it settled.
+	 */
+	noteUserIntent(): void {
+		this._programmaticUntil = 0;
+	}
+
+	/**
 	 * Resets scroll state when switching conversations.
 	 */
 	resetScrollState(): void {
 		this._userScrolledUp = false;
 		this._autoScrollEnabled = !this._disabled;
+		this._programmaticUntil = 0;
 
 		if (this._container) {
 			this._lastScrollTop = this._container.scrollTop;
 		}
+	}
+
+	/** Scrolls where the caller asks, and owns it so handleScroll knows it was us. */
+	scrollTo(top: number): void {
+		if (!this._container) return;
+
+		this._programmaticUntil = performance.now() + PROGRAMMATIC_SCROLL_GRACE_MS;
+		this._container.scrollTop = top;
 	}
 
 	/**
@@ -92,7 +126,7 @@ export class AutoScrollController {
 	scrollToBottom(): void {
 		if (this._disabled || !this._container) return;
 
-		this._container.scrollTop = this._container.scrollHeight;
+		this.scrollTo(this._container.scrollHeight);
 	}
 
 	/**
@@ -196,7 +230,7 @@ export class AutoScrollController {
 				this._rafPending = false;
 
 				if (this._autoScrollEnabled && this._container) {
-					this._container.scrollTop = this._container.scrollHeight;
+					this.scrollTo(this._container.scrollHeight);
 				}
 			});
 		});

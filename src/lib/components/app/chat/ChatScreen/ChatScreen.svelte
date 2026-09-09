@@ -184,37 +184,10 @@
 			autoScroll.enable();
 		}
 
-		setTimeout(() => {
-			const container = scroll.chatScrollContainer;
-
-			if (!container) return;
-
-			const lastUserBubble = container.querySelector(
-				'.chat-message:nth-last-child(2) .chat-message-user .chat-message-user-bubble'
-			) as HTMLElement | null;
-
-			if (deviceStore.isMobile) {
-				// Keep the last user message bubble just above the input on mobile
-				const bubbleHeight = lastUserBubble?.scrollHeight ?? 0;
-				const baseHeight = container.scrollHeight - innerHeight;
-
-				container.scrollTo({
-					behavior: 'smooth',
-					top: bubbleHeight > 0 ? baseHeight - bubbleHeight : baseHeight
-				});
-			} else if (lastUserBubble) {
-				// On desktop, place the last user message near the top of the viewport
-				const topPadding = 24;
-				const bubbleRect = lastUserBubble.getBoundingClientRect();
-
-				container.scrollTo({
-					behavior: 'smooth',
-					top: Math.max(0, container.scrollTop + bubbleRect.top - topPadding)
-				});
-			} else {
-				autoScroll.scrollToBottom();
-			}
-		}, 100);
+		// the turn just goes to the bottom and the reply follows it down. no
+		// pinning it to the top of the viewport, and nothing to animate against
+		// the stream on the way there
+		setTimeout(() => autoScroll.scrollToBottom(), 0);
 
 		if (deviceStore.isMobile) {
 			autoScroll.setDisabled(disableAutoScroll);
@@ -288,6 +261,8 @@
 			mobileScrollDownHint = false;
 		}
 	}}
+	ontouchmove={() => autoScroll.noteUserIntent()}
+	onwheel={() => autoScroll.noteUserIntent()}
 />
 
 {#if isServerLoading}
@@ -316,6 +291,9 @@
 			style:padding-top={!isEmpty ? 'var(--chat-form-padding-top)' : undefined}
 			class={[
 				'pointer-events-none md:sticky fixed  mt-auto transition-all duration-200',
+				// the composer floats over the thread, so fade the ground in behind
+				// it rather than letting a message read through from underneath
+				!isEmpty && 'chat-screen-form-fade',
 				deviceStore.isStandalone
 					? 'bottom-6 right-4 left-4'
 					: deviceStore.isIOSSafari
@@ -371,3 +349,10 @@
 	{showDeleteDialog}
 	{showEmptyFileDialog}
 />
+
+<style>
+	/* matches --chat-form-padding-top, the gap the composer already reserves */
+	.chat-screen-form-fade {
+		background: linear-gradient(to bottom, transparent 0, var(--void) 4rem);
+	}
+</style>
