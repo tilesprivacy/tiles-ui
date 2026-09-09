@@ -8,7 +8,6 @@
 
 import { getAudioInputFormat } from '../utils/audio-format';
 import { capImageDataURLSize } from '../utils/cap-img-size';
-import { base } from '$app/paths';
 import {
 	API_CHAT,
 	API_SLOTS,
@@ -47,6 +46,7 @@ import type {
 import { isAbortError } from '$lib/utils/abort';
 import { ApiError } from '$lib/utils/api-fetch';
 import { getAuthHeaders, getJsonHeaders } from '$lib/utils/api-headers';
+import { API_ORIGIN } from '$lib/utils/api-origin';
 import { formatAttachmentText } from '$lib/utils/formatters';
 import { streamIdentity } from '$lib/utils/stream-identity';
 import {
@@ -1362,7 +1362,7 @@ export class ChatService {
 				throw error;
 			}
 
-			const response = await fetch(`${base}${API_TILEKIT.AGENT.PROMPT}`, {
+			const response = await fetch(`${API_ORIGIN}${API_TILEKIT.AGENT.PROMPT}`, {
 				body: JSON.stringify({ message }),
 				headers: getJsonHeaders(),
 				method: 'POST',

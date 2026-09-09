@@ -1,5 +1,5 @@
 import { getAuthHeaders, getJsonHeaders } from './api-headers';
-import { base } from '$app/paths';
+import { API_ORIGIN } from './api-origin';
 import { API_ABSOLUTE_URL_PROTOCOLS, ERROR_MESSAGES, HTTP_CODE_TO_STRING } from '$lib/constants';
 
 /**
@@ -63,7 +63,9 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
 	const baseHeaders = authOnly ? getAuthHeaders() : getJsonHeaders();
 	const headers = { ...baseHeaders, ...customHeaders };
 	// absolute URLs with an allowed protocol pass through untouched; relative paths get the base prefix
-	const url = API_ABSOLUTE_URL_PROTOCOLS.some((p) => path.startsWith(p)) ? path : `${base}${path}`;
+	const url = API_ABSOLUTE_URL_PROTOCOLS.some((p) => path.startsWith(p))
+		? path
+		: `${API_ORIGIN}${path}`;
 
 	let response;
 

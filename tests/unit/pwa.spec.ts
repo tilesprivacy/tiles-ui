@@ -126,17 +126,17 @@ describe('PWA Build Output', () => {
 	describe('index.html content', () => {
 		it('has modulepreload link for a SvelteKit chunk with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			expect(indexContent).toMatch(/href="(\.\/|\/)?_app\/immutable\/[^"]+\.js"/);
+			expect(indexContent).toMatch(/href="(\.\/|\/[^"]*\/|\/)?_app\/immutable\/[^"]+\.js"/);
 		});
 
 		it('has stylesheet link for SvelteKit CSS with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			expect(indexContent).toMatch(/href="(\.\/|\/)?_app\/immutable\/assets\/[^"]+\.css"/);
+			expect(indexContent).toMatch(/href="(\.\/|\/[^"]*\/|\/)?_app\/immutable\/assets\/[^"]+\.css"/);
 		});
 
 		it('has dynamic import for a SvelteKit chunk with content hash', () => {
 			expect(indexContent).toBeTruthy();
-			expect(indexContent).toMatch(/import\("(\.\/|\/)?_app\/immutable\/[^"]+\.js"\)/);
+			expect(indexContent).toMatch(/import\("(\.\/|\/[^"]*\/|\/)?_app\/immutable\/[^"]+\.js"\)/);
 		});
 
 		it('has __sveltekit__ variable (SvelteKit adds hash suffix)', () => {

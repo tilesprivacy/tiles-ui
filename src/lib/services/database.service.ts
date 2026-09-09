@@ -520,35 +520,6 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Mirrors what the daemon returned into IndexedDB. The write path still runs
-	 * through here and checks that a message's parent exists locally, so a
-	 * conversation that was only ever read from the daemon has to be present
-	 * before anyone can reply into it.
-	 */
-	private static async hydrate(convId: string, messages: DatabaseMessage[]): Promise<void> {
-		try {
-			await db.transaction(
-				'rw',
-				[db[IDXDB_TABLES.conversations], db[IDXDB_TABLES.messages]],
-				async () => {
-					await db[IDXDB_TABLES.messages].bulkPut(messages);
-
-					if (!(await db[IDXDB_TABLES.conversations].get(convId))) {
-						await db[IDXDB_TABLES.conversations].put({
-							currNode: messages[messages.length - 1]?.id ?? null,
-							id: convId,
-							lastModified: messages[messages.length - 1]?.timestamp ?? Date.now(),
-							name: 'Untitled'
-						});
-					}
-				}
-			);
-		} catch (error) {
-			console.warn('[db] could not cache the conversation locally:', error);
-		}
-	}
-
-	/**
 	 * Loads multiple conversations with all of their messages in two bulk
 	 * reads. Missing conversations are silently omitted from the result.
 	 *
@@ -709,6 +680,35 @@ export class DatabaseService {
 		await db[IDXDB_TABLES.messages].update(parentId, {
 			children: [...parent.children, childId]
 		});
+	}
+
+	/**
+	 * Mirrors what the daemon returned into IndexedDB. The write path still runs
+	 * through here and checks that a message's parent exists locally, so a
+	 * conversation that was only ever read from the daemon has to be present
+	 * before anyone can reply into it.
+	 */
+	private static async hydrate(convId: string, messages: DatabaseMessage[]): Promise<void> {
+		try {
+			await db.transaction(
+				'rw',
+				[db[IDXDB_TABLES.conversations], db[IDXDB_TABLES.messages]],
+				async () => {
+					await db[IDXDB_TABLES.messages].bulkPut(messages);
+
+					if (!(await db[IDXDB_TABLES.conversations].get(convId))) {
+						await db[IDXDB_TABLES.conversations].put({
+							currNode: messages[messages.length - 1]?.id ?? null,
+							id: convId,
+							lastModified: messages[messages.length - 1]?.timestamp ?? Date.now(),
+							name: 'Untitled'
+						});
+					}
+				}
+			);
+		} catch (error) {
+			console.warn('[db] could not cache the conversation locally:', error);
+		}
 	}
 
 	/**
