@@ -74,6 +74,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 	private abortControllers = new SvelteMap<string, AbortController>();
 	private addFilesHandler: ((files: File[]) => void) | null = $state(null);
 	// message flows: edit, regenerate, continue, delete
+	private cachedAgentModel: string | undefined;
 	private flows = new ChatMessageFlows(this);
 	private isEditModeActive = $state(false);
 	private pendingDraftFiles = $state<ChatUploadedFile[]>([]);
@@ -1257,7 +1258,13 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 		// to land before the reply does
 		const savedUserChatId = await this.persistTurn(convId, MessageRole.USER, prompt ?? '');
 
-		await ChatService.sendTilekitPrompt(prompt ?? '', chatOptions, abortController.signal);
+		await ChatService.sendTilekitPrompt(
+			prompt ?? '',
+			chatOptions,
+			abortController.signal,
+			true,
+			convId
+		);
 	}
 
 	syncLoadingStateForChat(convId: string): void {
@@ -1302,6 +1309,24 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 		}
 	}
 
+	/**
+	 * The model the daemon is actually running. Model switching is off, so the
+	 * selector never names one and a saved turn would otherwise carry no model
+	 * at all. Asked once, since it only changes when the agent is reloaded.
+	 */
+	private async agentModel(): Promise<string | undefined> {
+		if (this.cachedAgentModel) return this.cachedAgentModel;
+
+		try {
+			const state = await TilekitService.agentState();
+
+			this.cachedAgentModel = state.model?.name || undefined;
+		} catch {
+			// no agent yet, the turn is still worth saving without a model
+		}
+
+		return this.cachedAgentModel;
+	}
 	private async generateTitleWithLLM(
 		userContent: string,
 		assistantContent: string,
@@ -1349,6 +1374,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			await conversationsStore.updateConversationName(convId, cleanTitle);
 		}
 	}
+
 	private getChatStreamingState(
 		convId: string
 	): { response: string; messageId: string } | undefined {
@@ -1381,7 +1407,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 
 		try {
 			const saved = await TilekitService.saveTurn({
-				model: modelsStore.selectedModelName ?? undefined,
+				model: modelsStore.selectedModelName ?? (await this.agentModel()),
 				parentChatId,
 				role,
 				sessionId: convId,

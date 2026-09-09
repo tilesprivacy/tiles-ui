@@ -1343,7 +1343,8 @@ export class ChatService {
 		message: string,
 		options: SettingsChatServiceOptions = {},
 		signal?: AbortSignal,
-		canRetry = true
+		canRetry = true,
+		sessionId?: string
 	): Promise<void> {
 		const { onChunk, onComplete, onError, onReasoningChunk } = options;
 
@@ -1363,7 +1364,9 @@ export class ChatService {
 			}
 
 			const response = await fetch(`${API_ORIGIN}${API_TILEKIT.AGENT.PROMPT}`, {
-				body: JSON.stringify({ message }),
+				// the daemon keeps the turn's snapshot against this session, which is
+				// what a share publishes. Without it the share loses the thinking
+				body: JSON.stringify({ message, session_id: sessionId }),
 				headers: getJsonHeaders(),
 				method: 'POST',
 				signal
@@ -1387,7 +1390,7 @@ export class ChatService {
 					if (noAgent && canRetry) {
 						await TilekitService.startAgent();
 
-						return ChatService.sendTilekitPrompt(message, options, signal, false);
+						return ChatService.sendTilekitPrompt(message, options, signal, false, sessionId);
 					}
 
 					const error = new Error(event.data || 'The agent reported an error');
