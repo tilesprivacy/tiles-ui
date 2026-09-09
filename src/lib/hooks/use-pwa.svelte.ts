@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { BUILD_VERSION_LOCALSTORAGE_KEY, SW_CONFIG } from '$lib/constants';
 import { versionStore } from '$lib/stores';
+import { IN_SHELL } from '$lib/utils/shell';
 import { useRegisterSW } from 'virtual:pwa-register/svelte';
 
 /**
@@ -54,6 +55,11 @@ export function usePwa() {
 	// This comparison detects server upgrades for non-PWA users.
 	$effect(() => {
 		if (!browser) return;
+
+		// the bundle in a desktop shell is fixed at install time, so a changed
+		// build stamp only ever means the app itself was replaced, and the page
+		// already came up on the new one. nothing to offer but a false alarm
+		if (IN_SHELL) return;
 
 		// PWA pages update via the service worker path; the storage check is the non-PWA fallback only
 		if (navigator.serviceWorker?.controller) return;
