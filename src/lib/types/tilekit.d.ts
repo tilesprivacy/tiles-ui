@@ -70,6 +70,12 @@ export interface TilekitAtprotoAccount {
 }
 
 /** Pi's view of itself, from `/agent/state`. */
+export interface TilekitModelfile {
+	content: string;
+	/** false while the shipped modelfile is still in use, nothing has been saved over it */
+	edited: boolean;
+}
+
 export interface TilekitAgentState {
 	sessionId: string;
 	model: { id: string; name: string };

@@ -84,9 +84,9 @@ export const SETTINGS_REGISTRY: SettingsSectionEntry[] = [
 			},
 			{
 				defaultValue: '',
-				help: 'The starting message that defines how model should behave.',
-				key: SETTINGS_KEYS.SYSTEM_MESSAGE,
-				label: 'System Message',
+				help: 'What the agent starts from. FROM names the model, SYSTEM becomes its system prompt. Saved on the daemon, not in this browser. Saving restarts the agent and ends the conversation it was in.',
+				key: SETTINGS_KEYS.MODELFILE,
+				label: 'Modelfile',
 				type: SettingsFieldType.TEXTAREA
 			},
 			{

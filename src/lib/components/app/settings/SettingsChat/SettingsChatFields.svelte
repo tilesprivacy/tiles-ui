@@ -132,7 +132,9 @@
 				{/if}
 
 				<Textarea
-					class="min-h-[10rem] w-full md:max-w-3xl"
+					class="w-full md:max-w-3xl {field.key === SETTINGS_KEYS.MODELFILE
+						? 'min-h-[22rem] font-mono text-xs'
+						: 'min-h-[10rem]'}"
 					id={field.key}
 					onchange={(e) => onConfigChange(field.key, e.currentTarget.value)}
 					placeholder=""
@@ -143,21 +145,6 @@
 					<p class="mt-1 text-xs text-muted-foreground">
 						{field.help || SETTING_CONFIG_INFO[field.key]}
 					</p>
-				{/if}
-
-				{#if field.key === SETTINGS_KEYS.SYSTEM_MESSAGE}
-					<div class="mt-3 flex items-center gap-2">
-						<Checkbox
-							checked={Boolean(localConfig.showSystemMessage ?? true)}
-							id="showSystemMessage"
-							onCheckedChange={(checked) =>
-								onConfigChange(SETTINGS_KEYS.SHOW_SYSTEM_MESSAGE, Boolean(checked))}
-						/>
-
-						<Label class="cursor-pointer text-sm font-normal" for="showSystemMessage">
-							Show system message in conversations
-						</Label>
-					</div>
 				{/if}
 			{:else if field.type === SettingsFieldType.SELECT}
 				{@const selectedOption = field.options?.find(

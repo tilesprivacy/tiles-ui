@@ -14,6 +14,7 @@ export const API_TILEKIT = {
 	AGENT: {
 		END_SESSION: `${TILEKIT}/agent/end_session`,
 		PROMPT: `${TILEKIT}/agent/prompt`,
+		RELOAD: `${TILEKIT}/agent/reload`,
 		START: `${TILEKIT}/agent/start`,
 		STATE: `${TILEKIT}/agent/state`
 	},
@@ -22,6 +23,7 @@ export const API_TILEKIT = {
 		LOGOUT: `${TILEKIT}/atproto/logout`,
 		STATUS: `${TILEKIT}/atproto/status`
 	},
+	MODELFILE: `${TILEKIT}/modelfile`,
 	SERVER: {
 		PING: `${TILEKIT}/server/ping`,
 		START: `${TILEKIT}/server/start`,

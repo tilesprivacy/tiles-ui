@@ -37,6 +37,7 @@ export const SETTINGS_KEYS = {
 	MCP_SERVERS: 'mcpServers',
 	MENTION_SEARCH_MAX_DEPTH: 'mentionSearchMaxDepth',
 	MIN_P: 'min_p',
+	MODELFILE: 'modelfile',
 	PASTE_LONG_TEXT_TO_FILE_LEN: 'pasteLongTextToFileLen',
 	PDF_AS_IMAGE: 'pdfAsImage',
 	// Performance
@@ -62,7 +63,6 @@ export const SETTINGS_KEYS = {
 	SHOW_SYSTEM_MESSAGE: 'showSystemMessage',
 	SHOW_THOUGHT_IN_PROGRESS: 'showThoughtInProgress',
 	SYMBOLIC_MATH_ENABLED: 'symbolicMathEnabled',
-	SYSTEM_MESSAGE: 'systemMessage',
 	// Sampling
 	TEMPERATURE: 'temperature',
 	// General

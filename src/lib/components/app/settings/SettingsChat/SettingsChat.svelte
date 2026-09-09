@@ -16,9 +16,11 @@
 		SETTINGS_SECTION_SLUGS
 	} from '$lib/constants';
 	import { ColorMode } from '$lib/enums/ui.enums';
+	import { TilekitService } from '$lib/services/tilekit.service';
 	import { modelsStore, serverStore, settingsStore } from '$lib/stores';
 	import type { SettingsSection, SettingsSectionTitle } from '$lib/types';
 	import { setMode } from 'mode-watcher';
+	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	interface Props {
 		initialSection?: string;
@@ -49,6 +51,23 @@
 
 	let mobileHeader: { updateCarousel: () => void } | undefined;
 
+	// the modelfile belongs to the daemon. localConfig only ever holds a draft of
+	// it, and `saved` is what came back, so an untouched one is not rewritten
+	let savedModelfile = $state<string | null>(null);
+	let modelfileError = $state<string | null>(null);
+	let modelfileBusy = $state(false);
+
+	onMount(async () => {
+		try {
+			const modelfile = await TilekitService.modelfile();
+
+			savedModelfile = modelfile.content;
+			localConfig.modelfile = modelfile.content;
+		} catch (error) {
+			modelfileError = error instanceof Error ? error.message : String(error);
+		}
+	});
+
 	let fetchInitiated = false;
 
 	$effect(() => {
@@ -74,11 +93,15 @@
 
 	function handleReset() {
 		localConfig = { ...settingsStore.config };
+
+		if (savedModelfile !== null) localConfig.modelfile = savedModelfile;
+
+		modelfileError = null;
 		setMode(localConfig.theme as ColorMode);
 		mobileHeader?.updateCarousel();
 	}
 
-	function handleSave() {
+	async function handleSave() {
 		if (
 			localConfig.customJson &&
 			typeof localConfig.customJson === 'string' &&
@@ -117,6 +140,29 @@
 
 					return;
 				}
+			}
+		}
+
+		// never mirrored into localStorage, the daemon is the only copy
+		const modelfile = String(processedConfig.modelfile ?? '');
+
+		delete processedConfig.modelfile;
+
+		if (savedModelfile !== null && modelfile !== savedModelfile) {
+			modelfileBusy = true;
+			modelfileError = null;
+
+			try {
+				await TilekitService.saveModelfile(modelfile);
+				await TilekitService.reloadAgent();
+				savedModelfile = modelfile;
+			} catch (error) {
+				// staying open, or the reason for the refusal goes with the dialog
+				modelfileError = error instanceof Error ? error.message : String(error);
+
+				return;
+			} finally {
+				modelfileBusy = false;
 			}
 		}
 
@@ -160,6 +206,10 @@
 								onThemeChange={handleThemeChange}
 							/>
 
+							{#if modelfileError && currentSection.slug === SETTINGS_SECTION_SLUGS.GENERAL}
+								<p class="text-destructive text-sm">{modelfileError}</p>
+							{/if}
+
 							{#if currentSection.slug === SETTINGS_SECTION_SLUGS.GENERAL}
 								<div class="flex justify-end">
 									<Button onclick={() => window.location.reload()} variant="outline">
@@ -177,7 +227,7 @@
 				</div>
 			</div>
 
-			<SettingsFooter onReset={handleReset} onSave={handleSave} />
+			<SettingsFooter busy={modelfileBusy} onReset={handleReset} onSave={handleSave} />
 		</div>
 	</div>
 </div>

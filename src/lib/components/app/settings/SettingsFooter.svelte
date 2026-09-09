@@ -5,11 +5,13 @@
 	import { settingsStore } from '$lib/stores';
 
 	interface Props {
+		/** a save that has to reach the daemon takes long enough to need saying so */
+		busy?: boolean;
 		onReset?: () => void;
 		onSave?: () => void;
 	}
 
-	let { onReset, onSave }: Props = $props();
+	let { busy = false, onReset, onSave }: Props = $props();
 
 	let showResetDialog = $state(false);
 
@@ -38,7 +40,7 @@
 		</Button>
 	</div>
 
-	<Button onclick={handleSave}>Save settings</Button>
+	<Button disabled={busy} onclick={handleSave}>{busy ? 'Saving…' : 'Save settings'}</Button>
 </div>
 
 <AlertDialog.Root bind:open={showResetDialog}>

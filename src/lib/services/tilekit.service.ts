@@ -13,6 +13,7 @@ import type {
 	TilekitAtprotoAccount,
 	TilekitChat,
 	TilekitDeltaChat,
+	TilekitModelfile,
 	TilekitResponse,
 	TilekitSaveChatRequest,
 	TilekitSession
@@ -93,6 +94,11 @@ export class TilekitService {
 	 * Starts a new Pi session and returns its id. Also starts the agent if it
 	 * is not running yet.
 	 */
+	/** The modelfile the agent starts from, edited or as shipped. */
+	static async modelfile(): Promise<TilekitModelfile> {
+		return apiFetch<TilekitResponse<TilekitModelfile>>(API_TILEKIT.MODELFILE).then(unwrap);
+	}
+
 	static async newSession(): Promise<string> {
 		const session = await apiPost<TilekitResponse<{ id: string }>, Record<string, never>>(
 			API_TILEKIT.SESSION.NEW,
@@ -118,6 +124,14 @@ export class TilekitService {
 	 * and only for a user turn, so the user message must be saved before the
 	 * assistant reply.
 	 */
+	/**
+	 * Replaces the running agent with one started from the current modelfile.
+	 * Pi is respawned, so this takes a moment and drops the live session.
+	 */
+	static async reloadAgent(): Promise<void> {
+		await apiFetch(API_TILEKIT.AGENT.RELOAD);
+	}
+
 	static async saveChat(request: TilekitSaveChatRequest): Promise<TilekitChat> {
 		return apiPost<TilekitResponse<TilekitChat>, TilekitSaveChatRequest>(
 			API_TILEKIT.SESSION.CHAT,
@@ -131,6 +145,18 @@ export class TilekitService {
 	 * used. The session row is created lazily on the first user turn, so a user
 	 * message has to be saved before the reply to it.
 	 */
+	/**
+	 * Saves the modelfile. The daemon parses it first and rejects one it cannot
+	 * read, so a failure here means the text is bad, not that the write failed.
+	 * Takes effect on the next `reloadAgent`.
+	 */
+	static async saveModelfile(content: string): Promise<TilekitModelfile> {
+		return apiFetch<TilekitResponse<TilekitModelfile>>(API_TILEKIT.MODELFILE, {
+			body: JSON.stringify({ content }),
+			method: 'PUT'
+		}).then(unwrap);
+	}
+
 	static async saveTurn(args: {
 		sessionId: string;
 		text: string;
