@@ -7,7 +7,7 @@
  */
 
 import { TilekitService } from './tilekit.service';
-import { chatsToMessages, sessionToConversation } from './tilekit-adapter';
+import { chatsToMessages, overlayLocalMessages, sessionToConversation } from './tilekit-adapter';
 import { IDXDB_STORES, IDXDB_TABLES, STORAGE_APP_NAME } from '$lib/constants';
 import { MessageRole } from '$lib/enums';
 import { FEATURES } from '$lib/features';
@@ -506,7 +506,14 @@ export class DatabaseService {
 			const chats = await TilekitService.fetchChats(convId);
 
 			if (chats.length) {
-				const messages = chatsToMessages(chats);
+				// the rows only hold role, text and model; reasoning, tool calls
+				// and a still-streaming turn live in the local copy, so a reload
+				// has to be a merge or it strips the reply of both
+				const local = await db[IDXDB_TABLES.messages]
+					.where('convId')
+					.equals(convId)
+					.sortBy('timestamp');
+				const messages = overlayLocalMessages(chatsToMessages(chats), local);
 
 				await DatabaseService.hydrate(convId, messages);
 

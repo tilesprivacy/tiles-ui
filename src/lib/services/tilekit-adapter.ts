@@ -69,3 +69,75 @@ export function chatsToMessages(chats: TilekitChat[]): DatabaseMessage[] {
 export function leafOf(messages: DatabaseMessage[]): string | null {
 	return messages.length ? messages[messages.length - 1].id : null;
 }
+
+/**
+ * Fills in what the daemon's rows cannot know from the local copy the UI
+ * wrote while streaming.
+ *
+ * The rows carry role, text and model only; reasoning, tool calls and timings
+ * exist solely in the local copy, so a reload that took the rows verbatim
+ * showed the reply stripped of both. The rows still win on membership and
+ * order - the daemon is the source of truth for what was said - and the local
+ * copy is matched by role and text since the two sides never share ids.
+ *
+ * A local assistant message the rows do not have yet is the turn that is
+ * still streaming: it is appended rather than dropped, so switching back to a
+ * generating conversation finds the same message id the stream is writing to
+ * and the live text keeps flowing. An empty one is only trusted when it is
+ * the newest local message, so a row a crashed stream left behind cannot
+ * haunt the tail forever.
+ */
+export function overlayLocalMessages(
+	messages: DatabaseMessage[],
+	local: DatabaseMessage[]
+): DatabaseMessage[] {
+	const used = new Set<string>();
+
+	for (const message of messages) {
+		const match = local.find(
+			(candidate) =>
+				!used.has(candidate.id) &&
+				candidate.role === message.role &&
+				candidate.content === message.content
+		);
+
+		if (!match) continue;
+
+		used.add(match.id);
+
+		if (match.reasoningContent) message.reasoningContent = match.reasoningContent;
+
+		if (match.toolCalls) message.toolCalls = match.toolCalls;
+
+		if (match.timings) message.timings = match.timings;
+
+		if (match.model && !message.model) message.model = match.model;
+	}
+
+	const lastRowTime = messages.length ? messages[messages.length - 1].timestamp : 0;
+	const newestLocalId = local.length ? local[local.length - 1].id : null;
+	const inFlight = local.filter((candidate) => {
+		if (used.has(candidate.id) || candidate.type !== 'text' || candidate.role !== 'assistant') {
+			return false;
+		}
+
+		if (candidate.timestamp <= lastRowTime) return false;
+
+		const hasSubstance = Boolean(
+			candidate.content || candidate.reasoningContent || candidate.toolCalls
+		);
+
+		return hasSubstance || candidate.id === newestLocalId;
+	});
+
+	for (const message of inFlight) {
+		const previous = messages[messages.length - 1];
+		const appended = { ...message, children: [], parent: previous?.id ?? null };
+
+		if (previous) previous.children.push(appended.id);
+
+		messages.push(appended);
+	}
+
+	return messages;
+}
