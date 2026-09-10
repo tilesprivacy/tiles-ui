@@ -898,6 +898,32 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 
 			conversationsStore.updateMessageAtIndex(idx, { content: streamedContent });
 		};
+
+		// Streamed partials only survive a conversation switch if they reach the
+		// local row: the reload rebuilds the thread from it, and until the turn
+		// completes the reasoning and the model live nowhere else. Throttled, so
+		// a fast stream does not turn into a database write per token.
+		let lastPartialPersist = 0;
+
+		// so the model fallback below has an answer by the first throttled write
+		void this.agentModel();
+		const persistPartials = () => {
+			const now = Date.now();
+
+			if (now - lastPartialPersist < 500) return;
+
+			lastPartialPersist = now;
+			const partial: Partial<DatabaseMessage> = { content: streamedContent };
+
+			if (streamedReasoningContent) partial.reasoningContent = streamedReasoningContent;
+
+			// the same resolution persistTurn uses for the daemon row
+			const model = resolvedModel ?? modelsStore.selectedModelName ?? this.cachedAgentModel;
+
+			if (model) partial.model = model;
+
+			void DatabaseService.updateMessage(currentMessageId, partial).catch(() => {});
+		};
 		const cleanupStreamingState = () => {
 			this.setChatLoading(convId, false);
 			this.clearChatStreaming(convId, currentMessageId);
@@ -1024,6 +1050,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			onChunk: (chunk: string) => {
 				streamedContent += chunk;
 				updateStreamingUI();
+				persistPartials();
 				this.setChatReasoning(convId, false);
 			},
 			onCompletionId: (id: string) => recordCompletionId(id),
@@ -1102,6 +1129,7 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 				conversationsStore.updateMessageAtIndex(idx, {
 					reasoningContent: streamedReasoningContent
 				});
+				persistPartials();
 				this.setChatReasoning(convId, true);
 			},
 			onTimings: (timings?: ChatMessageTimings, promptProgress?: ChatMessagePromptProgress) => {
