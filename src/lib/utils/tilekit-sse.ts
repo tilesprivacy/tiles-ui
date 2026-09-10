@@ -16,8 +16,12 @@ import { SSE_DATA_PREFIX, SSE_LINE_SEPARATOR, SSE_RECORD_SEPARATOR } from '$lib/
 export const PI_EVENT = {
 	AGENT_SETTLED: 'agent_settled',
 	ERROR: 'error',
+	MENTION: 'mention',
 	MESSAGE_END: 'message_end',
-	MESSAGE_UPDATE: 'message_update'
+	MESSAGE_UPDATE: 'message_update',
+	TOOL_EXECUTION_END: 'tool_execution_end',
+	TOOL_EXECUTION_START: 'tool_execution_start',
+	TOOL_EXECUTION_UPDATE: 'tool_execution_update'
 } as const;
 
 export const PI_DELTA = {
@@ -45,6 +49,31 @@ export interface PiMessageUpdate {
 		type?: string;
 		delta?: string;
 	};
+}
+
+/**
+ * A `mention` event: the daemon answered `@name` itself, no model turn ran.
+ * `describe` is a bare `@plugin`, `unknown` is a name nothing matched.
+ */
+export interface PiMention {
+	resolved: 'describe' | 'unknown';
+	name: string;
+	description?: string;
+	available?: string[];
+}
+
+/**
+ * A `tool_execution_*` event. Start and update carry `args`/`partialResult`,
+ * end carries `result`. `partialResult` is cumulative, so each update
+ * replaces the last rather than appending.
+ */
+export interface PiToolExecution {
+	toolCallId?: string;
+	toolName?: string;
+	args?: unknown;
+	partialResult?: unknown;
+	result?: unknown;
+	isError?: boolean;
 }
 
 /** Pulls the event name and data payload out of one SSE record. */
@@ -157,6 +186,36 @@ export function readTurnFailure(data: string): string | null {
 	if (parsed.message?.stopReason !== 'error') return null;
 
 	return parsed.message.errorMessage || 'The agent could not finish the turn';
+}
+
+/** Reads a `mention` event, or null when the payload is not one. */
+export function readMention(data: string): PiMention | null {
+	let parsed: PiMention;
+
+	try {
+		parsed = JSON.parse(data) as PiMention;
+	} catch {
+		return null;
+	}
+
+	if (parsed.resolved !== 'describe' && parsed.resolved !== 'unknown') return null;
+
+	return parsed;
+}
+
+/** Reads a `tool_execution_*` event, or null when it names no tool call. */
+export function readToolExecution(data: string): PiToolExecution | null {
+	let parsed: PiToolExecution;
+
+	try {
+		parsed = JSON.parse(data) as PiToolExecution;
+	} catch {
+		return null;
+	}
+
+	if (!parsed.toolCallId || !parsed.toolName) return null;
+
+	return parsed;
 }
 
 export { SSE_RECORD_SEPARATOR };

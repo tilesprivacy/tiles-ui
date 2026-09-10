@@ -1249,6 +1249,13 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 			onModel: streamCallbacks.onModel,
 			onReasoningChunk: streamCallbacks.onReasoningChunk,
 			onTimings: streamCallbacks.onTimings,
+			onToolCallsStreaming: (toolCalls: import('$lib/types/api').ApiChatCompletionToolCall[]) => {
+				const idx = conversationsStore.findMessageIndex(currentMessageId);
+
+				conversationsStore.updateMessageAtIndex(idx, {
+					toolCalls: JSON.stringify(toolCalls)
+				});
+			},
 			stream: true
 		};
 		// Pi keeps the conversation on its side, so only the newest user turn is sent

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { File, Folder } from '@lucide/svelte';
+	import { File, Folder, Puzzle, Sparkles, Terminal } from '@lucide/svelte';
 	import { ChatFormPickerList, ChatFormPickerListItem } from '$lib/components/app/chat';
 	import HighlightedMatch from '$lib/components/app/forms/HighlightedMatch.svelte';
 	import * as Popover from '$lib/components/ui/popover';
@@ -14,6 +14,7 @@
 	} from '$lib/enums';
 	import { useDebouncedSearch } from '$lib/hooks/use-debounced-search.svelte';
 	import { usePickerNavigation } from '$lib/hooks/use-picker-navigation.svelte';
+	import { TilekitService } from '$lib/services/tilekit.service';
 	import { conversationsStore, deviceStore, settingsStore, toolsStore } from '$lib/stores';
 	import type { FileMentionEntry, GlobEntryResult } from '$lib/types';
 	import { abbreviateHome, runGlobSearchWithChildren } from '$lib/utils';
@@ -67,6 +68,35 @@
 
 	let searchResults = $state<FileMentionEntry[]>([]);
 	let searchError = $state<string | null>(null);
+
+	// What `@name` can reach besides files: plugins, skills, plugin commands.
+	// Fetched once per open; the daemon list only changes on plugin changes.
+	let mentionables = $state<FileMentionEntry[]>([]);
+	let mentionablesLoaded = $state(false);
+
+	const MENTION_KIND_TO_TYPE: Record<string, FileMentionEntryType> = {
+		command: FileMentionEntryType.COMMAND,
+		plugin: FileMentionEntryType.PLUGIN,
+		skill: FileMentionEntryType.SKILL
+	};
+
+	async function loadMentionables() {
+		try {
+			const mentions = await TilekitService.agentMentions();
+
+			mentionables = mentions.map((mention) => ({
+				description: mention.description,
+				name: mention.name,
+				path: `@${mention.name}`,
+				type: MENTION_KIND_TO_TYPE[mention.kind] ?? FileMentionEntryType.COMMAND
+			}));
+		} catch {
+			// no agent running, or an old daemon: the picker still offers files
+			mentionables = [];
+		} finally {
+			mentionablesLoaded = true;
+		}
+	}
 
 	// Coerce the depth setting to a positive integer; an invalid value
 	// would otherwise reach the server as max_depth 0 = unlimited.
@@ -125,7 +155,13 @@
 	});
 
 	const trimmedQuery = $derived((query ?? '').trim());
-	const displayedItems = $derived(searchResults);
+
+	// Plugins and skills lead the list: a matching name is a stronger signal
+	// than a path fragment, and a bare `@` shows them before any file search.
+	const matchedMentionables = $derived(
+		mentionables.filter((entry) => entry.name.toLowerCase().includes(trimmedQuery.toLowerCase()))
+	);
+	const displayedItems = $derived([...matchedMentionables, ...searchResults]);
 
 	const emptyMessage = $derived.by(() => {
 		if (fileSearchKey === null) {
@@ -150,6 +186,8 @@
 	$effect(() => {
 		if (isOpen) {
 			nav.reset(0);
+
+			if (!mentionablesLoaded) void loadMentionables();
 		}
 	});
 
@@ -245,13 +283,26 @@
 					onclick={() => handleSelect(entry)}
 					onmouseenter={() => nav.setHover(index)}
 				>
-					{@const Icon = entry.type === FileMentionEntryType.DIRECTORY ? Folder : File}
+					{@const Icon =
+						entry.type === FileMentionEntryType.DIRECTORY
+							? Folder
+							: entry.type === FileMentionEntryType.PLUGIN
+								? Puzzle
+								: entry.type === FileMentionEntryType.SKILL
+									? Sparkles
+									: entry.type === FileMentionEntryType.COMMAND
+										? Terminal
+										: File}
 					<Icon
 						class={[
 							'mt-0.5 h-4 w-4 shrink-0',
 							entry.type === FileMentionEntryType.DIRECTORY
 								? 'text-amber-500'
-								: 'text-muted-foreground'
+								: entry.type === FileMentionEntryType.PLUGIN
+									? 'text-violet-500'
+									: entry.type === FileMentionEntryType.SKILL
+										? 'text-sky-500'
+										: 'text-muted-foreground'
 						]}
 					/>
 
@@ -281,7 +332,11 @@
 						</div>
 
 						<span class="min-w-0 flex-1 truncate font-mono text-left text-xs">
-							<HighlightedMatch query={trimmedQuery} text={abbreviateHome(entry.path, home)} />
+							{#if entry.description}
+								{entry.description}
+							{:else}
+								<HighlightedMatch query={trimmedQuery} text={abbreviateHome(entry.path, home)} />
+							{/if}
 						</span>
 					</div>
 				</ChatFormPickerListItem>
