@@ -83,15 +83,18 @@ export function leafOf(messages: DatabaseMessage[]): string | null {
  * A local assistant message the rows do not have yet is the turn that is
  * still streaming: it is appended rather than dropped, so switching back to a
  * generating conversation finds the same message id the stream is writing to
- * and the live text keeps flowing. An empty one is only trusted when it is
- * the newest local message, so a row a crashed stream left behind cannot
- * haunt the tail forever.
+ * and the live text keeps flowing. It is recognized by shape, not by clock:
+ * the daemon's last row is a user prompt still waiting for its reply, and the
+ * candidate's parent is that prompt's local twin. Timestamps cannot be
+ * trusted here - the daemon stamps the prompt row after the local assistant
+ * row already exists.
  */
 export function overlayLocalMessages(
 	messages: DatabaseMessage[],
 	local: DatabaseMessage[]
 ): DatabaseMessage[] {
 	const used = new Set<string>();
+	const daemonRowOf = new Map<string, DatabaseMessage>();
 
 	for (const message of messages) {
 		const match = local.find(
@@ -104,6 +107,7 @@ export function overlayLocalMessages(
 		if (!match) continue;
 
 		used.add(match.id);
+		daemonRowOf.set(match.id, message);
 
 		if (match.reasoningContent) message.reasoningContent = match.reasoningContent;
 
@@ -114,29 +118,26 @@ export function overlayLocalMessages(
 		if (match.model && !message.model) message.model = match.model;
 	}
 
-	const lastRowTime = messages.length ? messages[messages.length - 1].timestamp : 0;
-	const newestLocalId = local.length ? local[local.length - 1].id : null;
-	const inFlight = local.filter((candidate) => {
-		if (used.has(candidate.id) || candidate.type !== 'text' || candidate.role !== 'assistant') {
-			return false;
-		}
+	// the streaming turn: the last row is a prompt with no reply yet, and the
+	// local tree holds an assistant message hanging off that prompt's twin
+	const lastRow = messages[messages.length - 1];
 
-		if (candidate.timestamp <= lastRowTime) return false;
+	if (lastRow?.role !== 'user') return messages;
 
-		const hasSubstance = Boolean(
-			candidate.content || candidate.reasoningContent || candidate.toolCalls
-		);
+	// the parent points at the prompt's local twin on the first load, and at
+	// the daemon row itself after a reload re-homed it, so accept either
+	const inFlight = local.find(
+		(candidate) =>
+			!used.has(candidate.id) &&
+			candidate.type === 'text' &&
+			candidate.role === 'assistant' &&
+			candidate.parent !== null &&
+			(daemonRowOf.get(candidate.parent) === lastRow || candidate.parent === lastRow.id)
+	);
 
-		return hasSubstance || candidate.id === newestLocalId;
-	});
-
-	for (const message of inFlight) {
-		const previous = messages[messages.length - 1];
-		const appended = { ...message, children: [], parent: previous?.id ?? null };
-
-		if (previous) previous.children.push(appended.id);
-
-		messages.push(appended);
+	if (inFlight) {
+		messages.push({ ...inFlight, children: [], parent: lastRow.id });
+		lastRow.children.push(inFlight.id);
 	}
 
 	return messages;
