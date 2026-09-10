@@ -53,7 +53,10 @@ import {
 	parseTilekitStream,
 	PI_DELTA,
 	PI_EVENT,
+	type PiMention,
+	readMention,
 	readMessageDelta,
+	readToolExecution,
 	readTurnFailure
 } from '$lib/utils/tilekit-sse';
 
@@ -1346,11 +1349,14 @@ export class ChatService {
 		canRetry = true,
 		sessionId?: string
 	): Promise<void> {
-		const { onChunk, onComplete, onError, onReasoningChunk } = options;
+		const { onChunk, onComplete, onError, onReasoningChunk, onToolCallsStreaming } = options;
 
 		let content = '';
 		let reasoning = '';
 		let failure = '';
+
+		const toolCalls: ApiChatCompletionToolCall[] = [];
+		const toolCallsJson = () => (toolCalls.length ? JSON.stringify(toolCalls) : undefined);
 
 		try {
 			// pi retries a dead inference server three times over ~14 seconds before
@@ -1400,6 +1406,46 @@ export class ChatService {
 					throw error;
 				}
 
+				if (event.event === PI_EVENT.MENTION) {
+					// the daemon answered `@name` itself, so this reply costs no
+					// model turn and the stream is already over
+					const mention = readMention(event.data);
+
+					if (!mention) continue;
+
+					onComplete?.(ChatService.describeMention(mention), undefined, undefined, undefined);
+
+					return;
+				}
+
+				if (
+					event.event === PI_EVENT.TOOL_EXECUTION_START ||
+					event.event === PI_EVENT.TOOL_EXECUTION_UPDATE
+				) {
+					const exec = readToolExecution(event.data);
+
+					if (!exec) continue;
+
+					// same id updates in place: `partialResult` is cumulative
+					const args = exec.args ?? exec.partialResult;
+					const call: ApiChatCompletionToolCall = {
+						function: {
+							arguments: args === undefined ? '' : JSON.stringify(args),
+							name: exec.toolName
+						},
+						id: exec.toolCallId,
+						type: 'function'
+					};
+					const existing = toolCalls.findIndex((c) => c.id === exec.toolCallId);
+
+					if (existing >= 0) toolCalls[existing] = call;
+					else toolCalls.push(call);
+
+					onToolCallsStreaming?.(toolCalls);
+
+					continue;
+				}
+
 				if (event.event === PI_EVENT.MESSAGE_END) {
 					failure = readTurnFailure(event.data) ?? failure;
 
@@ -1430,11 +1476,11 @@ export class ChatService {
 				throw error;
 			}
 
-			onComplete?.(content, reasoning || undefined, undefined, undefined);
+			onComplete?.(content, reasoning || undefined, undefined, toolCallsJson());
 		} catch (error) {
 			if (isAbortError(error)) {
 				// a stopped turn still keeps whatever streamed before the stop
-				onComplete?.(content, reasoning || undefined, undefined, undefined);
+				onComplete?.(content, reasoning || undefined, undefined, toolCallsJson());
 
 				return;
 			}
@@ -1499,6 +1545,25 @@ export class ChatService {
 		const offset = from === undefined ? '' : `&${STREAM_QUERY_PARAMS.FROM}=${from}`;
 
 		return `${API_STREAM.BASE}?${query}${offset}`;
+	}
+
+	/**
+	 * The reply shown for a `mention` event: what a bare `@plugin` is for, or
+	 * what an unresolved name could have been. Mirrors the REPL's wording.
+	 */
+	private static describeMention(mention: PiMention): string {
+		if (mention.resolved === 'describe') {
+			const about = mention.description || 'No description.';
+
+			return `**@${mention.name}**: ${about}\n\n_Ask a question after it, e.g. \`@${mention.name} latest release\`_`;
+		}
+
+		const available = mention.available ?? [];
+		const hint = available.length
+			? `Available: ${available.map((name) => `\`${name}\``).join(' ')}`
+			: 'No plugins installed. Add one with `tiles plugin install`.';
+
+		return `Nothing called \`@${mention.name}\`. ${hint}`;
 	}
 
 	/** Pi only ever says "Connection error.", so name the thing that is actually down. */

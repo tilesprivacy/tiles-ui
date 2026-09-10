@@ -86,8 +86,11 @@ export enum ChatFormCommandAction {
 }
 
 export enum FileMentionEntryType {
+	COMMAND = 'command',
 	DIRECTORY = 'directory',
-	FILE = 'file'
+	FILE = 'file',
+	PLUGIN = 'plugin',
+	SKILL = 'skill'
 }
 
 /**

@@ -118,6 +118,19 @@ export function buildMentionInsertion(
 ): { newValue: string; caretOffset: number } | null {
 	if (token.start < 0 || token.end > value.length || token.start > token.end) return null;
 
+	// A plugin, skill or command stays plain `@name` text: the daemon resolves
+	// it at submit time, so there is no path to link to.
+	if (
+		entry.type === FileMentionEntryType.PLUGIN ||
+		entry.type === FileMentionEntryType.SKILL ||
+		entry.type === FileMentionEntryType.COMMAND
+	) {
+		const insertion = `@${entry.name} `;
+		const newValue = value.slice(0, token.start) + insertion + value.slice(token.end);
+
+		return { caretOffset: token.start + insertion.length, newValue };
+	}
+
 	// Strip the entry's directory marker so it is not doubled below.
 	const cleanedPath = entry.path.replace(/\/+$/, '');
 	const pathWithSeparator =

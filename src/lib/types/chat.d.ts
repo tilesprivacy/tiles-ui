@@ -200,12 +200,14 @@ export interface FileProcessingResult {
 
 /**
  * A file or folder picked in the @-mention picker. `path` is the absolute
- * server-side path; `name` is the basename.
+ * server-side path; `name` is the basename. A plugin, skill or command entry
+ * carries no path; `description` is what shows in its place.
  */
 export interface FileMentionEntry {
 	path: string;
 	name: string;
 	type: FileMentionEntryType;
+	description?: string;
 }
 
 /**

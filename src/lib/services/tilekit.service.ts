@@ -13,6 +13,7 @@ import type {
 	TilekitAtprotoAccount,
 	TilekitChat,
 	TilekitDeltaChat,
+	TilekitMention,
 	TilekitModelfile,
 	TilekitResponse,
 	TilekitSaveChatRequest,
@@ -29,6 +30,16 @@ export class TilekitService {
 	/** The local account. Its id is the `user_id` every saved chat needs. */
 	static async accountStatus(): Promise<TilekitAccount> {
 		return apiFetch<TilekitResponse<TilekitAccount>>(API_TILEKIT.ACCOUNT.STATUS).then(unwrap);
+	}
+
+	/**
+	 * Everything `@name` can reach: plugins, their skills, and plugin commands.
+	 * The daemon resolves the mention on submit; this list only feeds the picker.
+	 */
+	static async agentMentions(): Promise<TilekitMention[]> {
+		return apiFetch<TilekitResponse<{ mentions: TilekitMention[] }>>(API_TILEKIT.AGENT.COMMANDS)
+			.then(unwrap)
+			.then((data) => data.mentions);
 	}
 
 	/** Pi's current session id, model and thinking level. */

@@ -12,6 +12,7 @@ export const API_TILEKIT = {
 		STATUS: `${TILEKIT}/account/status`
 	},
 	AGENT: {
+		COMMANDS: `${TILEKIT}/agent/commands`,
 		END_SESSION: `${TILEKIT}/agent/end_session`,
 		PROMPT: `${TILEKIT}/agent/prompt`,
 		RELOAD: `${TILEKIT}/agent/reload`,

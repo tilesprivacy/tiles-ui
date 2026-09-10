@@ -88,3 +88,10 @@ export interface TilekitAgentState {
 	thinkingLevel: string;
 	isStreaming: boolean;
 }
+
+/** One thing `@name` can reach: a plugin, one of its skills, or a command. */
+export interface TilekitMention {
+	name: string;
+	description: string;
+	kind: 'plugin' | 'skill' | 'command';
+}

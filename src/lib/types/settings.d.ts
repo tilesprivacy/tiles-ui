@@ -1,3 +1,4 @@
+import type { ApiChatCompletionToolCall } from './api';
 import type { ChatMessagePromptProgress, ChatMessageTimings } from './chat';
 import type { DatabaseMessageExtra } from './database';
 import type { OpenAIToolDefinition } from './mcp';
@@ -125,6 +126,7 @@ export interface SettingsChatServiceOptions {
 	onChunk?: (chunk: string) => void;
 	onReasoningChunk?: (chunk: string) => void;
 	onToolCallChunk?: (chunk: string) => void;
+	onToolCallsStreaming?: (toolCalls: ApiChatCompletionToolCall[]) => void;
 	onAttachments?: (extras: DatabaseMessageExtra[]) => void;
 	onModel?: (model: string) => void;
 	onCompletionId?: (id: string) => void;
