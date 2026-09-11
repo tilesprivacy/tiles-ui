@@ -16,7 +16,6 @@
 		DatabaseMessage
 	} from '$lib/types';
 	import { deriveAgenticSections } from '$lib/utils';
-	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 
 	interface Props {
 		message: DatabaseMessage;
@@ -111,8 +110,8 @@
 	// not spam the conversation with one block per call. Tools with no
 	// reasoning before them (thinking off) still stand alone.
 	const absorbedTools = $derived.by(() => {
-		const byReasoning = new SvelteMap<number, number[]>();
-		const hidden = new SvelteSet<number>();
+		const nested: (number[] | null)[] = new Array(sections.length).fill(null);
+		const hidden: boolean[] = new Array(sections.length).fill(false);
 
 		let currentReasoning: number | null = null;
 
@@ -122,17 +121,14 @@
 			if (isReasoningSection(section)) {
 				currentReasoning = i;
 			} else if (isToolSection(section) && currentReasoning !== null) {
-				const list = byReasoning.get(currentReasoning) ?? [];
-
-				list.push(i);
-				byReasoning.set(currentReasoning, list);
-				hidden.add(i);
+				(nested[currentReasoning] ??= []).push(i);
+				hidden[i] = true;
 			} else if (!isToolSection(section)) {
 				currentReasoning = null;
 			}
 		}
 
-		return { byReasoning, hidden };
+		return { hidden, nested };
 	});
 
 	const currentlyExecutingToolCallId = $derived(
@@ -235,7 +231,7 @@
 			<MarkdownContent attachments={message?.extra} content={section.content} />
 		</div>
 	{:else if section.type === AgenticSectionType.REASONING || section.type === AgenticSectionType.REASONING_PENDING}
-		{@const nested = absorbedTools.byReasoning.get(index)}
+		{@const nested = absorbedTools.nested[index]}
 		{#if nested?.length}
 			<ChatMessageReasoningBlock
 				attachments={message?.extra}
@@ -260,7 +256,7 @@
 			/>
 		{/if}
 	{:else if section.type === AgenticSectionType.TOOL_CALL || section.type === AgenticSectionType.TOOL_CALL_PENDING || section.type === AgenticSectionType.TOOL_CALL_STREAMING}
-		{#if !absorbedTools.hidden.has(index)}
+		{#if !absorbedTools.hidden[index]}
 			{@render renderToolBlock(section, index)}
 		{/if}
 	{/if}
