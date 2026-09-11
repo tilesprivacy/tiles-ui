@@ -67,6 +67,7 @@ export interface TilekitAccount {
 export interface TilekitAtprotoAccount {
 	handle: string;
 	did: string;
+	avatar: string | null;
 }
 
 /** Pi's view of itself, from `/agent/state`. */

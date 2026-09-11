@@ -343,9 +343,7 @@
 			>
 				<ActionIcon
 					ariaLabel={uiStore.isSidebarExpanded ? 'Go to start' : 'Expand navigation'}
-					class="{uiStore.isSidebarExpanded
-						? 'bg-muted! md:bg-foreground/5!'
-						: 'bg-transparent!'} md:h-9 md:w-9 h-10 w-10 rounded-full md:hover:bg-foreground/10! pointer-events-auto"
+					class="bg-transparent! md:h-9 md:w-9 h-10 w-10 rounded-none md:hover:bg-transparent! pointer-events-auto"
 					href={uiStore.isSidebarExpanded ? ROUTES.START : undefined}
 					icon={!uiStore.isSidebarExpanded && logoHovered && innerWidth > 768
 						? PanelLeftOpen

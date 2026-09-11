@@ -49,6 +49,13 @@ export default defineConfig(({ mode }) => {
 			nerdamerPlugin()
 		],
 
+		preview: {
+			allowedHosts: ['.trycloudflare.com'],
+			proxy: {
+				'/v1': SERVER_ORIGIN
+			}
+		},
+
 		resolve: {
 			alias: {
 				'katex-fonts': resolve('node_modules/katex/dist/fonts')
@@ -56,6 +63,7 @@ export default defineConfig(({ mode }) => {
 		},
 
 		server: {
+			allowedHosts: ['.trycloudflare.com'],
 			fs: {
 				allow: [searchForWorkspaceRoot(process.cwd()), resolve(__dirname, 'tests')]
 			},

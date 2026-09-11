@@ -271,7 +271,10 @@
 {:else}
 	<div
 		style:--chat-form-bottom-position={chatFormBottomPosition}
-		class="chat-screen flex grow flex-col min-h-[calc(100dvh-1rem)] md:min-h-[calc(100dvh-1rem-var(--chat-tabs-offset,0px))] px-4 md:py-0 pt-12 pb-48 md:pb-4"
+		class={[
+			'chat-screen flex grow flex-col min-h-[calc(100dvh-1rem)] md:min-h-[calc(100dvh-1rem-var(--chat-tabs-offset,0px))] px-4 md:py-0 pb-48 md:pb-4',
+			!page.params.id && 'pt-12'
+		]}
 		ondragenter={dragAndDrop.dragHandlers.dragenter}
 		ondragleave={dragAndDrop.dragHandlers.dragleave}
 		ondragover={dragAndDrop.dragHandlers.dragover}
@@ -279,11 +282,14 @@
 		role="main"
 	>
 		{#if page.params.id}
-			<div class="pointer-events-none fixed right-4 top-3 z-30 md:absolute md:right-2 md:top-2">
-				<div class="pointer-events-auto relative">
+			<header
+				aria-label="Conversation actions"
+				class="chat-screen-topbar sticky top-[var(--chat-tabs-offset,0px)] z-30 -mx-4 flex h-12 shrink-0 items-center justify-end px-2 md:px-4"
+			>
+				<div class="relative">
 					<ChatShareButton sessionId={page.params.id} />
 				</div>
-			</div>
+			</header>
 		{/if}
 
 		{#if !isEmpty}
@@ -365,6 +371,16 @@
 />
 
 <style>
+	.chat-screen-topbar {
+		background: linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--background) 92%, transparent) 0%,
+			color-mix(in srgb, var(--background) 78%, transparent) 70%,
+			transparent 100%
+		);
+		backdrop-filter: blur(12px);
+	}
+
 	/* matches --chat-form-padding-top, the gap the composer already reserves */
 	.chat-screen-form-fade {
 		background: linear-gradient(to bottom, transparent 0, var(--void) 4rem);

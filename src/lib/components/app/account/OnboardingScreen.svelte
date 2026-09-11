@@ -18,51 +18,56 @@
 	}
 </script>
 
-<div class="flex h-dvh w-full items-center justify-center bg-background px-6">
-	<form class="flex w-full max-w-sm flex-col gap-6" onsubmit={submit}>
-		<div class="flex flex-col gap-3">
-			<Logo class="text-signal" style="--size: 2rem" />
+<div class="flex min-h-dvh w-full items-center justify-center bg-background px-6 py-12 sm:px-8">
+	<form class="flex w-full max-w-md flex-col" onsubmit={submit}>
+		<header class="flex flex-col">
+			<Logo class="text-signal" style="--size: 3.75rem" />
 
-			<h1 class="text-2xl font-semibold tracking-tight text-bone">Welcome to Tiles</h1>
+			<div class="mt-7 flex flex-col gap-3">
+				<h1 class="text-3xl font-semibold tracking-tight text-bone">Welcome to Tiles</h1>
 
-			<p class="text-[13px] leading-relaxed text-slate">
-				Tiles runs on your machine. Pick a username and we'll generate a keypair for you — it stays
-				in this device's keychain and identifies you to peers you choose to link with.
-			</p>
+				<p class="max-w-[42ch] text-sm leading-6 text-slate">
+					Create a local Tiles Account for peer-to-peer sync, remote inference, and other
+					local-first features. Generated and secured on this device, it uses DIDs and UCANs for
+					zero-trust authentication and authorization.
+				</p>
+			</div>
+		</header>
+
+		<div class="mt-9 flex flex-col gap-5">
+			<div class="flex flex-col gap-2.5">
+				<label class="text-xs font-medium text-slate" for="nickname">Username</label>
+
+				<input
+					bind:value={nickname}
+					autocomplete="off"
+					class="cut h-12 w-full border border-border bg-steel px-4 text-sm text-bone outline-none transition-colors placeholder:text-slate focus:border-signal/60"
+					disabled={accountStore.creating}
+					id="nickname"
+					placeholder="your name"
+					spellcheck="false"
+				/>
+
+				{#if touched && nickname.trim().length === 0}
+					<span class="text-xs text-alert">A username is required.</span>
+				{/if}
+
+				{#if accountStore.error}
+					<span class="text-xs text-alert">{accountStore.error}</span>
+				{/if}
+			</div>
+
+			<Button
+				class="cut h-11 w-full rounded-none bg-signal text-void hover:bg-signal hover:brightness-110 disabled:bg-steel disabled:text-slate disabled:opacity-100"
+				disabled={!canSubmit}
+				type="submit"
+			>
+				{accountStore.creating ? 'Creating…' : 'Create Tiles Account'}
+			</Button>
 		</div>
 
-		<div class="flex flex-col gap-2">
-			<label class="text-[11px] font-medium text-slate" for="nickname">Username</label>
-
-			<input
-				bind:value={nickname}
-				autocomplete="off"
-				class="cut w-full border border-border bg-steel px-3 py-2 text-[13px] text-bone outline-none placeholder:text-slate focus:border-signal/60"
-				disabled={accountStore.creating}
-				id="nickname"
-				placeholder="yourname"
-				spellcheck="false"
-			/>
-
-			{#if touched && nickname.trim().length === 0}
-				<span class="text-[11px] text-alert">A username is required.</span>
-			{/if}
-
-			{#if accountStore.error}
-				<span class="text-[11px] text-alert">{accountStore.error}</span>
-			{/if}
-		</div>
-
-		<Button
-			class="cut w-full rounded-none bg-signal text-void hover:bg-signal hover:brightness-110 disabled:bg-steel disabled:text-slate disabled:opacity-100"
-			disabled={!canSubmit}
-			type="submit"
-		>
-			{accountStore.creating ? 'Creating…' : 'Create account'}
-		</Button>
-
-		<p class="text-[11px] leading-relaxed text-slate">
-			An AT Protocol account can be connected later. It is optional — Tiles works entirely offline
+		<p class="mt-8 border-t border-border pt-5 text-xs leading-5 text-slate">
+			You can connect an optional Atmosphere Account later for online social features. Tiles works
 			without one.
 		</p>
 	</form>
