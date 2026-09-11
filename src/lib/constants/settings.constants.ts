@@ -84,7 +84,7 @@ export const SETTINGS_REGISTRY: SettingsSectionEntry[] = [
 			},
 			{
 				defaultValue: '',
-				help: 'What the agent starts from. FROM names the model, SYSTEM becomes its system prompt. Saved on the daemon, not in this browser. Saving restarts the agent and ends the conversation it was in.',
+				help: 'Tiles Modelfile is a configuration blueprint used to create and share customized local AI models by defining base models, system prompts, and parameters. Saving it restarts the agent and ends the current conversation.',
 				key: SETTINGS_KEYS.MODELFILE,
 				label: 'Modelfile',
 				type: SettingsFieldType.TEXTAREA

@@ -111,5 +111,10 @@
 		"cookie": "1.1.1",
 		"sharp": "0.35.3",
 		"valibot": "1.4.2"
+	},
+	"dependencies": {
+		"@codemirror/commands": "^6.11.0",
+		"@codemirror/state": "^6.7.4",
+		"@codemirror/view": "^6.43.11"
 	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, Copy, ExternalLink, Loader2 } from '@lucide/svelte';
+	import { Check, Copy, ExternalLink, Loader2, LogOut } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Popover from '$lib/components/ui/popover';
 	import { ICON_CLASS_XS } from '$lib/constants';
@@ -12,28 +12,43 @@
 
 	let { expanded = true }: Props = $props();
 
-	let copied = $state(false);
+	let copied = $state<string | null>(null);
 	let copyTimer: ReturnType<typeof setTimeout> | undefined;
+	let disconnecting = $state(false);
 	let handleInput = $state('');
+	let failedAvatar = $state<string | null>(null);
 
 	let account = $derived(accountStore.account);
 	let atproto = $derived(accountStore.atproto);
+	let avatar = $derived(
+		atproto?.avatar && failedAvatar !== atproto.avatar ? atproto.avatar : undefined
+	);
 	let connecting = $derived(accountStore.atprotoState === 'connecting');
 	let initial = $derived((account?.nickname ?? '?').charAt(0).toUpperCase());
 
-	async function copyDid() {
-		if (!account) return;
-
-		await navigator.clipboard.writeText(account.id);
-		copied = true;
+	async function copyDid(did: string) {
+		await navigator.clipboard.writeText(did);
+		copied = did;
 		clearTimeout(copyTimer);
-		copyTimer = setTimeout(() => (copied = false), 1500);
+		copyTimer = setTimeout(() => (copied = null), 1500);
 	}
 
 	async function connect(event: SubmitEvent) {
 		event.preventDefault();
 
 		if (await accountStore.connectAtproto(handleInput)) handleInput = '';
+	}
+
+	async function disconnect() {
+		if (disconnecting) return;
+
+		disconnecting = true;
+
+		try {
+			await accountStore.disconnectAtproto();
+		} finally {
+			disconnecting = false;
+		}
 	}
 </script>
 
@@ -46,9 +61,19 @@
 					: 'justify-center px-0'}"
 			>
 				<span
-					class="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-steel text-[12px] font-semibold text-ash"
+					class="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-steel text-[12px] font-semibold text-ash"
 				>
-					{initial}
+					{#if avatar}
+						<img
+							alt=""
+							class="h-full w-full object-cover"
+							onerror={() => (failedAvatar = avatar)}
+							referrerpolicy="no-referrer"
+							src={avatar}
+						/>
+					{:else}
+						{initial}
+					{/if}
 
 					{#if atproto}
 						<!-- a connected identity is worth showing without opening the panel -->
@@ -88,15 +113,16 @@
 						</div>
 
 						<button
+							aria-label="Copy Tiles account DID"
 							class="cut flex items-start gap-2 bg-background p-2 text-left hover:text-bone"
-							onclick={copyDid}
+							onclick={() => copyDid(account.id)}
 							type="button"
 						>
 							<span class="min-w-0 flex-1 font-mono text-[11px] break-all text-ash">
 								{account.id}
 							</span>
 
-							{#if copied}
+							{#if copied === account.id}
 								<Check class="{ICON_CLASS_XS} shrink-0 text-signal" />
 							{:else}
 								<Copy class="{ICON_CLASS_XS} shrink-0 text-slate" />
@@ -104,39 +130,80 @@
 						</button>
 
 						<p class="text-[11px] leading-relaxed text-slate">
-							Your keypair lives in this machine's keychain. Nothing about this account leaves the
-							device.
+							Your Tiles Account is generated and secured on this device. It is ready for
+							peer-to-peer sync, remote inference, and other local-first features, using DIDs and
+							UCANs for zero-trust authentication and authorization.
 						</p>
 					</div>
 
 					<div class="border-t border-border"></div>
 
-					<!-- AT Protocol -->
+					<!-- Atmosphere account -->
 					<div class="flex flex-col gap-2">
-						<span class="text-[11px] font-medium tracking-wide text-slate uppercase"
-							>AT Protocol</span
-						>
+						<div class="flex items-center gap-2">
+							<span
+								class="cut flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden bg-background text-[13px] font-semibold text-ash"
+							>
+								{#if avatar}
+									<img
+										alt=""
+										class="h-full w-full object-cover"
+										onerror={() => (failedAvatar = avatar)}
+										referrerpolicy="no-referrer"
+										src={avatar}
+									/>
+								{:else}
+									{atproto ? atproto.handle.charAt(0).toUpperCase() : '@'}
+								{/if}
+							</span>
+
+							<div class="flex min-w-0 flex-col leading-tight">
+								<span class="truncate text-[13px] text-bone">
+									{atproto ? `@${atproto.handle}` : 'Not connected'}
+								</span>
+
+								<span class="text-[11px] text-slate">Atmosphere Account</span>
+							</div>
+						</div>
 
 						{#if atproto}
-							<div class="cut flex flex-col gap-0.5 bg-background p-2">
-								<span class="font-mono text-[11px] text-ash">@{atproto.handle}</span>
+							<button
+								aria-label="Copy Atmosphere account DID"
+								class="cut flex items-start gap-2 bg-background p-2 text-left hover:text-bone"
+								onclick={() => copyDid(atproto.did)}
+								type="button"
+							>
+								<span class="min-w-0 flex-1 font-mono text-[11px] break-all text-ash">
+									{atproto.did}
+								</span>
 
-								<span class="font-mono text-[11px] break-all text-slate">{atproto.did}</span>
-							</div>
+								{#if copied === atproto.did}
+									<Check class="{ICON_CLASS_XS} shrink-0 text-signal" />
+								{:else}
+									<Copy class="{ICON_CLASS_XS} shrink-0 text-slate" />
+								{/if}
+							</button>
 
-							<div class="flex items-center justify-between gap-2">
-								<p class="text-[11px] leading-relaxed text-slate">
-									Connected. You can publish conversations to your own PDS.
-								</p>
+							<p class="text-[11px] leading-relaxed text-slate">
+								Your Atmosphere Account is connected and ready to share conversations through your
+								AT Protocol PDS.
+							</p>
 
-								<Button
-									class="cut h-7 shrink-0 rounded-none bg-steel px-2 text-[11px] text-slate hover:bg-background hover:text-bone"
-									onclick={() => accountStore.disconnectAtproto()}
-									type="button"
-								>
+							<Button
+								class="cut h-9 self-start justify-start rounded-none border border-border bg-background px-2.5 text-[11px] text-ash hover:border-alert/40 hover:bg-alert/10 hover:text-alert"
+								disabled={disconnecting}
+								onclick={disconnect}
+								type="button"
+								variant="ghost"
+							>
+								{#if disconnecting}
+									<Loader2 class="{ICON_CLASS_XS} animate-spin" />
+									Signing out…
+								{:else}
+									<LogOut class={ICON_CLASS_XS} />
 									Sign out
-								</Button>
-							</div>
+								{/if}
+							</Button>
 						{:else if connecting}
 							<div class="cut flex flex-col gap-2 bg-background p-2">
 								<span class="flex items-center gap-2 text-[11px] text-bone">
@@ -182,8 +249,8 @@
 									<ExternalLink class="{ICON_CLASS_XS} mt-0.5 shrink-0" />
 
 									<span>
-										Opens your browser to sign in. Optional — Tiles works without it, and your Tiles
-										account stays either way.
+										You can connect an optional Atmosphere Account later for online social features.
+										Tiles works without one.
 									</span>
 								</p>
 							</form>

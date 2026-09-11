@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { FlaskConical, RotateCcw } from '@lucide/svelte';
+	import SettingsModelfileEditor from './SettingsModelfileEditor.svelte';
+	import { ExternalLink, FlaskConical, RotateCcw } from '@lucide/svelte';
 	import { SettingsChatParameterSourceIndicator } from '$lib/components/app/settings';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Input } from '$lib/components/ui/input';
@@ -131,20 +132,38 @@
 					</Label>
 				{/if}
 
-				<Textarea
-					class="w-full md:max-w-3xl {field.key === SETTINGS_KEYS.MODELFILE
-						? 'min-h-[22rem] font-mono text-xs'
-						: 'min-h-[10rem]'}"
-					id={field.key}
-					onchange={(e) => onConfigChange(field.key, e.currentTarget.value)}
-					placeholder=""
-					value={String(localConfig[field.key] ?? '')}
-				/>
+				{#if field.key === SETTINGS_KEYS.MODELFILE}
+					<SettingsModelfileEditor
+						id={field.key}
+						onChange={(value) => onConfigChange(field.key, value)}
+						value={String(localConfig[field.key] ?? '')}
+					/>
+				{:else}
+					<Textarea
+						class="min-h-[10rem] w-full md:max-w-3xl"
+						id={field.key}
+						onchange={(e) => onConfigChange(field.key, e.currentTarget.value)}
+						placeholder=""
+						value={String(localConfig[field.key] ?? '')}
+					/>
+				{/if}
 
 				{#if field.help || SETTING_CONFIG_INFO[field.key]}
-					<p class="mt-1 text-xs text-muted-foreground">
-						{field.help || SETTING_CONFIG_INFO[field.key]}
-					</p>
+					<div class="mt-1 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
+						<p>{field.help || SETTING_CONFIG_INFO[field.key]}</p>
+
+						{#if field.key === SETTINGS_KEYS.MODELFILE}
+							<a
+								class="inline-flex items-center gap-1 font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
+								href="https://www.tiles.run/book/tilekit#modelfile-reference"
+								rel="noreferrer"
+								target="_blank"
+							>
+								Read the Modelfile reference
+								<ExternalLink class="h-3 w-3" />
+							</a>
+						{/if}
+					</div>
 				{/if}
 			{:else if field.type === SettingsFieldType.SELECT}
 				{@const selectedOption = field.options?.find(
