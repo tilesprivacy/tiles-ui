@@ -16,6 +16,7 @@
 		DatabaseMessage
 	} from '$lib/types';
 	import { deriveAgenticSections } from '$lib/utils';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 
 	interface Props {
 		message: DatabaseMessage;
@@ -95,6 +96,44 @@
 	}
 
 	const sections = $derived(deriveAgenticSections(message, toolMessages, [], isStreaming));
+
+	const isToolSection = (section: AgenticSection) =>
+		section.type === AgenticSectionType.TOOL_CALL ||
+		section.type === AgenticSectionType.TOOL_CALL_PENDING ||
+		section.type === AgenticSectionType.TOOL_CALL_STREAMING;
+
+	const isReasoningSection = (section: AgenticSection) =>
+		section.type === AgenticSectionType.REASONING ||
+		section.type === AgenticSectionType.REASONING_PENDING;
+
+	// Tool calls that follow a reasoning round render inside that reasoning
+	// block rather than as their own thread entries, so an agentic turn does
+	// not spam the conversation with one block per call. Tools with no
+	// reasoning before them (thinking off) still stand alone.
+	const absorbedTools = $derived.by(() => {
+		const byReasoning = new SvelteMap<number, number[]>();
+		const hidden = new SvelteSet<number>();
+
+		let currentReasoning: number | null = null;
+
+		for (let i = 0; i < sections.length; i++) {
+			const section = sections[i];
+
+			if (isReasoningSection(section)) {
+				currentReasoning = i;
+			} else if (isToolSection(section) && currentReasoning !== null) {
+				const list = byReasoning.get(currentReasoning) ?? [];
+
+				list.push(i);
+				byReasoning.set(currentReasoning, list);
+				hidden.add(i);
+			} else if (!isToolSection(section)) {
+				currentReasoning = null;
+			}
+		}
+
+		return { byReasoning, hidden };
+	});
 
 	const currentlyExecutingToolCallId = $derived(
 		isStreaming ? agenticStore.getExecutingToolCallId(message.convId) : null
@@ -178,30 +217,52 @@
 	}
 </script>
 
+{#snippet renderToolBlock(section: AgenticSection, index: number)}
+	<ChatMessageToolCallBlock
+		attachments={message?.extra}
+		isExecuting={section.toolCallId !== undefined &&
+			section.toolCallId === currentlyExecutingToolCallId}
+		{isStreaming}
+		onToggle={() => toggleExpanded(index, section)}
+		open={isExpanded(index, section)}
+		{section}
+	/>
+{/snippet}
+
 {#snippet renderSection(section: AgenticSection, index: number)}
 	{#if section.type === AgenticSectionType.TEXT}
 		<div class="agentic-text">
 			<MarkdownContent attachments={message?.extra} content={section.content} />
 		</div>
 	{:else if section.type === AgenticSectionType.REASONING || section.type === AgenticSectionType.REASONING_PENDING}
-		<ChatMessageReasoningBlock
-			attachments={message?.extra}
-			{hasReasoningError}
-			{isStreaming}
-			onToggle={() => toggleExpanded(index, section)}
-			open={isExpanded(index, section)}
-			{section}
-		/>
+		{@const nested = absorbedTools.byReasoning.get(index)}
+		{#if nested?.length}
+			<ChatMessageReasoningBlock
+				attachments={message?.extra}
+				{hasReasoningError}
+				{isStreaming}
+				onToggle={() => toggleExpanded(index, section)}
+				open={isExpanded(index, section)}
+				{section}
+			>
+				{#each nested as toolIndex (toolIndex)}
+					{@render renderToolBlock(sections[toolIndex], toolIndex)}
+				{/each}
+			</ChatMessageReasoningBlock>
+		{:else}
+			<ChatMessageReasoningBlock
+				attachments={message?.extra}
+				{hasReasoningError}
+				{isStreaming}
+				onToggle={() => toggleExpanded(index, section)}
+				open={isExpanded(index, section)}
+				{section}
+			/>
+		{/if}
 	{:else if section.type === AgenticSectionType.TOOL_CALL || section.type === AgenticSectionType.TOOL_CALL_PENDING || section.type === AgenticSectionType.TOOL_CALL_STREAMING}
-		<ChatMessageToolCallBlock
-			attachments={message?.extra}
-			isExecuting={section.toolCallId !== undefined &&
-				section.toolCallId === currentlyExecutingToolCallId}
-			{isStreaming}
-			onToggle={() => toggleExpanded(index, section)}
-			open={isExpanded(index, section)}
-			{section}
-		/>
+		{#if !absorbedTools.hidden.has(index)}
+			{@render renderToolBlock(section, index)}
+		{/if}
 	{/if}
 {/snippet}
 

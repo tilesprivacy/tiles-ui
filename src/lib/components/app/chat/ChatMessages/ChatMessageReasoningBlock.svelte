@@ -13,10 +13,15 @@
 		hasReasoningError?: boolean;
 		attachments?: DatabaseMessageExtra[];
 		onToggle?: () => void;
+		/** Rendered inside the collapsible, below the reasoning text - the tool
+		 *  calls that ran during this thinking round live here instead of
+		 *  spamming the thread. */
+		children?: import('svelte').Snippet;
 	}
 
 	let {
 		attachments,
+		children,
 		hasReasoningError = false,
 		isStreaming,
 		onToggle,
@@ -149,6 +154,12 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if children}
+		<div class="reasoning-tools mt-2">
+			{@render children()}
+		</div>
+	{/if}
 </CollapsibleContentBlock>
 
 <style>
