@@ -140,5 +140,44 @@ export function overlayLocalMessages(
 		lastRow.children.push(inFlight.id);
 	}
 
+	restoreToolMessages(messages, local, daemonRowOf);
+
 	return messages;
+}
+
+/**
+ * Puts tool-result messages back next to the assistant turn they belong to.
+ *
+ * They exist only locally - the daemon rows know nothing of tool calls - so a
+ * reload would drop them and every tool block would sit on "Waiting for
+ * result..." again. A tool message follows its parent assistant immediately
+ * in display order, which is the shape the message grouping expects.
+ */
+function restoreToolMessages(
+	messages: DatabaseMessage[],
+	local: DatabaseMessage[],
+	daemonRowOf: Map<string, DatabaseMessage>
+): void {
+	const keptById = new Map<string, DatabaseMessage>();
+
+	for (const message of messages) keptById.set(message.id, message);
+
+	for (const [localId, daemonRow] of daemonRowOf) keptById.set(localId, daemonRow);
+
+	for (const candidate of local) {
+		if (candidate.role !== 'tool' || !candidate.toolCallId || !candidate.parent) continue;
+
+		const home = keptById.get(candidate.parent);
+
+		if (!home || home.role !== 'assistant') continue;
+
+		// after the parent and after any tool siblings already in place
+		let at = messages.indexOf(home) + 1;
+
+		if (at === 0) continue;
+
+		while (at < messages.length && messages[at].role === 'tool') at += 1;
+
+		messages.splice(at, 0, { ...candidate, children: [], parent: home.id });
+	}
 }

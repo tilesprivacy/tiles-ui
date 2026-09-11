@@ -96,6 +96,32 @@ describe('overlayLocalMessages', () => {
 		expect(merged.map((m) => m.id)).not.toContain('ghost');
 	});
 
+	it('restores tool results next to their assistant turn', () => {
+		const rows = [
+			makeMessage({ content: 'a question', id: 'row-user-1', role: MessageRole.USER }),
+			makeMessage({ content: 'the answer', id: 'row-assistant' }),
+			makeMessage({ content: 'a follow-up', id: 'row-user-2', role: MessageRole.USER })
+		];
+		const localAssistant = makeMessage({ content: 'the answer', id: 'local-assistant' });
+		const toolMsg = makeMessage({
+			content: 'total 42',
+			id: 'tool-1',
+			parent: 'local-assistant',
+			role: MessageRole.TOOL,
+			toolCallId: 'call-1'
+		});
+		const merged = overlayLocalMessages(rows, [localAssistant, toolMsg]);
+
+		// the tool message sits right after the assistant it belongs to
+		expect(merged.map((m) => m.id)).toEqual([
+			'row-user-1',
+			'row-assistant',
+			'tool-1',
+			'row-user-2'
+		]);
+		expect(merged[2].parent).toBe('row-assistant');
+	});
+
 	it('does not resurrect an old local row as new output', () => {
 		const rows = [
 			makeMessage({ content: 'q1', role: MessageRole.USER }),

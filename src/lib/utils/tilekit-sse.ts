@@ -203,6 +203,29 @@ export function readMention(data: string): PiMention | null {
 	return parsed;
 }
 
+/**
+ * The text of a tool result. Pi results are MCP-shaped - `content` blocks
+ * with `text` - so join those; anything else is shown as its JSON.
+ */
+export function toolResultText(result: unknown): string {
+	if (typeof result === 'string') return result;
+
+	if (result && typeof result === 'object' && 'content' in result) {
+		const blocks = (result as { content?: unknown }).content;
+
+		if (Array.isArray(blocks)) {
+			const text = blocks
+				.map((block) => (block && typeof block.text === 'string' ? block.text : ''))
+				.filter(Boolean)
+				.join('\n');
+
+			if (text) return text;
+		}
+	}
+
+	return result === undefined || result === null ? '' : JSON.stringify(result, null, 2);
+}
+
 /** Reads a `tool_execution_*` event, or null when it names no tool call. */
 export function readToolExecution(data: string): PiToolExecution | null {
 	let parsed: PiToolExecution;

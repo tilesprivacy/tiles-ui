@@ -127,6 +127,7 @@ export interface SettingsChatServiceOptions {
 	onReasoningChunk?: (chunk: string) => void;
 	onToolCallChunk?: (chunk: string) => void;
 	onToolCallsStreaming?: (toolCalls: ApiChatCompletionToolCall[]) => void;
+	onToolResult?: (toolCallId: string, content: string, isError?: boolean) => Promise<void> | void;
 	onAttachments?: (extras: DatabaseMessageExtra[]) => void;
 	onModel?: (model: string) => void;
 	onCompletionId?: (id: string) => void;

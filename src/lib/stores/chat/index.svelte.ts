@@ -1284,6 +1284,11 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 					toolCalls: JSON.stringify(toolCalls)
 				});
 			},
+			// the same tool-result message the agentic path writes, so the tool
+			// block finds its output by toolCallId instead of waiting forever
+			onToolResult: async (toolCallId: string, content: string) => {
+				await streamCallbacks.createToolResultMessage?.(toolCallId, content);
+			},
 			stream: true
 		};
 		// Pi keeps the conversation on its side, so only the newest user turn is sent

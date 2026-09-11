@@ -57,7 +57,8 @@ import {
 	readMention,
 	readMessageDelta,
 	readToolExecution,
-	readTurnFailure
+	readTurnFailure,
+	toolResultText
 } from '$lib/utils/tilekit-sse';
 
 interface ResumableStreamState {
@@ -1349,7 +1350,8 @@ export class ChatService {
 		canRetry = true,
 		sessionId?: string
 	): Promise<void> {
-		const { onChunk, onComplete, onError, onReasoningChunk, onToolCallsStreaming } = options;
+		const { onChunk, onComplete, onError, onReasoningChunk, onToolCallsStreaming, onToolResult } =
+			options;
 
 		let content = '';
 		let reasoning = '';
@@ -1442,6 +1444,21 @@ export class ChatService {
 					else toolCalls.push(call);
 
 					onToolCallsStreaming?.(toolCalls);
+
+					continue;
+				}
+
+				if (event.event === PI_EVENT.TOOL_EXECUTION_END) {
+					// pairs the result with its call: without this the tool block
+					// shows "Waiting for result..." forever
+					const exec = readToolExecution(event.data);
+
+					if (!exec?.toolCallId) continue;
+
+					const resultContent =
+						toolResultText(exec.result) || (exec.isError ? 'failed' : '(no output)');
+
+					await onToolResult?.(exec.toolCallId, resultContent, exec.isError ?? false);
 
 					continue;
 				}
