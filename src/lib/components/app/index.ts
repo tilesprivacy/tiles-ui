@@ -10,4 +10,5 @@ export * from './misc';
 export * from './settings';
 export * from './models';
 export * from './navigation';
+export { default as PluginIcon } from './plugins/PluginIcon.svelte';
 export * from './server';
