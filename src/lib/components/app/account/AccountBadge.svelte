@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { Check, Copy, ExternalLink, Loader2, LogOut } from '@lucide/svelte';
+	import { Check, ChevronRight, Copy, ExternalLink, Loader2, LogOut } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
+	import * as Collapsible from '$lib/components/ui/collapsible';
 	import * as Popover from '$lib/components/ui/popover';
 	import { ICON_CLASS_XS } from '$lib/constants';
 	import { accountStore } from '$lib/stores/account.svelte';
@@ -16,15 +17,29 @@
 	let copyTimer: ReturnType<typeof setTimeout> | undefined;
 	let disconnecting = $state(false);
 	let handleInput = $state('');
-	let failedAvatar = $state<string | null>(null);
+	let tilesDetailsOpen = $state(false);
+	let atmosphereDetailsOpen = $state(false);
 
 	let account = $derived(accountStore.account);
 	let atproto = $derived(accountStore.atproto);
-	let avatar = $derived(
-		atproto?.avatar && failedAvatar !== atproto.avatar ? atproto.avatar : undefined
-	);
+	let avatarUrl = $derived(atproto?.avatar ?? null);
 	let connecting = $derived(accountStore.atprotoState === 'connecting');
 	let initial = $derived((account?.nickname ?? '?').charAt(0).toUpperCase());
+	let avatarFailed = $state(false);
+	let lastAvatarUrl = $state<string | null>(null);
+	let avatarReady = $state(false);
+
+	// Match the menubar avatar: initials stay underneath while the image loads
+	// and remain as the fallback when a remote image cannot be decoded.
+	$effect(() => {
+		if (avatarUrl === lastAvatarUrl) return;
+
+		lastAvatarUrl = avatarUrl;
+		avatarFailed = false;
+		avatarReady = false;
+	});
+
+	let showAvatar = $derived(Boolean(avatarUrl) && !avatarFailed);
 
 	async function copyDid(did: string) {
 		await navigator.clipboard.writeText(did);
@@ -63,16 +78,18 @@
 				<span
 					class="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-steel text-[12px] font-semibold text-ash"
 				>
-					{#if avatar}
+					{initial}
+
+					{#if showAvatar}
 						<img
 							alt=""
-							class="h-full w-full object-cover"
-							onerror={() => (failedAvatar = avatar)}
-							referrerpolicy="no-referrer"
-							src={avatar}
+							class="absolute inset-0 h-full w-full rounded-full object-cover transition-opacity duration-150 {avatarReady
+								? 'opacity-100'
+								: 'opacity-0'}"
+							onerror={() => (avatarFailed = true)}
+							onload={() => (avatarReady = true)}
+							src={avatarUrl ?? ''}
 						/>
-					{:else}
-						{initial}
 					{/if}
 
 					{#if atproto}
@@ -129,11 +146,24 @@
 							{/if}
 						</button>
 
-						<p class="text-[11px] leading-relaxed text-slate">
-							Your Tiles Account is generated and secured on this device. It is ready for
-							peer-to-peer sync, remote inference, and other local-first features, using DIDs and
-							UCANs for zero-trust authentication and authorization.
-						</p>
+						<Collapsible.Root bind:open={tilesDetailsOpen}>
+							<Collapsible.Trigger
+								class="group flex items-center gap-1 text-[11px] text-slate hover:text-bone"
+							>
+								<ChevronRight
+									class="h-3 w-3 transition-transform group-data-[state=open]:rotate-90"
+								/>
+								About this account
+							</Collapsible.Trigger>
+
+							<Collapsible.Content>
+								<p class="pt-1 pl-4 text-[11px] leading-relaxed text-slate">
+									Your Tiles Account is generated and secured on this device. It is ready for
+									peer-to-peer sync, remote inference, and other local-first features, using DIDs
+									and UCANs for zero-trust authentication and authorization.
+								</p>
+							</Collapsible.Content>
+						</Collapsible.Root>
 					</div>
 
 					<div class="border-t border-border"></div>
@@ -142,18 +172,20 @@
 					<div class="flex flex-col gap-2">
 						<div class="flex items-center gap-2">
 							<span
-								class="cut flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden bg-background text-[13px] font-semibold text-ash"
+								class="cut relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden bg-background text-[13px] font-semibold text-ash"
 							>
-								{#if avatar}
+								{atproto ? atproto.handle.charAt(0).toUpperCase() : '@'}
+
+								{#if showAvatar}
 									<img
 										alt=""
-										class="h-full w-full object-cover"
-										onerror={() => (failedAvatar = avatar)}
-										referrerpolicy="no-referrer"
-										src={avatar}
+										class="absolute inset-0 h-full w-full object-cover transition-opacity duration-150 {avatarReady
+											? 'opacity-100'
+											: 'opacity-0'}"
+										onerror={() => (avatarFailed = true)}
+										onload={() => (avatarReady = true)}
+										src={avatarUrl ?? ''}
 									/>
-								{:else}
-									{atproto ? atproto.handle.charAt(0).toUpperCase() : '@'}
 								{/if}
 							</span>
 
@@ -184,10 +216,23 @@
 								{/if}
 							</button>
 
-							<p class="text-[11px] leading-relaxed text-slate">
-								Your Atmosphere Account is connected and ready to share conversations through your
-								AT Protocol PDS.
-							</p>
+							<Collapsible.Root bind:open={atmosphereDetailsOpen}>
+								<Collapsible.Trigger
+									class="group flex items-center gap-1 text-[11px] text-slate hover:text-bone"
+								>
+									<ChevronRight
+										class="h-3 w-3 transition-transform group-data-[state=open]:rotate-90"
+									/>
+									About this account
+								</Collapsible.Trigger>
+
+								<Collapsible.Content>
+									<p class="pt-1 pl-4 text-[11px] leading-relaxed text-slate">
+										Your Atmosphere Account is connected and ready to share conversations through
+										your AT Protocol PDS.
+									</p>
+								</Collapsible.Content>
+							</Collapsible.Root>
 
 							<Button
 								class="cut h-9 self-start justify-start rounded-none border border-border bg-background px-2.5 text-[11px] text-ash hover:border-alert/40 hover:bg-alert/10 hover:text-alert"

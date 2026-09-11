@@ -65,9 +65,10 @@ export interface TilekitAccount {
 
 /** An ATproto identity, from `/atproto/status`. Absent means a 404. */
 export interface TilekitAtprotoAccount {
+	/** Public profile image returned by the daemon; absent on older daemons or profiles without one. */
+	avatar?: string | null;
 	handle: string;
 	did: string;
-	avatar: string | null;
 }
 
 /** Pi's view of itself, from `/agent/state`. */
