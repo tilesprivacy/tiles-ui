@@ -97,6 +97,17 @@
 	}
 }
 
+/* px rather than tailwind's rem defaults: webkitgtk evaluates rem inside media
+   queries against the system text scaling, so rem breakpoints drift with it
+   while the viewport (and DEFAULT_MOBILE_BREAKPOINT) stay in px */
+@theme {
+	--breakpoint-sm: 640px;
+	--breakpoint-md: 768px;
+	--breakpoint-lg: 1024px;
+	--breakpoint-xl: 1280px;
+	--breakpoint-2xl: 1536px;
+}
+
 @theme inline {
 	--font-sans: var(--font-ui);
 	--font-mono: var(--font-mono);
