@@ -45,6 +45,7 @@
 	let isRouter = $derived(serverStore.isRouterMode);
 
 	let showRawOutput = $state(false);
+	let reportDialogOpen = $state(false);
 
 	let displayedModel = $derived(message.model ?? null);
 
@@ -121,7 +122,27 @@
 	{/if}
 
 	{#if message.errorMessage}
-		<p class="text-destructive my-2 text-sm">{message.errorMessage}</p>
+		<p class="text-destructive my-2 text-sm">
+			{message.errorMessage}
+			<button
+				class="text-muted-foreground ml-1 cursor-pointer underline underline-offset-2 hover:text-foreground"
+				onclick={() => (reportDialogOpen = true)}
+				type="button"
+			>
+				Report this
+			</button>
+		</p>
+
+		<!-- loaded only when an error is on screen: the QR machinery has no
+		     business in the happy path's bundle or module graph -->
+		{#await import('../../../../dialogs/DialogErrorReport.svelte') then { default: DialogErrorReport }}
+			<DialogErrorReport
+				error={message.errorMessage}
+				model={displayedModel ?? undefined}
+				onClose={() => (reportDialogOpen = false)}
+				open={reportDialogOpen}
+			/>
+		{/await}
 	{/if}
 
 	{#if showProcessingInfoBottom}
