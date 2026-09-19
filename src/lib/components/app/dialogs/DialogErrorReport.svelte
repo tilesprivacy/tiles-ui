@@ -7,6 +7,7 @@
 		buildErrorReport,
 		buildErrorReportUrl,
 		type ErrorReport,
+		fitReportToQr,
 		githubIssueUrl,
 		supportMailUrl
 	} from '$lib/utils/error-report';
@@ -24,6 +25,7 @@
 	let report = $state<ErrorReport | null>(null);
 	let reportUrl = $state('');
 	let qrSvg = $state('');
+	let qrTrimmed = $state(false);
 	let copied = $state(false);
 
 	$effect(() => {
@@ -33,22 +35,19 @@
 			// the daemon's scrubbed log tail gives the error its context;
 			// best-effort, a report without it still beats no report
 			const logTail = await TilekitService.diagnosticsLogs();
+			// the buttons carry the whole report - links have no size limit
+			const built = buildErrorReport(error, { logTail, model });
 
-			let built = buildErrorReport(error, { logTail, model });
-			let url = await buildErrorReportUrl(built);
-
-			// a QR only stays phone-scannable up to a point; past it the log
-			// tail is the thing to sacrifice, never the error itself
-			if (url.length > 2800 && logTail.length) {
-				built = buildErrorReport(error, { model });
-				url = await buildErrorReportUrl(built);
-			}
-
+			reportUrl = await buildErrorReportUrl(built);
 			report = built;
-			reportUrl = url;
-			// scanning the code carries the whole report - the phone gets the
-			// same page the buttons below link to
-			qrSvg = renderSVG(url, { border: 2 });
+
+			// the QR does have one: trim the tail until the code stays
+			// phone-scannable, sacrificing old log lines before new ones and
+			// the error never
+			const qr = await fitReportToQr(error, { model }, logTail);
+
+			qrTrimmed = qr.trimmed;
+			qrSvg = renderSVG(qr.url, { border: 2 });
 		})();
 	});
 
@@ -80,6 +79,13 @@
 				<!-- eslint-disable-next-line svelte/no-at-html-tags - uqr output is generated locally from the report URL, no user HTML -->
 				{@html qrSvg}
 			</div>
+
+			{#if qrTrimmed}
+				<p class="text-muted-foreground mx-auto max-w-sm text-center text-xs">
+					The code carries a shortened log tail so it stays scannable. The buttons below carry the
+					full logs.
+				</p>
+			{/if}
 		{/if}
 
 		<p class="text-muted-foreground mx-auto max-w-sm text-center font-mono text-xs break-all">

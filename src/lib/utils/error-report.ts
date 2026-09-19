@@ -77,6 +77,42 @@ export async function buildErrorReportUrl(report: ErrorReport): Promise<string> 
 	return `${ERROR_PAGE}#z=${encoded}`;
 }
 
+/** A QR code stops being phone-scannable past roughly this many characters. */
+export const QR_URL_BUDGET = 2800;
+
+/**
+ * The largest report URL that still fits the QR budget, trimming the log
+ * tail newest-half-first and only as a last resort dropping it. The full
+ * report always survives for the copy and issue links, which have no such
+ * constraint - only the code on screen does.
+ */
+export async function fitReportToQr(
+	error: string,
+	context: { model?: string; appVersion?: string; component?: string },
+	logTail: string[]
+): Promise<{ url: string; trimmed: boolean }> {
+	let tail = logTail;
+	let trimmed = false;
+
+	for (;;) {
+		const url = await buildErrorReportUrl(buildErrorReport(error, { ...context, logTail: tail }));
+
+		if (url.length <= QR_URL_BUDGET) return { trimmed, url };
+
+		if (!tail.length) return { trimmed: true, url };
+
+		trimmed = true;
+		// the newest lines are the ones nearest the error
+		tail = tail.slice(Math.ceil(tail.length / 2));
+
+		if (tail.length && !/^== .+ ==$/u.test(tail[0])) {
+			tail = ['== log tail (trimmed for the QR) ==', ...tail];
+		}
+
+		if (tail.length <= 1) tail = [];
+	}
+}
+
 /** A prefilled new-issue page carrying the report link. */
 export function githubIssueUrl(report: ErrorReport, reportUrl: string): string {
 	const title = `[error] ${report.error.slice(0, 80)}`;

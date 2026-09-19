@@ -1,8 +1,10 @@
 import {
 	buildErrorReport,
 	buildErrorReportUrl,
+	fitReportToQr,
 	githubIssueUrl,
 	isGuidanceError,
+	QR_URL_BUDGET,
 	supportMailUrl
 } from '$lib/utils/error-report';
 import { describe, expect, it, vi } from 'vitest';
@@ -51,5 +53,26 @@ describe('error report url', () => {
 		expect(githubIssueUrl(report, url)).toContain(encodeURIComponent(url));
 		expect(supportMailUrl(report, url)).toContain('mailto:hello@tiles.run');
 		expect(supportMailUrl(report, url)).toContain(encodeURIComponent(url));
+	});
+});
+
+describe('fitReportToQr', () => {
+	it('keeps a small tail whole', async () => {
+		const tail = ['== boot.log ==', 'one line'];
+		const fitted = await fitReportToQr('broke', {}, tail);
+
+		expect(fitted.trimmed).toBe(false);
+		expect(fitted.url.length).toBeLessThanOrEqual(QR_URL_BUDGET);
+	});
+
+	it('trims a huge tail down to a scannable code, newest lines last to go', async () => {
+		// incompressible lines, so the budget genuinely binds
+		const tail = Array.from({ length: 200 }, () =>
+			Array.from({ length: 12 }, () => Math.random().toString(36).slice(2)).join(' ')
+		);
+		const fitted = await fitReportToQr('broke', {}, tail);
+
+		expect(fitted.trimmed).toBe(true);
+		expect(fitted.url.length).toBeLessThanOrEqual(QR_URL_BUDGET);
 	});
 });
