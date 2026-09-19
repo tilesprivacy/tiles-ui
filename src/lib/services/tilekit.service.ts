@@ -83,6 +83,22 @@ export class TilekitService {
 		).then(unwrap);
 	}
 
+	/**
+	 * The scrubbed tail of the daemon and inference logs, for error reports.
+	 * Best-effort by design: a report without context beats no report.
+	 */
+	static async diagnosticsLogs(): Promise<string[]> {
+		try {
+			const data = await apiFetch<TilekitResponse<{ lines: string[] }>>(
+				API_TILEKIT.DIAGNOSTICS.LOGS
+			).then(unwrap);
+
+			return data.lines;
+		} catch {
+			return [];
+		}
+	}
+
 	/** Asks Pi to abort the turn it is working on. */
 	static async endAgentSession(): Promise<void> {
 		await apiFetch(API_TILEKIT.AGENT.END_SESSION);

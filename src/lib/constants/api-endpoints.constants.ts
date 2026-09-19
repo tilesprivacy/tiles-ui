@@ -26,6 +26,9 @@ export const API_TILEKIT = {
 			`${TILEKIT}/atproto/share-session/${encodeURIComponent(sessionId)}`,
 		STATUS: `${TILEKIT}/atproto/status`
 	},
+	DIAGNOSTICS: {
+		LOGS: `${TILEKIT}/diagnostics/logs`
+	},
 	MODELFILE: `${TILEKIT}/modelfile`,
 	SERVER: {
 		PING: `${TILEKIT}/server/ping`,

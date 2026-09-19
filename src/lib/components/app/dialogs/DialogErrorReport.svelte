@@ -2,6 +2,7 @@
 	import { Bug, Copy, Mail } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import { TilekitService } from '$lib/services/tilekit.service';
 	import {
 		buildErrorReport,
 		buildErrorReportUrl,
@@ -28,15 +29,27 @@
 	$effect(() => {
 		if (!open) return;
 
-		const built = buildErrorReport(error, { model });
+		void (async () => {
+			// the daemon's scrubbed log tail gives the error its context;
+			// best-effort, a report without it still beats no report
+			const logTail = await TilekitService.diagnosticsLogs();
 
-		void buildErrorReportUrl(built).then((url) => {
+			let built = buildErrorReport(error, { logTail, model });
+			let url = await buildErrorReportUrl(built);
+
+			// a QR only stays phone-scannable up to a point; past it the log
+			// tail is the thing to sacrifice, never the error itself
+			if (url.length > 2800 && logTail.length) {
+				built = buildErrorReport(error, { model });
+				url = await buildErrorReportUrl(built);
+			}
+
 			report = built;
 			reportUrl = url;
 			// scanning the code carries the whole report - the phone gets the
 			// same page the buttons below link to
 			qrSvg = renderSVG(url, { border: 2 });
-		});
+		})();
 	});
 
 	async function copyLink() {

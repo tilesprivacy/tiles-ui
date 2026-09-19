@@ -38,17 +38,24 @@ export type ErrorReport = {
 	appVersion?: string;
 	userAgent: string;
 	createdAt: string;
+	logTail?: string[];
 };
 
 export function buildErrorReport(
 	error: string,
-	context: { model?: string; appVersion?: string; component?: string } = {}
+	context: {
+		model?: string;
+		appVersion?: string;
+		component?: string;
+		logTail?: string[];
+	} = {}
 ): ErrorReport {
 	return {
 		appVersion: context.appVersion,
 		component: context.component ?? 'chat-ui',
 		createdAt: new Date().toISOString(),
 		error,
+		logTail: context.logTail?.length ? context.logTail : undefined,
 		model: context.model,
 		schema: 1,
 		userAgent: navigator.userAgent
