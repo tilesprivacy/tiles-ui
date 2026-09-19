@@ -11,6 +11,24 @@
 const ERROR_PAGE = 'https://error.tiles.run/report';
 const GITHUB_NEW_ISSUE = 'https://github.com/tilesprivacy/tiles/issues/new';
 const SUPPORT_EMAIL = 'hello@tiles.run';
+/**
+ * Errors that already tell the person what to do. They are conditions, not
+ * defects - a report of "the server is off" helps nobody, and offering one
+ * teaches people to ignore the report button on the errors that matter.
+ */
+const GUIDANCE_ERRORS = [
+	'The Tiles inference server is offline. Turn it on from the Tiles menu bar to continue chatting.',
+	'Unable to connect to server - please check if the server is running',
+	'Connection refused - server may be offline',
+	'Request timed out - the server took too long to respond',
+	'No response received from server. Please try again.',
+	'Stream connection lost and could not be resumed'
+];
+
+/** True when the error is actionable guidance rather than something to report. */
+export function isGuidanceError(message: string): boolean {
+	return GUIDANCE_ERRORS.includes(message.trim());
+}
 
 export type ErrorReport = {
 	schema: number;

@@ -14,6 +14,7 @@
 	import { chatStore, modelsStore, serverStore, settingsStore } from '$lib/stores';
 	import { modelLoadProgressText } from '$lib/utils';
 	import { hasAgenticContent } from '$lib/utils';
+	import { isGuidanceError } from '$lib/utils/error-report';
 
 	interface Props {
 		class?: string;
@@ -122,27 +123,33 @@
 	{/if}
 
 	{#if message.errorMessage}
+		{@const reportable = !isGuidanceError(message.errorMessage)}
 		<p class="text-destructive my-2 text-sm">
 			{message.errorMessage}
-			<button
-				class="text-muted-foreground ml-1 cursor-pointer underline underline-offset-2 hover:text-foreground"
-				onclick={() => (reportDialogOpen = true)}
-				type="button"
-			>
-				Report this
-			</button>
+			{#if reportable}
+				<button
+					class="text-muted-foreground ml-1 cursor-pointer underline underline-offset-2 hover:text-foreground"
+					onclick={() => (reportDialogOpen = true)}
+					type="button"
+				>
+					Report this
+				</button>
+			{/if}
 		</p>
 
-		<!-- loaded only when an error is on screen: the QR machinery has no
-		     business in the happy path's bundle or module graph -->
-		{#await import('../../../../dialogs/DialogErrorReport.svelte') then { default: DialogErrorReport }}
-			<DialogErrorReport
-				error={message.errorMessage}
-				model={displayedModel ?? undefined}
-				onClose={() => (reportDialogOpen = false)}
-				open={reportDialogOpen}
-			/>
-		{/await}
+		<!-- loaded only when a reportable error is on screen: the QR machinery
+		     has no business in the happy path's bundle or module graph, and a
+		     "the server is off" condition is guidance, not a defect -->
+		{#if reportable}
+			{#await import('../../../../dialogs/DialogErrorReport.svelte') then { default: DialogErrorReport }}
+				<DialogErrorReport
+					error={message.errorMessage}
+					model={displayedModel ?? undefined}
+					onClose={() => (reportDialogOpen = false)}
+					open={reportDialogOpen}
+				/>
+			{/await}
+		{/if}
 	{/if}
 
 	{#if showProcessingInfoBottom}
