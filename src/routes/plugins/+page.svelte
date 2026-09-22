@@ -1,9 +1,23 @@
 <script lang="ts">
-	import { ChevronRight, Plus } from '@lucide/svelte';
-	import { PluginIcon } from '$lib/components/app';
-	import { TILES_PLUGINS } from '$lib/plugins';
+	import { ChevronRight, LoaderCircle, Plus } from '@lucide/svelte';
+	import { PluginApplyBar, PluginControls, PluginIcon } from '$lib/components/app';
+	import { Button } from '$lib/components/ui/button';
+	import { getTilesPlugin, TILES_PLUGINS } from '$lib/plugins';
+	import { pluginsStore } from '$lib/stores';
+	import { onMount } from 'svelte';
 
 	let query = $state('');
+	let source = $state('');
+
+	onMount(() => {
+		void pluginsStore.refresh();
+	});
+
+	async function installFromSource(event: SubmitEvent) {
+		event.preventDefault();
+
+		if (await pluginsStore.install(source)) source = '';
+	}
 
 	const normalizedQuery = $derived(query.trim().toLowerCase());
 	const filteredPlugins = $derived(
@@ -31,7 +45,7 @@
 	/>
 </svelte:head>
 
-<main class="min-h-dvh px-5 py-20 sm:px-8 md:py-24 lg:px-12">
+<main class="min-h-dvh px-5 pt-20 pb-32 sm:px-8 md:pt-24 lg:px-12">
 	<div class="mx-auto w-full max-w-3xl">
 		<section class="min-w-0">
 			<div
@@ -65,8 +79,84 @@
 				</label>
 			</div>
 
+			{#if pluginsStore.available}
+				<div class="mb-12">
+					<h2 class="mb-4 text-xl font-semibold tracking-tight">
+						Installed <span class="text-muted-foreground/55">{pluginsStore.plugins.length}</span>
+					</h2>
+
+					{#if pluginsStore.plugins.length > 0}
+						<div class="overflow-hidden rounded-lg bg-secondary/65">
+							{#each pluginsStore.plugins as installed (installed.name)}
+								{@const listed = getTilesPlugin(installed.name)}
+								<div
+									class="flex min-h-19 items-center gap-3 border-b border-border/55 px-4 py-4 last:border-b-0"
+								>
+									<span
+										class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground shadow-sm ring-1 ring-border/60 {installed.enabled
+											? ''
+											: 'opacity-50'}"
+									>
+										<PluginIcon class="h-5 w-5" slug={installed.name} />
+									</span>
+
+									<span class="min-w-0 flex-1 {installed.enabled ? '' : 'opacity-60'}">
+										{#if listed}
+											<a
+												class="block truncate text-[17px] leading-5 font-medium text-foreground hover:underline"
+												href={`/plugins/${listed.slug}`}
+											>
+												{listed.name}
+											</a>
+										{:else}
+											<span
+												class="block truncate text-[17px] leading-5 font-medium text-foreground"
+											>
+												{installed.name}
+											</span>
+										{/if}
+
+										<span class="mt-0.5 block truncate text-sm leading-5 text-muted-foreground">
+											{installed.description || listed?.description || ''}
+										</span>
+									</span>
+
+									<PluginControls name={installed.name} />
+								</div>
+							{/each}
+						</div>
+					{/if}
+
+					<form class="mt-3 flex gap-2" onsubmit={installFromSource}>
+						<label class="min-w-0 flex-1">
+							<span class="sr-only">Plugin url or path</span>
+
+							<input
+								bind:value={source}
+								class="h-10 w-full rounded-lg border-0 bg-secondary/65 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/75 focus:bg-secondary focus:ring-1 focus:ring-ring"
+								disabled={pluginsStore.installing}
+								placeholder="Install from a url, folder or .zip path"
+								type="text"
+							/>
+						</label>
+
+						<Button class="h-10" disabled={pluginsStore.installing || !source.trim()} type="submit">
+							{#if pluginsStore.installing}
+								<LoaderCircle class="animate-spin" />
+								Installing
+							{:else}
+								Install
+							{/if}
+						</Button>
+					</form>
+				</div>
+
+				<h2 class="mb-4 text-xl font-semibold tracking-tight">Catalog</h2>
+			{/if}
+
 			<div class="grid gap-3 sm:grid-cols-2">
 				{#each filteredPlugins as plugin (plugin.slug)}
+					{@const installed = pluginsStore.byName(plugin.slug)}
 					<a
 						class="group flex h-19 items-center gap-3 overflow-hidden rounded-lg bg-secondary/65 px-4 py-4 text-card-foreground transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
 						href={`/plugins/${plugin.slug}`}
@@ -78,8 +168,18 @@
 						</span>
 
 						<span class="min-w-0 flex-1 overflow-hidden">
-							<span class="block truncate text-[17px] leading-5 font-medium text-foreground">
-								{plugin.name}
+							<span class="flex items-center gap-2">
+								<span class="truncate text-[17px] leading-5 font-medium text-foreground">
+									{plugin.name}
+								</span>
+
+								{#if installed}
+									<span
+										class="shrink-0 rounded-full bg-background px-2 py-0.5 text-[11px] leading-4 text-muted-foreground ring-1 ring-border/60"
+									>
+										{installed.enabled ? 'Installed' : 'Off'}
+									</span>
+								{/if}
 							</span>
 
 							<span class="mt-0.5 block truncate text-sm leading-5 text-muted-foreground">
@@ -133,3 +233,5 @@
 		</section>
 	</div>
 </main>
+
+<PluginApplyBar />

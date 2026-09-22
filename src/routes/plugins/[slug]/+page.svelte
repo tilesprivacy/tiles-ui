@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { ArrowLeft, ArrowUpRight, BookOpen, Check, Copy, Server } from '@lucide/svelte';
 	import { page } from '$app/state';
-	import { PluginIcon } from '$lib/components/app';
+	import { PluginApplyBar, PluginControls, PluginIcon } from '$lib/components/app';
 	import { ROUTES } from '$lib/constants';
 	import { getTilesPlugin } from '$lib/plugins';
+	import { pluginsStore } from '$lib/stores';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		void pluginsStore.refresh();
+	});
 
 	let copiedCommand = $state(false);
 	let copiedUsageCommand = $state(false);
@@ -67,7 +73,7 @@
 	{/if}
 </svelte:head>
 
-<main class="min-h-dvh px-5 py-20 sm:px-8 md:py-24 lg:px-12">
+<main class="min-h-dvh px-5 pt-20 pb-32 sm:px-8 md:pt-24 lg:px-12">
 	<div class="mx-auto w-full max-w-3xl">
 		<section class="min-w-0">
 			<a
@@ -88,30 +94,39 @@
 							<PluginIcon class="h-5 w-5" slug={plugin.slug} />
 						</span>
 
-						<h1 class="truncate text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+						<h1
+							class="min-w-0 flex-1 truncate text-4xl font-semibold tracking-[-0.04em] sm:text-5xl"
+						>
 							{plugin.name}
 						</h1>
+
+						{#if pluginsStore.available}
+							<PluginControls name={plugin.slug} source={plugin.downloadUrl} />
+						{/if}
 					</div>
 
-					<button
-						aria-label={copiedCommand
-							? 'Install command copied'
-							: `Copy install command for ${plugin.name}`}
-						class="flex min-h-12 w-full min-w-0 items-center justify-between gap-4 rounded-lg bg-secondary/65 px-4 py-3 text-left transition-colors hover:bg-secondary"
-						onclick={copyCommand}
-						type="button"
-					>
-						<code class="min-w-0 overflow-x-auto text-sm whitespace-nowrap">
-							<span aria-hidden="true" class="mr-2 text-muted-foreground select-none">$</span>
-							{plugin.installCommand}
-						</code>
+					<!-- without a reachable daemon, the terminal is the way in -->
+					{#if !pluginsStore.available}
+						<button
+							aria-label={copiedCommand
+								? 'Install command copied'
+								: `Copy install command for ${plugin.name}`}
+							class="flex min-h-12 w-full min-w-0 items-center justify-between gap-4 rounded-lg bg-secondary/65 px-4 py-3 text-left transition-colors hover:bg-secondary"
+							onclick={copyCommand}
+							type="button"
+						>
+							<code class="min-w-0 overflow-x-auto text-sm whitespace-nowrap">
+								<span aria-hidden="true" class="mr-2 text-muted-foreground select-none">$</span>
+								{plugin.installCommand}
+							</code>
 
-						{#if copiedCommand}
-							<Check aria-hidden="true" class="h-4 w-4 shrink-0 text-signal" />
-						{:else}
-							<Copy aria-hidden="true" class="h-4 w-4 shrink-0 text-muted-foreground" />
-						{/if}
-					</button>
+							{#if copiedCommand}
+								<Check aria-hidden="true" class="h-4 w-4 shrink-0 text-signal" />
+							{:else}
+								<Copy aria-hidden="true" class="h-4 w-4 shrink-0 text-muted-foreground" />
+							{/if}
+						</button>
+					{/if}
 				</div>
 
 				<p class="mb-10 max-w-3xl text-base leading-7 text-muted-foreground sm:text-[1.05rem]">
@@ -276,3 +291,5 @@
 		</section>
 	</div>
 </main>
+
+<PluginApplyBar />

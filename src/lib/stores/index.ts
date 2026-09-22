@@ -58,3 +58,6 @@ export { toolsStore } from './tools.svelte';
 export { versionStore } from './version.svelte';
 
 export { deviceStore } from './device.svelte';
+
+// PLUGINS (installed state from the daemon, pending agent reload)
+export { pluginsStore } from './plugins.svelte';

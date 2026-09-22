@@ -18,6 +18,8 @@ export interface TilesPluginSkill {
 
 export interface TilesPlugin {
 	description: string;
+	/** what the daemon installs from */
+	downloadUrl: string;
 	installCommand: string;
 	metadata: TilesPluginMetadataField[];
 	mcpServers: TilesPluginMcpServer[];
@@ -33,6 +35,7 @@ const PLUGIN_SOURCE_BASE_URL = 'https://github.com/tilesprivacy/plugins/blob/mai
 export const TILES_PLUGINS: TilesPlugin[] = [
 	{
 		description: 'Web search and content extraction powered by Exa AI',
+		downloadUrl: `${PLUGIN_DOWNLOAD_BASE_URL}/exa.zip`,
 		installCommand: `tiles plugin install ${PLUGIN_DOWNLOAD_BASE_URL}/exa.zip`,
 		mcpServers: [
 			{
@@ -67,6 +70,7 @@ export const TILES_PLUGINS: TilesPlugin[] = [
 	},
 	{
 		description: 'Caldir is a tool for storing your calendar as a directory of ICS files.',
+		downloadUrl: `${PLUGIN_DOWNLOAD_BASE_URL}/caldir.zip`,
 		installCommand: `tiles plugin install ${PLUGIN_DOWNLOAD_BASE_URL}/caldir.zip`,
 		mcpServers: [],
 		metadata: [

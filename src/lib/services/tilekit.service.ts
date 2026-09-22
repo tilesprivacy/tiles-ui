@@ -15,6 +15,8 @@ import type {
 	TilekitDeltaChat,
 	TilekitMention,
 	TilekitModelfile,
+	TilekitPlugin,
+	TilekitPluginChange,
 	TilekitResponse,
 	TilekitSaveChatRequest,
 	TilekitSession,
@@ -113,6 +115,23 @@ export class TilekitService {
 		return delta.chats;
 	}
 
+	/**
+	 * Installs from a url, a plugin folder or an archive on the daemon's
+	 * machine. Resolves only once it is unpacked and copied, with no progress
+	 * in between.
+	 */
+	static async installPlugin(source: string): Promise<TilekitPluginChange> {
+		return apiPost<TilekitResponse<TilekitPluginChange>, { source: string }>(
+			API_TILEKIT.PLUGIN.INSTALL,
+			{ source }
+		).then(unwrap);
+	}
+
+	/** Every plugin, bundled and installed, with its on/off state. */
+	static async listPlugins(): Promise<TilekitPlugin[]> {
+		return apiFetch<TilekitResponse<TilekitPlugin[]>>(API_TILEKIT.PLUGIN.LIST).then(unwrap);
+	}
+
 	/** Every session the daemon knows about, newest first. */
 	static async listSessions(): Promise<TilekitSession[]> {
 		return apiFetch<TilekitResponse<TilekitSession[]>>(API_TILEKIT.SESSION.LIST).then(unwrap);
@@ -203,6 +222,12 @@ export class TilekitService {
 		});
 	}
 
+	static async setPluginEnabled(name: string, enabled: boolean): Promise<TilekitPluginChange> {
+		const path = enabled ? API_TILEKIT.PLUGIN.enable(name) : API_TILEKIT.PLUGIN.disable(name);
+
+		return apiFetch<TilekitResponse<TilekitPluginChange>>(path, { method: 'POST' }).then(unwrap);
+	}
+
 	/** Starts Pi if it is not already running. */
 	/**
 	 * Publishes a session to the user's ATmosphere PDS and returns the link.
@@ -223,5 +248,11 @@ export class TilekitService {
 	/** Starts the Python inference server. */
 	static async startServer(): Promise<void> {
 		await apiFetch(API_TILEKIT.SERVER.START);
+	}
+
+	static async uninstallPlugin(name: string): Promise<TilekitPluginChange> {
+		return apiFetch<TilekitResponse<TilekitPluginChange>>(API_TILEKIT.PLUGIN.remove(name), {
+			method: 'DELETE'
+		}).then(unwrap);
 	}
 }

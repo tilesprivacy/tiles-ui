@@ -11,4 +11,6 @@ export * from './settings';
 export * from './models';
 export * from './navigation';
 export { default as PluginIcon } from './plugins/PluginIcon.svelte';
+export { default as PluginApplyBar } from './plugins/PluginApplyBar.svelte';
+export { default as PluginControls } from './plugins/PluginControls.svelte';
 export * from './server';

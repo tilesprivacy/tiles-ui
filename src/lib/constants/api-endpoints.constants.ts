@@ -30,6 +30,13 @@ export const API_TILEKIT = {
 		LOGS: `${TILEKIT}/diagnostics/logs`
 	},
 	MODELFILE: `${TILEKIT}/modelfile`,
+	PLUGIN: {
+		disable: (name: string) => `${TILEKIT}/plugin/${encodeURIComponent(name)}/disable`,
+		enable: (name: string) => `${TILEKIT}/plugin/${encodeURIComponent(name)}/enable`,
+		INSTALL: `${TILEKIT}/plugin/install`,
+		LIST: `${TILEKIT}/plugin/list`,
+		remove: (name: string) => `${TILEKIT}/plugin/${encodeURIComponent(name)}`
+	},
 	SERVER: {
 		PING: `${TILEKIT}/server/ping`,
 		START: `${TILEKIT}/server/start`,

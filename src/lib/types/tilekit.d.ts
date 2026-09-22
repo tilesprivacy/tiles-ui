@@ -97,3 +97,27 @@ export interface TilekitMention {
 	description: string;
 	kind: 'plugin' | 'skill' | 'command';
 }
+
+/** A plugin the daemon knows about, shipped with Tiles or installed by the user. */
+export interface TilekitPlugin {
+	name: string;
+	description: string;
+	/** ships with Tiles: can be disabled, not uninstalled */
+	bundled: boolean;
+	enabled: boolean;
+}
+
+/**
+ * The answer to any plugin change. Pi reads plugins only when it starts, so a
+ * change is live only after `reloadAgent`; `reload_required` says one is due.
+ */
+export interface TilekitPluginChange {
+	name: string;
+	message: string;
+	reload_required: boolean;
+	/** enable / disable: the state now, and whether this call moved it */
+	enabled?: boolean;
+	changed?: boolean;
+	/** install: targets a spec version whose MCP servers stay off for now */
+	mcp_dormant?: boolean;
+}
