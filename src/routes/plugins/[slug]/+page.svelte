@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { ArrowLeft, ArrowUpRight, BookOpen, Check, Copy, Server } from '@lucide/svelte';
 	import { page } from '$app/state';
-	import { PluginApplyBar, PluginControls, PluginIcon } from '$lib/components/app';
+	import { PluginControls, PluginIcon,PluginNotice } from '$lib/components/app';
 	import { ROUTES } from '$lib/constants';
 	import { getTilesPlugin } from '$lib/plugins';
 	import { pluginsStore } from '$lib/stores';
@@ -292,4 +292,4 @@
 	</div>
 </main>
 
-<PluginApplyBar />
+<PluginNotice />

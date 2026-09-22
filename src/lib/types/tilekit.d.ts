@@ -108,13 +108,19 @@ export interface TilekitPlugin {
 }
 
 /**
- * The answer to any plugin change. Pi reads plugins only when it starts, so a
- * change is live only after `reloadAgent`; `reload_required` says one is due.
+ * What a plugin change did to the running agent. Pi reads plugins only when it
+ * starts, so the daemon reloads it after a change: right away, or once a reply
+ * in flight finishes (`deferred`). The model stays loaded either way.
  */
+export type TilekitReload = 'done' | 'deferred' | 'not_running' | 'skipped' | 'failed';
+
+/** The answer to any plugin change. */
 export interface TilekitPluginChange {
 	name: string;
 	message: string;
-	reload_required: boolean;
+	reload: TilekitReload;
+	/** why the agent could not reload; the change itself still stands */
+	reload_error?: string;
 	/** enable / disable: the state now, and whether this call moved it */
 	enabled?: boolean;
 	changed?: boolean;

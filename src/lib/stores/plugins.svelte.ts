@@ -2,9 +2,9 @@
  * pluginsStore - plugins as the daemon sees them.
  *
  * The catalog in `$lib/plugins` says what exists; this says what is installed
- * here and whether it is on. Pi reads plugins only when it starts, so every
- * change leaves `applyPending` set until `apply()` reloads the agent. That is
- * left to the person, since a reload drops the chat Pi is holding.
+ * here and whether it is on. The daemon applies a change to the running agent
+ * itself, so there is nothing to confirm here, only an error to show when it
+ * could not.
  *
  * When the daemon is unreachable (the static site, or Tiles not running)
  * `available` stays false and pages fall back to showing the CLI command.
@@ -15,8 +15,6 @@ import { TilekitService } from '$lib/services/tilekit.service';
 import type { TilekitPlugin, TilekitPluginChange } from '$lib/types/tilekit';
 
 class PluginsStore {
-	applying = $state(false);
-	applyPending = $state(false);
 	available = $state(false);
 	/** names with a request in flight, so their controls can wait */
 	busy = $state<string[]>([]);
@@ -25,24 +23,6 @@ class PluginsStore {
 	loaded = $state(false);
 	notice = $state<string | null>(null);
 	plugins = $state<TilekitPlugin[]>([]);
-
-	/** Restarts Pi so it picks the changes up. Drops the live conversation. */
-	async apply(): Promise<void> {
-		if (this.applying) return;
-
-		this.applying = true;
-		this.error = null;
-
-		try {
-			await TilekitService.reloadAgent();
-			this.applyPending = false;
-			this.notice = 'Plugins applied';
-		} catch (err) {
-			this.error = message(err);
-		} finally {
-			this.applying = false;
-		}
-	}
 
 	byName(name: string): TilekitPlugin | undefined {
 		return this.plugins.find((plugin) => plugin.name === name);
@@ -99,9 +79,12 @@ class PluginsStore {
 		try {
 			const result = await change();
 
-			if (result.reload_required) this.applyPending = true;
+			if (result.reload === 'failed') {
+				this.error = `Saved, but the agent could not reload: ${result.reload_error ?? 'unknown error'}`;
+			} else if (result.mcp_dormant) {
+				this.notice = result.message;
+			}
 
-			this.notice = result.mcp_dormant ? result.message : null;
 			await this.refresh();
 
 			return true;
