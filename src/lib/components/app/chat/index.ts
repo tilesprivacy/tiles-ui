@@ -197,6 +197,7 @@ export { default as ChatFormActionSubmit } from './ChatForm/ChatFormActions/Chat
  * (desktop) or bottom sheet (mobile) for selecting the conversation model in router mode.
  * Exposes an `open` method for programmatically opening the selector.
  */
+export { default as ChatFormActionModelInfo } from './ChatForm/ChatFormActions/ChatFormActionModelInfo.svelte';
 export { default as ChatFormActionModels } from './ChatForm/ChatFormActions/ChatFormActionModels.svelte';
 
 /**

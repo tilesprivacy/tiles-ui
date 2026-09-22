@@ -61,3 +61,6 @@ export { deviceStore } from './device.svelte';
 
 // PLUGINS (installed state from the daemon, pending agent reload)
 export { pluginsStore } from './plugins.svelte';
+
+// AGENT (the model the daemon's agent is running)
+export { agentStore } from './agent.svelte';

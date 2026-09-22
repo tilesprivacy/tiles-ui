@@ -2,6 +2,7 @@
 	import { SkipForward, Square } from '@lucide/svelte';
 	import { page } from '$app/state';
 	import {
+		ChatFormActionModelInfo,
 		ChatFormActionModels,
 		ChatFormActionRecord,
 		ChatFormActionsAdd,
@@ -175,6 +176,9 @@
 				forceForegroundText
 				useGlobalSelection
 			/>
+		{:else if showModelSelector}
+			<!-- no switching, so name the model the agent is running instead -->
+			<ChatFormActionModelInfo />
 		{/if}
 	</div>
 

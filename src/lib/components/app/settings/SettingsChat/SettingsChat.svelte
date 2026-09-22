@@ -17,7 +17,7 @@
 	} from '$lib/constants';
 	import { ColorMode } from '$lib/enums/ui.enums';
 	import { TilekitService } from '$lib/services/tilekit.service';
-	import { modelsStore, serverStore, settingsStore } from '$lib/stores';
+	import { agentStore, modelsStore, serverStore, settingsStore } from '$lib/stores';
 	import type { SettingsSection, SettingsSectionTitle } from '$lib/types';
 	import { setMode } from 'mode-watcher';
 	import { onMount } from 'svelte';
@@ -155,6 +155,7 @@
 			try {
 				await TilekitService.saveModelfile(modelfile);
 				await TilekitService.reloadAgent();
+				void agentStore.refresh();
 				savedModelfile = modelfile;
 			} catch (error) {
 				// staying open, or the reason for the refusal goes with the dialog
