@@ -159,12 +159,16 @@
 	{#if displayedModel}
 		<div class="info my-6 grid gap-4 tabular-nums">
 			<div class="inline-flex flex-wrap items-start gap-2 text-xs text-muted-foreground">
-				<ChatMessageAssistantModel
-					{displayedModel}
-					isLoading={chatStore.isLoading}
-					{isRouter}
-					{onRegenerate}
-				/>
+				<!-- the chat bar names the model; a badge per reply only earns its
+				     place where it switches the model for a regenerate -->
+				{#if isRouter}
+					<ChatMessageAssistantModel
+						{displayedModel}
+						isLoading={chatStore.isLoading}
+						{isRouter}
+						{onRegenerate}
+					/>
+				{/if}
 
 				<ChatMessageAssistantStatistics
 					isLoading={chatStore.isLoading}
