@@ -187,7 +187,21 @@
 		// snapshot of every backend running stream on first load, populates the sidebar spinners
 		// so the user sees each conv that has a live inference, even ones not opened yet
 		void chatStore.syncRemoteRunningStreams();
+
+		window.addEventListener('tiles:open', handleTilesOpen);
+
+		return () => window.removeEventListener('tiles:open', handleTilesOpen);
 	});
+
+	// the app routes its window through this instead of reloading it
+	function handleTilesOpen(event: Event) {
+		const path = (event as CustomEvent<unknown>).detail;
+
+		if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) return;
+
+		event.preventDefault();
+		void goto(path);
+	}
 
 	// refresh that snapshot when the tab returns to the foreground, a stream may have advanced
 	// or ended while it was hidden. snapshot only, no polling
