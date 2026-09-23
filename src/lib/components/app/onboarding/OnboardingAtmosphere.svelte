@@ -1,9 +1,9 @@
 <script lang="ts">
+	import OnboardingSteps from './OnboardingSteps.svelte';
 	import { Logo } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
 	import { onboardingStore } from '$lib/stores';
 	import { accountStore } from '$lib/stores/account.svelte';
-	import OnboardingSteps from './OnboardingSteps.svelte';
 
 	let handle = $state('');
 
@@ -17,11 +17,13 @@
 
 	async function connect(event: SubmitEvent) {
 		event.preventDefault();
+
 		if (canConnect) await accountStore.connectAtproto(handle);
 	}
 
 	function skip() {
 		if (connecting) accountStore.cancelConnect();
+
 		onboardingStore.finishAtmosphere();
 	}
 </script>

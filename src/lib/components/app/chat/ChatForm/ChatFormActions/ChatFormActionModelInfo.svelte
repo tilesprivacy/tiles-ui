@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { ModelId } from '$lib/components/app';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { MODEL_SELECTOR_ICON } from '$lib/constants';
 	import { agentStore } from '$lib/stores';
+	import { onMount } from 'svelte';
 
 	onMount(() => {
 		void agentStore.refresh();

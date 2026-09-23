@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import OnboardingSteps from './OnboardingSteps.svelte';
 	import { Logo } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
 	import { onboardingStore } from '$lib/stores';
 	import type { TilekitModelEntry } from '$lib/types/tilekit';
-	import OnboardingSteps from './OnboardingSteps.svelte';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		/** part of the new-account flow, rather than a model gone missing later */
@@ -47,6 +47,7 @@
 
 	function stateLabel(entry: TilekitModelEntry): string {
 		if (entry.state === 'ready') return 'Downloaded';
+
 		if (entry.state === 'partial') {
 			return `${size(entry.downloaded_bytes)} of ${size(entry.download_bytes)}`;
 		}
@@ -58,9 +59,7 @@
 		model ? Math.max((model.download_bytes ?? 0) - model.downloaded_bytes, 0) : 0
 	);
 	let diskShort = $derived(!!status?.disk && needed > status.disk.free_bytes);
-	let diskUsed = $derived(
-		status?.disk ? 1 - status.disk.free_bytes / status.disk.total_bytes : 0
-	);
+	let diskUsed = $derived(status?.disk ? 1 - status.disk.free_bytes / status.disk.total_bytes : 0);
 	let diskAfter = $derived(
 		status?.disk ? Math.min(needed / status.disk.total_bytes, 1 - diskUsed) : 0
 	);
@@ -70,15 +69,21 @@
 	);
 	let eta = $derived.by(() => {
 		if (!progress?.bytes_per_sec) return '';
-		const seconds = Math.max(progress.total_bytes - progress.done_bytes, 0) / progress.bytes_per_sec;
+
+		const seconds =
+			Math.max(progress.total_bytes - progress.done_bytes, 0) / progress.bytes_per_sec;
 		const minutes = Math.floor(seconds / 60);
 
-		return minutes > 0 ? `${minutes}m ${Math.round(seconds % 60)}s left` : `${Math.round(seconds)}s left`;
+		return minutes > 0
+			? `${minutes}m ${Math.round(seconds % 60)}s left`
+			: `${Math.round(seconds)}s left`;
 	});
 
 	let action = $derived.by(() => {
 		if (!model) return '';
+
 		if (model.state === 'ready') return 'Start with this model';
+
 		if (model.state === 'partial') return 'Continue download';
 
 		return 'Download and start';
@@ -114,13 +119,17 @@
 		</header>
 
 		{#if !status}
-			<div class="mt-9 flex flex-col gap-3" aria-busy="true">
+			<div aria-busy="true" class="mt-9 flex flex-col gap-3">
 				<div class="cut h-16 animate-pulse bg-steel"></div>
+
 				<span class="text-xs text-slate">
 					{onboardingStore.error ?? 'Checking what fits on this machine…'}
 				</span>
+
 				{#if onboardingStore.error}
-					<Button class="cut h-10 rounded-none" onclick={() => onboardingStore.refresh()}>Try again</Button>
+					<Button class="cut h-10 rounded-none" onclick={() => onboardingStore.refresh()}
+						>Try again</Button
+					>
 				{/if}
 			</div>
 		{:else}
@@ -131,11 +140,14 @@
 					type="single"
 					value={onboardingStore.selectedId ?? undefined}
 				>
-					<Select.Trigger class="cut h-auto min-h-16 w-full rounded-none border-border bg-steel px-4 py-3">
+					<Select.Trigger
+						class="cut h-auto min-h-16 w-full rounded-none border-border bg-steel px-4 py-3"
+					>
 						{#if model}
 							<div class="flex w-full items-center justify-between gap-3 text-left">
 								<div class="flex min-w-0 flex-col">
 									<span class="text-sm font-medium text-bone">{model.label}</span>
+
 									<span class="text-xs text-slate">{fitLabel(model)}</span>
 								</div>
 
@@ -146,15 +158,22 @@
 
 					<Select.Content>
 						{#each status.models as entry (entry.id)}
-							<Select.Item label={entry.label} value={entry.id}>
+							<Select.Item
+								class="data-[highlighted]:bg-signal data-[highlighted]:text-void data-[highlighted]:**:text-void"
+								label={entry.label}
+								value={entry.id}
+							>
 								<div class="flex w-full items-center justify-between gap-4">
 									<div class="flex flex-col">
 										<span class="flex items-center gap-2">
 											{entry.label}
 											{#if entry.recommended}
-												<span class="text-[10px] font-medium tracking-wide text-signal uppercase">Recommended</span>
+												<span class="text-[10px] font-medium tracking-wide text-signal uppercase"
+													>Recommended</span
+												>
 											{/if}
 										</span>
+
 										<span class="text-xs text-muted-foreground">{fitLabel(entry)}</span>
 									</div>
 
@@ -168,11 +187,19 @@
 				{#if downloading && progress}
 					<div class="flex flex-col gap-2" role="status">
 						<div class="h-2 w-full bg-steel">
-							<div class="h-full bg-signal transition-[width] duration-300" style="width: {percent}%"></div>
+							<div
+								class="h-full bg-signal transition-[width] duration-300"
+								style="width: {percent}%"
+							></div>
 						</div>
 
 						<div class="flex justify-between text-xs text-slate tabular-nums">
-							<span>{size(progress.done_bytes)} of {size(progress.total_bytes)} · {Math.floor(percent)}%</span>
+							<span
+								>{size(progress.done_bytes)} of {size(progress.total_bytes)} · {Math.floor(
+									percent
+								)}%</span
+							>
+
 							<span>
 								{#if progress.bytes_per_sec}{size(progress.bytes_per_sec)}/s · {eta}{/if}
 							</span>
@@ -188,9 +215,13 @@
 				{:else if model}
 					{#if status.disk && model.state !== 'ready'}
 						<div class="flex flex-col gap-2">
-							<div class="flex h-1.5 w-full bg-steel" aria-hidden="true">
+							<div aria-hidden="true" class="flex h-1.5 w-full bg-steel">
 								<div class="h-full bg-slate/50" style="width: {diskUsed * 100}%"></div>
-								<div class="h-full {diskShort ? 'bg-alert' : 'bg-signal'}" style="width: {diskAfter * 100}%"></div>
+
+								<div
+									class="h-full {diskShort ? 'bg-alert' : 'bg-signal'}"
+									style="width: {diskAfter * 100}%"
+								></div>
 							</div>
 
 							<span class="text-xs {diskShort ? 'text-alert' : 'text-slate'}">
@@ -206,6 +237,7 @@
 					{#if onboardingStore.confirmReplace}
 						<div class="flex flex-col gap-3 border border-border p-4">
 							<span class="text-sm text-bone">Your modelfile has edits of your own.</span>
+
 							<span class="text-xs leading-5 text-slate">
 								Switching to {model.label} replaces it with the one written for this model.
 							</span>

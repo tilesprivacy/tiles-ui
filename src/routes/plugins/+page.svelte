@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ChevronRight, LoaderCircle, Plus } from '@lucide/svelte';
-	import { PluginControls, PluginIcon,PluginNotice } from '$lib/components/app';
+	import { PluginControls, PluginIcon, PluginNotice } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
 	import { getTilesPlugin, TILES_PLUGINS } from '$lib/plugins';
 	import { pluginsStore } from '$lib/stores';

@@ -1,9 +1,9 @@
 <script lang="ts">
+	import OnboardingSteps from '../onboarding/OnboardingSteps.svelte';
 	import { Logo } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
 	import { onboardingStore } from '$lib/stores';
 	import { accountStore } from '$lib/stores/account.svelte';
-	import OnboardingSteps from '../onboarding/OnboardingSteps.svelte';
 
 	let nickname = $state('');
 	let touched = $state(false);

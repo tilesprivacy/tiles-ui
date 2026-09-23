@@ -7,12 +7,12 @@
 	let { current, total = 3 }: Props = $props();
 </script>
 
-<div class="flex items-center gap-3" aria-label={`Step ${current} of ${total}`}>
+<div aria-label={`Step ${current} of ${total}`} class="flex items-center gap-3">
 	<div class="flex gap-1.5">
 		{#each Array.from({ length: total }, (_, index) => index + 1) as step (step)}
 			<span
-				class="h-1 w-7 transition-colors {step <= current ? 'bg-signal' : 'bg-steel'}"
 				aria-hidden="true"
+				class="h-1 w-7 transition-colors {step <= current ? 'bg-signal' : 'bg-steel'}"
 			></span>
 		{/each}
 	</div>

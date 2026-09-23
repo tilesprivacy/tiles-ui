@@ -25,8 +25,8 @@ import type {
 	TilekitSession,
 	TilekitSharedSession
 } from '$lib/types/tilekit';
-import { API_ORIGIN } from '$lib/utils/api-origin';
 import { apiFetch, apiPost, parseSseJsonStream } from '$lib/utils';
+import { API_ORIGIN } from '$lib/utils/api-origin';
 
 function unwrap<T>(response: TilekitResponse<T>): T {
 	return response.data;
@@ -81,6 +81,13 @@ export class TilekitService {
 		);
 	}
 
+	/** Stops the download; what arrived stays and a later download continues. */
+	static async cancelDownload(): Promise<TilekitDownloadProgress> {
+		return apiFetch<TilekitResponse<TilekitDownloadProgress>>(API_TILEKIT.MODEL.DOWNLOAD, {
+			method: 'DELETE'
+		}).then(unwrap);
+	}
+
 	/** Creates the local identity. Fails with 409 if one already exists. */
 	static async createAccount(nickname: string): Promise<TilekitAccount> {
 		return apiPost<TilekitResponse<TilekitAccount>, { nickname: string }>(
@@ -103,41 +110,6 @@ export class TilekitService {
 		} catch {
 			return [];
 		}
-	}
-
-	/** Asks Pi to abort the turn it is working on. */
-	static async endAgentSession(): Promise<void> {
-		await apiFetch(API_TILEKIT.AGENT.END_SESSION);
-	}
-
-	/** Chats belonging to one session, oldest first. */
-	static async fetchChats(sessionId: string): Promise<TilekitChat[]> {
-		const delta = await apiFetch<TilekitResponse<TilekitDeltaChat>>(
-			API_TILEKIT.SESSION.chats(sessionId)
-		).then(unwrap);
-
-		return delta.chats;
-	}
-
-	/**
-	 * Installs from a url, a plugin folder or an archive on the daemon's
-	 * machine. Resolves only once it is unpacked and copied, with no progress
-	 * in between.
-	 */
-	static async installPlugin(source: string): Promise<TilekitPluginChange> {
-		return apiPost<TilekitResponse<TilekitPluginChange>, { source: string }>(
-			API_TILEKIT.PLUGIN.INSTALL,
-			{ source }
-		).then(unwrap);
-	}
-
-	/**
-	 * The models onboarding offers, how much of each is downloaded, and which
-	 * fits this machine. The first call after a cold start is slow: it starts
-	 * the inference server and reads each model's header once.
-	 */
-	static async modelStatus(): Promise<TilekitModelStatus> {
-		return apiFetch<TilekitResponse<TilekitModelStatus>>(API_TILEKIT.MODEL.STATUS).then(unwrap);
 	}
 
 	/**
@@ -174,21 +146,29 @@ export class TilekitService {
 		).then(unwrap);
 	}
 
-	/** Stops the download; what arrived stays and a later download continues. */
-	static async cancelDownload(): Promise<TilekitDownloadProgress> {
-		return apiFetch<TilekitResponse<TilekitDownloadProgress>>(API_TILEKIT.MODEL.DOWNLOAD, {
-			method: 'DELETE'
-		}).then(unwrap);
+	/** Asks Pi to abort the turn it is working on. */
+	static async endAgentSession(): Promise<void> {
+		await apiFetch(API_TILEKIT.AGENT.END_SESSION);
+	}
+
+	/** Chats belonging to one session, oldest first. */
+	static async fetchChats(sessionId: string): Promise<TilekitChat[]> {
+		const delta = await apiFetch<TilekitResponse<TilekitDeltaChat>>(
+			API_TILEKIT.SESSION.chats(sessionId)
+		).then(unwrap);
+
+		return delta.chats;
 	}
 
 	/**
-	 * Makes a downloaded model the one Tiles runs. Refused with a 409 when the
-	 * user's modelfile has edits of their own, unless `replaceEdited`.
+	 * Installs from a url, a plugin folder or an archive on the daemon's
+	 * machine. Resolves only once it is unpacked and copied, with no progress
+	 * in between.
 	 */
-	static async selectModel(id: string, replaceEdited = false): Promise<TilekitModelSelected> {
-		return apiPost<TilekitResponse<TilekitModelSelected>, { id: string; replace_edited: boolean }>(
-			API_TILEKIT.MODEL.SELECT,
-			{ id, replace_edited: replaceEdited }
+	static async installPlugin(source: string): Promise<TilekitPluginChange> {
+		return apiPost<TilekitResponse<TilekitPluginChange>, { source: string }>(
+			API_TILEKIT.PLUGIN.INSTALL,
+			{ source }
 		).then(unwrap);
 	}
 
@@ -209,6 +189,15 @@ export class TilekitService {
 	/** The modelfile the agent starts from, edited or as shipped. */
 	static async modelfile(): Promise<TilekitModelfile> {
 		return apiFetch<TilekitResponse<TilekitModelfile>>(API_TILEKIT.MODELFILE).then(unwrap);
+	}
+
+	/**
+	 * The models onboarding offers, how much of each is downloaded, and which
+	 * fits this machine. The first call after a cold start is slow: it starts
+	 * the inference server and reads each model's header once.
+	 */
+	static async modelStatus(): Promise<TilekitModelStatus> {
+		return apiFetch<TilekitResponse<TilekitModelStatus>>(API_TILEKIT.MODEL.STATUS).then(unwrap);
 	}
 
 	static async newSession(): Promise<string> {
@@ -285,6 +274,17 @@ export class TilekitService {
 			text: args.text,
 			user_id: args.userId
 		});
+	}
+
+	/**
+	 * Makes a downloaded model the one Tiles runs. Refused with a 409 when the
+	 * user's modelfile has edits of their own, unless `replaceEdited`.
+	 */
+	static async selectModel(id: string, replaceEdited = false): Promise<TilekitModelSelected> {
+		return apiPost<TilekitResponse<TilekitModelSelected>, { id: string; replace_edited: boolean }>(
+			API_TILEKIT.MODEL.SELECT,
+			{ id, replace_edited: replaceEdited }
+		).then(unwrap);
 	}
 
 	static async setPluginEnabled(name: string, enabled: boolean): Promise<TilekitPluginChange> {

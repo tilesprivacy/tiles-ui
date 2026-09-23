@@ -37,8 +37,8 @@
 		versionStore
 	} from '$lib/stores';
 	import { accountStore } from '$lib/stores/account.svelte';
-	import { onboardingStore } from '$lib/stores/onboarding.svelte';
 	import { initStores } from '$lib/stores/init';
+	import { onboardingStore } from '$lib/stores/onboarding.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { untrack } from 'svelte';
 	import { onMount } from 'svelte';
