@@ -10,6 +10,8 @@ export * from './misc';
 export * from './settings';
 export * from './models';
 export * from './navigation';
+export { default as OnboardingAtmosphere } from './onboarding/OnboardingAtmosphere.svelte';
+export { default as OnboardingModel } from './onboarding/OnboardingModel.svelte';
 export { default as PluginIcon } from './plugins/PluginIcon.svelte';
 export { default as PluginNotice } from './plugins/PluginNotice.svelte';
 export { default as PluginControls } from './plugins/PluginControls.svelte';

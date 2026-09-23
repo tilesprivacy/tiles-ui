@@ -8,6 +8,7 @@
 
 import { browser } from '$app/environment';
 import { TilekitService } from '$lib/services/tilekit.service';
+import { apiFetch } from '$lib/utils';
 
 class AgentStore {
 	/** the full `org/repo:quant` spec, null until the daemon answers */
@@ -20,8 +21,18 @@ class AgentStore {
 			const state = await TilekitService.agentState();
 
 			this.model = state.model?.id || state.model?.name || null;
+
+			return;
 		} catch {
-			// no daemon or no agent yet; keep what was shown last
+			// pi starts on the first message, so until then ask what it will run
+		}
+
+		try {
+			const config = await apiFetch<{ model?: { current?: string } }>('/config');
+
+			if (config.model?.current) this.model = config.model.current;
+		} catch {
+			// no daemon; keep what was shown last
 		}
 	}
 }

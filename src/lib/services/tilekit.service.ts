@@ -13,8 +13,11 @@ import type {
 	TilekitAtprotoAccount,
 	TilekitChat,
 	TilekitDeltaChat,
+	TilekitDownloadProgress,
 	TilekitMention,
 	TilekitModelfile,
+	TilekitModelSelected,
+	TilekitModelStatus,
 	TilekitPlugin,
 	TilekitPluginChange,
 	TilekitResponse,
@@ -22,7 +25,8 @@ import type {
 	TilekitSession,
 	TilekitSharedSession
 } from '$lib/types/tilekit';
-import { apiFetch, apiPost } from '$lib/utils';
+import { API_ORIGIN } from '$lib/utils/api-origin';
+import { apiFetch, apiPost, parseSseJsonStream } from '$lib/utils';
 
 function unwrap<T>(response: TilekitResponse<T>): T {
 	return response.data;
@@ -124,6 +128,67 @@ export class TilekitService {
 		return apiPost<TilekitResponse<TilekitPluginChange>, { source: string }>(
 			API_TILEKIT.PLUGIN.INSTALL,
 			{ source }
+		).then(unwrap);
+	}
+
+	/**
+	 * The models onboarding offers, how much of each is downloaded, and which
+	 * fits this machine. The first call after a cold start is slow: it starts
+	 * the inference server and reads each model's header once.
+	 */
+	static async modelStatus(): Promise<TilekitModelStatus> {
+		return apiFetch<TilekitResponse<TilekitModelStatus>>(API_TILEKIT.MODEL.STATUS).then(unwrap);
+	}
+
+	/**
+	 * Starts downloading `spec`, or joins the download already running for
+	 * it, yielding progress until it is done, cancelled or failed. One
+	 * download runs at a time; another model is refused.
+	 */
+	static async *downloadModel(
+		spec: string,
+		signal?: AbortSignal
+	): AsyncGenerator<TilekitDownloadProgress> {
+		const response = await fetch(`${API_ORIGIN}${API_TILEKIT.MODEL.DOWNLOAD}`, {
+			body: JSON.stringify({ spec }),
+			headers: { 'Content-Type': 'application/json' },
+			method: 'POST',
+			signal
+		});
+
+		if (!response.ok) {
+			const body = await response.json().catch(() => null);
+
+			throw new Error(body?.reason ?? `The download could not start (${response.status})`);
+		}
+
+		for await (const event of parseSseJsonStream<TilekitDownloadProgress>(response, signal)) {
+			yield event.data;
+		}
+	}
+
+	/** The running or last download, for a page that was not watching it. */
+	static async downloadState(): Promise<TilekitDownloadProgress | null> {
+		return apiFetch<TilekitResponse<TilekitDownloadProgress | null>>(
+			API_TILEKIT.MODEL.DOWNLOAD
+		).then(unwrap);
+	}
+
+	/** Stops the download; what arrived stays and a later download continues. */
+	static async cancelDownload(): Promise<TilekitDownloadProgress> {
+		return apiFetch<TilekitResponse<TilekitDownloadProgress>>(API_TILEKIT.MODEL.DOWNLOAD, {
+			method: 'DELETE'
+		}).then(unwrap);
+	}
+
+	/**
+	 * Makes a downloaded model the one Tiles runs. Refused with a 409 when the
+	 * user's modelfile has edits of their own, unless `replaceEdited`.
+	 */
+	static async selectModel(id: string, replaceEdited = false): Promise<TilekitModelSelected> {
+		return apiPost<TilekitResponse<TilekitModelSelected>, { id: string; replace_edited: boolean }>(
+			API_TILEKIT.MODEL.SELECT,
+			{ id, replace_edited: replaceEdited }
 		).then(unwrap);
 	}
 

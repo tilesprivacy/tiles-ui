@@ -64,3 +64,6 @@ export { pluginsStore } from './plugins.svelte';
 
 // AGENT (the model the daemon's agent is running)
 export { agentStore } from './agent.svelte';
+
+// ONBOARDING (account, optional atmosphere, model download and pick)
+export { onboardingStore } from './onboarding.svelte';

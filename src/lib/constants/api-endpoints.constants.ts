@@ -29,6 +29,11 @@ export const API_TILEKIT = {
 	DIAGNOSTICS: {
 		LOGS: `${TILEKIT}/diagnostics/logs`
 	},
+	MODEL: {
+		DOWNLOAD: `${TILEKIT}/model/download`,
+		SELECT: `${TILEKIT}/model/select`,
+		STATUS: `${TILEKIT}/model/status`
+	},
 	MODELFILE: `${TILEKIT}/modelfile`,
 	PLUGIN: {
 		disable: (name: string) => `${TILEKIT}/plugin/${encodeURIComponent(name)}/disable`,

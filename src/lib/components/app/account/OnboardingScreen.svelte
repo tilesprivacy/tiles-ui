@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { Logo } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
+	import { onboardingStore } from '$lib/stores';
 	import { accountStore } from '$lib/stores/account.svelte';
+	import OnboardingSteps from '../onboarding/OnboardingSteps.svelte';
 
 	let nickname = $state('');
 	let touched = $state(false);
@@ -14,7 +16,7 @@
 
 		if (!canSubmit) return;
 
-		await accountStore.create(nickname);
+		if (await accountStore.create(nickname)) onboardingStore.accountCreated();
 	}
 </script>
 
@@ -23,7 +25,11 @@
 		<header class="flex flex-col">
 			<Logo class="text-signal" style="--size: 3.75rem" />
 
-			<div class="mt-7 flex flex-col gap-3">
+			<div class="mt-7">
+				<OnboardingSteps current={1} />
+			</div>
+
+			<div class="mt-5 flex flex-col gap-3">
 				<h1 class="text-3xl font-semibold tracking-tight text-bone">Welcome to Tiles</h1>
 
 				<p class="max-w-[42ch] text-sm leading-6 text-slate">
@@ -67,8 +73,7 @@
 		</div>
 
 		<p class="mt-8 border-t border-border pt-5 text-xs leading-5 text-slate">
-			You can connect an optional Atmosphere Account later for online social features. Tiles works
-			without one.
+			Next, you can connect an optional Atmosphere Account, then pick the model Tiles runs.
 		</p>
 	</form>
 </div>

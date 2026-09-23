@@ -127,3 +127,52 @@ export interface TilekitPluginChange {
 	/** install: targets a spec version whose MCP servers stay off for now */
 	mcp_dormant?: boolean;
 }
+
+/** How much of a model is on disk. */
+export type TilekitModelState = 'ready' | 'partial' | 'missing' | 'unknown';
+
+/** Whether a model runs on this machine's best device. */
+export type TilekitModelFit = 'fits' | 'experts_on_cpu' | 'too_big' | 'unknown';
+
+/** One model onboarding offers, from `/model/status`. */
+export interface TilekitModelEntry {
+	id: string;
+	label: string;
+	/** `repo:quant`, what a download takes */
+	spec: string;
+	state: TilekitModelState;
+	download_bytes: number | null;
+	downloaded_bytes: number;
+	vram_bytes: number | null;
+	fit: TilekitModelFit;
+	recommended: boolean;
+	/** the model config.toml names, not necessarily on disk */
+	active: boolean;
+}
+
+export interface TilekitModelStatus {
+	models: TilekitModelEntry[];
+	/** the device models are sized against; null when only the cpu can run them */
+	device: { name: string; free_bytes: number; total_bytes: number } | null;
+	disk: { free_bytes: number; total_bytes: number } | null;
+}
+
+export type TilekitDownloadPhase = 'starting' | 'downloading' | 'done' | 'cancelled' | 'failed';
+
+/** One progress report from `/model/download`. */
+export interface TilekitDownloadProgress {
+	spec: string;
+	phase: TilekitDownloadPhase;
+	file: string | null;
+	done_bytes: number;
+	total_bytes: number;
+	bytes_per_sec: number;
+	error: string | null;
+}
+
+export interface TilekitModelSelected {
+	id: string;
+	spec: string;
+	reload: TilekitReload;
+	reload_error?: string;
+}

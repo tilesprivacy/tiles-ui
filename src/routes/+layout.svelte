@@ -4,7 +4,12 @@
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
-	import { OnboardingScreen, SidebarNavigation } from '$lib/components/app';
+	import {
+		OnboardingAtmosphere,
+		OnboardingModel,
+		OnboardingScreen,
+		SidebarNavigation
+	} from '$lib/components/app';
 	import { PwaMetaTags, PwaRefreshAlert } from '$lib/components/pwa';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import {
@@ -32,6 +37,7 @@
 		versionStore
 	} from '$lib/stores';
 	import { accountStore } from '$lib/stores/account.svelte';
+	import { onboardingStore } from '$lib/stores/onboarding.svelte';
 	import { initStores } from '$lib/stores/init';
 	import { ModeWatcher } from 'mode-watcher';
 	import { untrack } from 'svelte';
@@ -182,6 +188,16 @@
 		});
 	}
 
+	// an existing account still needs a model on disk; ask once it is known
+	let modelChecked = false;
+
+	$effect(() => {
+		if (accountStore.state === 'ready' && !modelChecked) {
+			modelChecked = true;
+			void onboardingStore.refresh();
+		}
+	});
+
 	onMount(() => {
 		updateFavicon();
 		// snapshot of every backend running stream on first load, populates the sidebar spinners
@@ -325,6 +341,11 @@
 	{#if accountStore.state === 'missing'}
 		<!-- nothing works without a local identity, so this comes before the app -->
 		<OnboardingScreen />
+	{:else if onboardingStore.showAtmosphere}
+		<OnboardingAtmosphere />
+	{:else if onboardingStore.showModel}
+		<!-- nor without a model on disk -->
+		<OnboardingModel inFlow={onboardingStore.newAccount} />
 	{:else}
 		<div class="flex flex-col md:flex-row">
 			<SidebarNavigation
