@@ -31,6 +31,7 @@
 		chatStore,
 		conversationsStore,
 		mcpStore,
+		modelLibraryStore,
 		modelsStore,
 		serverStore,
 		settingsStore,
@@ -216,7 +217,9 @@
 	let hasAttachments = $derived(
 		(attachments && attachments.length > 0) || (uploadedFiles && uploadedFiles.length > 0)
 	);
-	let canSubmit = $derived(value.trim().length > 0 || hasAttachments);
+	// nothing to send to until a model is on disk; unknown yet is not a no
+	let modelReady = $derived(modelLibraryStore.status === null || modelLibraryStore.hasModel);
+	let canSubmit = $derived((value.trim().length > 0 || hasAttachments) && modelReady);
 
 	// Caret offset restored after a renderer swap. Callers that mutate
 	// `value` themselves (e.g. the mention picker) pin the target offset

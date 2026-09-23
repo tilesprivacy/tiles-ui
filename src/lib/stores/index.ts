@@ -67,3 +67,6 @@ export { agentStore } from './agent.svelte';
 
 // ONBOARDING (account, optional atmosphere, model download and pick)
 export { onboardingStore } from './onboarding.svelte';
+
+// MODEL LIBRARY (the models tiles can run, and the download in progress)
+export { modelLibraryStore } from './model-library.svelte';

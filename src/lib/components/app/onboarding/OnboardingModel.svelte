@@ -3,7 +3,7 @@
 	import { Logo } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
-	import { onboardingStore } from '$lib/stores';
+	import { modelLibraryStore, onboardingStore } from '$lib/stores';
 	import type { TilekitModelEntry } from '$lib/types/tilekit';
 	import { onMount } from 'svelte';
 
@@ -15,13 +15,13 @@
 	let { inFlow = false }: Props = $props();
 
 	onMount(() => {
-		if (!onboardingStore.status) void onboardingStore.refresh();
+		if (!modelLibraryStore.status) void modelLibraryStore.refresh();
 	});
 
-	let status = $derived(onboardingStore.status);
-	let model = $derived(onboardingStore.selected);
-	let progress = $derived(onboardingStore.progress);
-	let downloading = $derived(onboardingStore.downloading);
+	let status = $derived(modelLibraryStore.status);
+	let model = $derived(modelLibraryStore.selected);
+	let progress = $derived(modelLibraryStore.progress);
+	let downloading = $derived(modelLibraryStore.downloading);
 
 	/** decimal units, the way the cli and finder count */
 	function size(bytes: number | null | undefined): string {
@@ -90,8 +90,11 @@
 	});
 
 	function go() {
-		if (model?.state === 'ready') void onboardingStore.start();
-		else void onboardingStore.download();
+		if (model?.state === 'ready') void modelLibraryStore.use();
+		else {
+			onboardingStore.watch();
+			void modelLibraryStore.download();
+		}
 	}
 </script>
 
@@ -123,11 +126,11 @@
 				<div class="cut h-16 animate-pulse bg-steel"></div>
 
 				<span class="text-xs text-slate">
-					{onboardingStore.error ?? 'Checking what fits on this machine…'}
+					{modelLibraryStore.error ?? 'Checking what fits on this machine…'}
 				</span>
 
-				{#if onboardingStore.error}
-					<Button class="cut h-10 rounded-none" onclick={() => onboardingStore.refresh()}
+				{#if modelLibraryStore.error}
+					<Button class="cut h-10 rounded-none" onclick={() => modelLibraryStore.refresh()}
 						>Try again</Button
 					>
 				{/if}
@@ -136,9 +139,9 @@
 			<div class="mt-9 flex flex-col gap-5">
 				<Select.Root
 					disabled={downloading}
-					onValueChange={(value) => value && onboardingStore.select(value)}
+					onValueChange={(value) => value && modelLibraryStore.select(value)}
 					type="single"
-					value={onboardingStore.selectedId ?? undefined}
+					value={modelLibraryStore.selectedId ?? undefined}
 				>
 					<Select.Trigger
 						class="cut h-auto min-h-16 w-full rounded-none border-border bg-steel px-4 py-3"
@@ -208,10 +211,18 @@
 
 					<Button
 						class="cut h-11 w-full rounded-none border border-border bg-transparent text-bone hover:bg-steel"
-						onclick={() => onboardingStore.cancel()}
+						onclick={() => modelLibraryStore.cancel()}
 					>
 						Pause download
 					</Button>
+
+					<button
+						class="text-sm text-slate underline decoration-current/35 underline-offset-4 transition-colors hover:text-bone"
+						onclick={() => onboardingStore.explore()}
+						type="button"
+					>
+						Explore Tiles while it downloads
+					</button>
 				{:else if model}
 					{#if status.disk && model.state !== 'ready'}
 						<div class="flex flex-col gap-2">
@@ -234,7 +245,7 @@
 						</div>
 					{/if}
 
-					{#if onboardingStore.confirmReplace}
+					{#if modelLibraryStore.confirmReplace}
 						<div class="flex flex-col gap-3 border border-border p-4">
 							<span class="text-sm text-bone">Your modelfile has edits of your own.</span>
 
@@ -244,7 +255,7 @@
 
 							<Button
 								class="cut h-10 rounded-none bg-signal text-void hover:bg-signal hover:brightness-110"
-								onclick={() => onboardingStore.start(true)}
+								onclick={() => modelLibraryStore.use(undefined, true)}
 							>
 								Replace and start
 							</Button>
@@ -252,16 +263,16 @@
 					{:else}
 						<Button
 							class="cut h-11 w-full rounded-none bg-signal text-void hover:bg-signal hover:brightness-110 disabled:bg-steel disabled:text-slate disabled:opacity-100"
-							disabled={diskShort || onboardingStore.selecting}
+							disabled={diskShort || modelLibraryStore.selecting}
 							onclick={go}
 						>
-							{onboardingStore.selecting ? 'Starting…' : action}
+							{modelLibraryStore.selecting ? 'Starting…' : action}
 						</Button>
 					{/if}
 				{/if}
 
-				{#if onboardingStore.error && status}
-					<span class="text-xs text-alert">{onboardingStore.error}</span>
+				{#if modelLibraryStore.error && status}
+					<span class="text-xs text-alert">{modelLibraryStore.error}</span>
 				{/if}
 			</div>
 		{/if}

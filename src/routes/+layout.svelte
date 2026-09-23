@@ -38,6 +38,7 @@
 	} from '$lib/stores';
 	import { accountStore } from '$lib/stores/account.svelte';
 	import { initStores } from '$lib/stores/init';
+	import { modelLibraryStore } from '$lib/stores/model-library.svelte';
 	import { onboardingStore } from '$lib/stores/onboarding.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import { untrack } from 'svelte';
@@ -194,7 +195,7 @@
 	$effect(() => {
 		if (accountStore.state === 'ready' && !modelChecked) {
 			modelChecked = true;
-			void onboardingStore.refresh();
+			void modelLibraryStore.refresh();
 		}
 	});
 

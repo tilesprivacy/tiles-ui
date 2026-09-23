@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ProgressRing from '../../models/ProgressRing.svelte';
 	import { Search } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -12,7 +13,7 @@
 		SIDEBAR_ACTIONS_ITEMS
 	} from '$lib/constants';
 	import { SidebarAction, TooltipSide } from '$lib/enums';
-	import { conversationsStore, deviceStore } from '$lib/stores';
+	import { conversationsStore, deviceStore, modelLibraryStore } from '$lib/stores';
 	import type { Component } from 'svelte';
 	import { onMount } from 'svelte';
 	import { circIn } from 'svelte/easing';
@@ -91,6 +92,17 @@
 	<IconComponent class={ICON_CLASS_DEFAULT} />
 {/snippet}
 
+<!-- the download under way, drawn around the models icon wherever it sits -->
+{#snippet downloadRing(item: { route?: string }, size: number)}
+	{#if item.route === ROUTES.MODELS && modelLibraryStore.downloading}
+		<ProgressRing
+			class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+			percent={modelLibraryStore.percent}
+			{size}
+		/>
+	{/if}
+{/snippet}
+
 {#if isSearchModeActive}
 	<div class="px-4 my-2">
 		<SearchInput
@@ -145,11 +157,16 @@
 						variant="ghost"
 					>
 						<span class="flex min-w-0 items-center px-0.5 gap-2">
-							{@render itemIcon(item.icon)}
+							<span class="relative flex items-center justify-center">
+								{@render itemIcon(item.icon)}
+
+								{@render downloadRing(item, 24)}
+							</span>
 
 							{#if showIcons}
 								<span in:fade={itemTransition} out:fade={itemTransition} class="min-w-0 truncate"
-									>{item.tooltip}</span
+									>{item.tooltip}{#if item.route === ROUTES.MODELS && modelLibraryStore.downloading}
+										· {Math.floor(modelLibraryStore.percent)}%{/if}</span
 								>
 							{/if}
 						</span>
@@ -190,7 +207,7 @@
 			}}
 
 			{#if showIcons}
-				<div transition:fade={itemTransition}>
+				<div transition:fade={itemTransition} class="relative">
 					<ActionIcon
 						class="h-9 w-9 rounded-full hover:bg-accent! {isActive
 							? 'bg-accent text-accent-foreground'
@@ -202,6 +219,8 @@
 						tooltip={item.tooltip}
 						tooltipSide={TooltipSide.RIGHT}
 					/>
+
+					{@render downloadRing(item, 30)}
 				</div>
 			{/if}
 		{/each}
