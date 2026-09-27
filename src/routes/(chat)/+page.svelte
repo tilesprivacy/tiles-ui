@@ -3,8 +3,14 @@
 	import { page } from '$app/state';
 	import { DialogModelNotAvailable } from '$lib/components/app';
 	import { APP_NAME, URL_PARAMS } from '$lib/constants';
-	import { chatStore, conversationsStore, modelsStore, serverStore } from '$lib/stores';
-	import { onMount } from 'svelte';
+	import {
+		chatStore,
+		conversationsStore,
+		draftMessagesStore,
+		modelsStore,
+		serverStore
+	} from '$lib/stores';
+	import { onMount, untrack } from 'svelte';
 
 	let qParam = $derived(page.url.searchParams.get(URL_PARAMS.QUERY));
 	let modelParam = $derived(page.url.searchParams.get(URL_PARAMS.MODEL));
@@ -70,6 +76,22 @@
 			clearUrlParams();
 		}
 	}
+
+	// unlike ?q=, ?draft= never sends. an effect, since the chat screen stays mounted
+	$effect(() => {
+		const draft = page.url.searchParams.get(URL_PARAMS.DRAFT);
+
+		if (draft === null) return;
+
+		untrack(() => {
+			if (draft.trim()) draftMessagesStore.setPrefill(draft);
+
+			const url = new URL(page.url);
+
+			url.searchParams.delete(URL_PARAMS.DRAFT);
+			replaceState(url.toString(), {});
+		});
+	});
 
 	onMount(async () => {
 		if (!conversationsStore.isInitialized) {
