@@ -137,7 +137,6 @@ export { default as SidebarNavigationConversationItem } from './SidebarNavigatio
  *   onSelectAllToggle={toggleSelectAll}
  *   onBulkPinToggle={handleBulkPin}
  *   onBulkExport={handleBulkExport}
- *   onBulkDelete={handleBulkDelete}
  *   onClose={exitSelectionMode}
  * />
  * ```
@@ -161,7 +160,6 @@ export { default as SidebarNavigationSelectionBar } from './SidebarNavigation/Si
  *   {searchQuery}
  *   onSelect={...}
  *   onEdit={...}
- *   onDelete={...}
  *   onStop={...}
  * />
  * ```
@@ -189,7 +187,6 @@ export { default as SidebarNavigationActions } from './SidebarNavigation/Sidebar
  *   {currentChatId}
  *   onSelect={...}
  *   onEdit={...}
- *   onDelete={...}
  *   onStop={...}
  * />
  * ```

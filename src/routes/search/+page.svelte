@@ -44,20 +44,6 @@
 		}
 	}
 
-	async function handleDeleteConversation(id: string) {
-		const conversation = conversationsStore.conversations.find((c) => c.id === id);
-
-		if (!conversation) return;
-
-		const confirmed = window.confirm(
-			`Delete "${conversation.name}"? This action cannot be undone.`
-		);
-
-		if (!confirmed) return;
-
-		await conversationsStore.deleteConversation(id, { deleteWithForks: false });
-	}
-
 	function handleStopGeneration(id: string) {
 		chatStore.stopGenerationForChat(id);
 	}
@@ -89,7 +75,6 @@
 	<SidebarNavigationSearchResults
 		{currentChatId}
 		{filteredConversations}
-		onDelete={handleDeleteConversation}
 		onEdit={handleEditConversation}
 		onSelect={selectConversation}
 		onStop={handleStopGeneration}

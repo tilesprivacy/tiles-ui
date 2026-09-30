@@ -8,8 +8,7 @@
 		Pencil,
 		Pin,
 		PinOff,
-		Square,
-		Trash2
+		Square
 	} from '@lucide/svelte';
 	import { DropdownMenuActions } from '$lib/components/app';
 	import { TruncatedText } from '$lib/components/app';
@@ -26,7 +25,6 @@
 		conversation: DatabaseConversation;
 		isSelectionMode?: boolean;
 		isSelected?: boolean;
-		onDelete?: (id: string) => void;
 		onEdit?: (id: string) => void;
 		onSelect?: (id: string) => void;
 		onStop?: (id: string) => void;
@@ -42,7 +40,6 @@
 		isActive = false,
 		isSelected = false,
 		isSelectionMode = false,
-		onDelete,
 		onEdit,
 		onEnterSelectionMode,
 		onRowMouseDown,
@@ -60,11 +57,6 @@
 	function handleEdit(event: Event) {
 		event.stopPropagation();
 		onEdit?.(conversation.id);
-	}
-
-	function handleDelete(event: Event) {
-		event.stopPropagation();
-		onDelete?.(conversation.id);
 	}
 
 	function handleStop(event: Event) {
@@ -272,14 +264,6 @@
 						icon: ListChecks,
 						label: 'Select',
 						onclick: handleEnterSelectionMode
-					},
-					{
-						icon: Trash2,
-						label: 'Delete',
-						onclick: handleDelete,
-						separator: true,
-						shortcut: ['shift', 'cmd', 'd'],
-						variant: 'destructive'
 					}
 				]}
 				triggerIcon={MoreHorizontal}

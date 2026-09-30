@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Download, Pin, PinOff, Trash2, X } from '@lucide/svelte';
-	import { ActionIcon, DialogConfirmation } from '$lib/components/app';
+	import { Download, Pin, PinOff, X } from '@lucide/svelte';
+	import { ActionIcon } from '$lib/components/app';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { TooltipSide } from '$lib/enums';
 
@@ -15,14 +15,12 @@
 		onSelectAllToggle: () => void;
 		onBulkPinToggle: () => void;
 		onBulkExport: () => void;
-		onBulkDelete: () => void;
 		onClose: () => void;
 	}
 
 	let {
 		allVisibleSelected,
 		class: className = '',
-		onBulkDelete,
 		onBulkExport,
 		onBulkPinToggle,
 		onClose,
@@ -33,21 +31,6 @@
 		someVisibleSelected,
 		visibleCount
 	}: Props = $props();
-
-	let showDeleteDialog = $state(false);
-
-	function handleDeleteClick() {
-		showDeleteDialog = true;
-	}
-
-	function handleDeleteConfirm() {
-		showDeleteDialog = false;
-		onBulkDelete();
-	}
-
-	function handleDeleteCancel() {
-		showDeleteDialog = false;
-	}
 
 	const hasSelection = $derived(selectedCount > 0);
 	const isMasterChecked = $derived(allVisibleSelected);
@@ -117,20 +100,6 @@
 			tooltipSide={TooltipSide.TOP}
 		/>
 
-		<ActionIcon
-			ariaLabel="Delete selected"
-			class="h-7 w-7 rounded-md bg-transparent backdrop-blur-none hover:bg-destructive/10! dark:hover:bg-destructive/20! disabled:hover:bg-transparent {hasSelection
-				? 'opacity-100'
-				: 'opacity-40'}"
-			disabled={!hasSelection}
-			icon={Trash2}
-			iconSize="h-3.5 w-3.5 text-destructive"
-			onclick={handleDeleteClick}
-			size="sm"
-			tooltip="Delete selected"
-			tooltipSide={TooltipSide.TOP}
-		/>
-
 		<div aria-hidden="true" class="mx-1 h-4 w-px bg-border"></div>
 
 		<ActionIcon
@@ -145,19 +114,3 @@
 		/>
 	</div>
 </div>
-
-<DialogConfirmation
-	bind:open={showDeleteDialog}
-	cancelText="Cancel"
-	confirmText={selectedCount === 1 ? 'Delete' : `Delete ${selectedCount}`}
-	description="This action cannot be undone. The selected conversation{selectedCount === 1
-		? ''
-		: 's'} and {selectedCount === 1
-		? 'its'
-		: 'their'} messages will be permanently removed, including any forks."
-	icon={Trash2}
-	onCancel={handleDeleteCancel}
-	onConfirm={handleDeleteConfirm}
-	title="Delete {selectedCount} conversation{selectedCount === 1 ? '' : 's'}"
-	variant="destructive"
-/>

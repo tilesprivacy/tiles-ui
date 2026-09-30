@@ -15,7 +15,6 @@
 		selectedIds?: Set<string>;
 		onSelect: (id: string) => void;
 		onEdit: (id: string) => void;
-		onDelete: (id: string) => void;
 		onStop: (id: string) => void;
 		onToggleSelect?: (id: string) => void;
 		onEnterSelectionMode?: (id: string) => void;
@@ -29,7 +28,6 @@
 		onSelectAllToggle: () => void;
 		onBulkPinToggle: () => void;
 		onBulkExport: () => void;
-		onBulkDelete: () => void;
 		onCloseSelection: () => void;
 	}
 
@@ -41,11 +39,9 @@
 		filteredConversations,
 		isSearchModeActive,
 		isSelectionMode = false,
-		onBulkDelete,
 		onBulkExport,
 		onBulkPinToggle,
 		onCloseSelection,
-		onDelete,
 		onEdit,
 		onEnterSelectionMode,
 		onRowMouseDown,
@@ -83,7 +79,6 @@
 			{currentChatId}
 			{filteredConversations}
 			{isSelectionMode}
-			{onDelete}
 			{onEdit}
 			{onEnterSelectionMode}
 			{onRowMouseDown}
@@ -122,7 +117,6 @@
 							isActive={currentChatId === conversation.id}
 							isSelected={selectedIds.has(conversation.id)}
 							{isSelectionMode}
-							{onDelete}
 							{onEdit}
 							{onEnterSelectionMode}
 							{onRowMouseDown}
@@ -162,7 +156,6 @@
 								isActive={currentChatId === conversation.id}
 								isSelected={selectedIds.has(conversation.id)}
 								{isSelectionMode}
-								{onDelete}
 								{onEdit}
 								{onEnterSelectionMode}
 								{onRowMouseDown}
@@ -189,7 +182,6 @@
 			<SidebarNavigationSelectionBar
 				{allVisibleSelected}
 				class="sticky top-0 z-10 m-2 mt-0"
-				{onBulkDelete}
 				{onBulkExport}
 				{onBulkPinToggle}
 				onClose={onCloseSelection}

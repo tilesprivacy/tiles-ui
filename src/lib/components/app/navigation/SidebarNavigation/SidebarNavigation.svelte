@@ -185,15 +185,6 @@
 		}
 	}
 
-	async function handleBulkDelete() {
-		const ids = Array.from(selectedIds);
-
-		if (ids.length === 0) return;
-
-		await conversationsStore.bulkDeleteConversations(ids);
-		exitSelectionMode();
-	}
-
 	async function handleBulkPinToggle() {
 		const ids = Array.from(selectedIds);
 
@@ -267,20 +258,6 @@
 		renameTargetConversationId = null;
 		renameDraft = '';
 		renameOriginalTitle = '';
-	}
-
-	async function handleDeleteConversation(id: string) {
-		const conversation = conversationsStore.conversations.find((conv) => conv.id === id);
-
-		if (!conversation) return;
-
-		const confirmed = window.confirm(
-			`Delete "${conversation.name}"? This action cannot be undone.`
-		);
-
-		if (!confirmed) return;
-
-		await conversationsStore.deleteConversation(id, { deleteWithForks: false });
 	}
 
 	function handleStopGeneration(id: string) {
@@ -418,11 +395,9 @@
 						{filteredConversations}
 						{isSearchModeActive}
 						{isSelectionMode}
-						onBulkDelete={handleBulkDelete}
 						onBulkExport={handleBulkExport}
 						onBulkPinToggle={handleBulkPinToggle}
 						onCloseSelection={exitSelectionMode}
-						onDelete={handleDeleteConversation}
 						onEdit={handleEditConversation}
 						onEnterSelectionMode={enterSelectionMode}
 						onRowMouseDown={handleRowMouseDown}
