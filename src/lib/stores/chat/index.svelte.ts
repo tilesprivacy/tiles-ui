@@ -46,6 +46,7 @@ import type {
 import {
 	findMessageById,
 	formatCwdMessage,
+	formatMessageForClipboard,
 	getConversationModel,
 	isAbortError,
 	normalizeModelName
@@ -1293,7 +1294,8 @@ class ChatStore implements ChatStreamHost, ChatFlowsHost {
 		};
 		// Pi keeps the conversation on its side, so only the newest user turn is sent
 		const userTurn = [...allMessages].reverse().find((m) => m.role === MessageRole.USER);
-		const prompt = userTurn?.content;
+		// a long paste becomes a text attachment, and the prompt is plain text, so it goes inline
+		const prompt = userTurn && formatMessageForClipboard(userTurn.content, userTurn.extra, true);
 		// the daemon creates the session row off the first user turn, so this has
 		// to land before the reply does
 		const savedUserChatId = await this.persistTurn(convId, MessageRole.USER, prompt ?? '');
