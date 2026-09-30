@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, ChevronRight, Copy, ExternalLink, Loader2, LogOut } from '@lucide/svelte';
+	import { Check, ChevronRight, Copy, Loader2, LogOut } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import * as Popover from '$lib/components/ui/popover';
@@ -71,9 +71,9 @@
 	<div class="border-t border-border px-2 py-2">
 		<Popover.Root>
 			<Popover.Trigger
-				class="flex w-full items-center gap-2 rounded-lg py-2 text-left transition-colors hover:bg-steel {expanded
-					? 'px-2'
-					: 'justify-center px-0'}"
+				class="flex items-center gap-2 text-left transition-colors hover:bg-steel {expanded
+					? 'w-full rounded-lg px-2 py-2'
+					: 'mx-auto my-1 rounded-full p-1'}"
 			>
 				<span
 					class="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-steel text-[12px] font-semibold text-ash"
@@ -156,7 +156,9 @@
 								About this account
 							</Collapsible.Trigger>
 
-							<Collapsible.Content>
+							<Collapsible.Content
+								class="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down"
+							>
 								<p class="pt-1 pl-4 text-[11px] leading-relaxed text-slate">
 									Your Tiles Account is generated and secured on this device. It is ready for
 									peer-to-peer sync, remote inference, and other local-first features, using DIDs
@@ -226,7 +228,9 @@
 									About this account
 								</Collapsible.Trigger>
 
-								<Collapsible.Content>
+								<Collapsible.Content
+									class="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down"
+								>
 									<p class="pt-1 pl-4 text-[11px] leading-relaxed text-slate">
 										Your Atmosphere Account is connected and ready to share conversations through
 										your AT Protocol PDS.
@@ -290,13 +294,9 @@
 									</Button>
 								</div>
 
-								<p class="flex items-start gap-1 text-[11px] leading-relaxed text-slate">
-									<ExternalLink class="{ICON_CLASS_XS} mt-0.5 shrink-0" />
-
-									<span>
-										You can connect an optional Atmosphere Account later for online social features.
-										Tiles works without one.
-									</span>
+								<p class="text-[11px] leading-relaxed text-slate">
+									You can connect an optional Atmosphere Account later for online social features.
+									Tiles works without one.
 								</p>
 							</form>
 						{/if}
