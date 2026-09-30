@@ -11,6 +11,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { getChatMessageActionsContext, getChatMessageEditContext } from '$lib/contexts';
 	import { MessageRole } from '$lib/enums';
+	import { FEATURES } from '$lib/features';
 	import { conversationsStore } from '$lib/stores';
 
 	interface Props {
@@ -79,7 +80,10 @@
 		>
 			<ActionIcon icon={Copy} onclick={messageActions.copy} tooltip="Copy" />
 
-			<ActionIcon icon={Edit} onclick={editCtx.startEdit} tooltip="Edit" />
+			<!-- an edit or fork branches the chat, and the daemon and Pi keep one line of it -->
+			{#if FEATURES.BRANCHING}
+				<ActionIcon icon={Edit} onclick={editCtx.startEdit} tooltip="Edit" />
+			{/if}
 
 			{#if role === MessageRole.ASSISTANT && onRegenerate}
 				<ActionIcon icon={RefreshCw} onclick={() => onRegenerate()} tooltip="Regenerate" />
@@ -89,7 +93,7 @@
 				<ActionIcon icon={ArrowRight} onclick={onContinue} tooltip="Continue" />
 			{/if}
 
-			{#if messageActions.forkConversation}
+			{#if FEATURES.BRANCHING && messageActions.forkConversation}
 				<ActionIcon icon={GitBranch} onclick={handleOpenForkDialog} tooltip="Fork conversation" />
 			{/if}
 
