@@ -20,19 +20,14 @@
 	}
 
 	const normalizedQuery = $derived(query.trim().toLowerCase());
+	// names only: a letter or two is in nearly every description
 	const filteredPlugins = $derived(
 		TILES_PLUGINS.filter((plugin) =>
-			[plugin.name, plugin.description, plugin.slug]
-				.join(' ')
-				.toLowerCase()
-				.includes(normalizedQuery)
+			[plugin.name, plugin.slug].join(' ').toLowerCase().includes(normalizedQuery)
 		)
 	);
 	const showMakeYourOwnPluginCard = $derived(
-		!normalizedQuery ||
-			'make your own plugin bundle mcp servers and skills in the portable agent plugins format package layout'.includes(
-				normalizedQuery
-			)
+		!normalizedQuery || ' make your own plugin mcp servers skills'.includes(` ${normalizedQuery}`)
 	);
 </script>
 
