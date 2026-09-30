@@ -31,7 +31,9 @@
 	}
 </script>
 
-<div class="sticky bottom-0 mx-auto mt-4 flex w-full justify-between pb-4 md:pb-0">
+<div
+	class="sticky bottom-0 mx-auto mt-4 flex w-full justify-between bg-background pt-3 pb-4 md:-bottom-6 md:pb-6"
+>
 	<div class="flex gap-2">
 		<Button onclick={handleResetClick} variant="outline">
 			<RotateCcw class="h-3 w-3" />

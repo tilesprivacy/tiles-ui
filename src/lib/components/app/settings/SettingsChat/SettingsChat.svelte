@@ -222,10 +222,6 @@
 						</div>
 					{/if}
 				</div>
-
-				<div class="mt-8 border-t border-border/30 pt-6">
-					<p class="text-xs text-muted-foreground">Settings are saved in browser's localStorage</p>
-				</div>
 			</div>
 
 			<SettingsFooter busy={modelfileBusy} onReset={handleReset} onSave={handleSave} />
