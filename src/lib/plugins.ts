@@ -98,6 +98,124 @@ export const TILES_PLUGINS: TilesPlugin[] = [
 		],
 		slug: 'caldir',
 		sourceUrl: `${PLUGIN_SOURCE_BASE_URL}/caldir`
+	},
+	{
+		description: 'Manage Cloudflare resources and Workers projects with the Cloudflare CLI.',
+		downloadUrl: `${PLUGIN_DOWNLOAD_BASE_URL}/cloudflare.zip`,
+		installCommand: `tiles plugin install ${PLUGIN_DOWNLOAD_BASE_URL}/cloudflare.zip`,
+		mcpServers: [],
+		metadata: [
+			{
+				href: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+				key: '$schema',
+				value: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json'
+			},
+			{
+				key: 'name',
+				value: 'cloudflare'
+			},
+			{
+				key: 'version',
+				value: '1.0.0'
+			},
+			{
+				key: 'description',
+				value: 'Manage Cloudflare resources and Workers projects with the Cloudflare CLI.'
+			},
+			{
+				key: 'author',
+				value: '{"name":"Tiles Privacy","url":"https://tiles.run"}'
+			},
+			{
+				href: 'https://developers.cloudflare.com/cf/',
+				key: 'homepage',
+				value: 'https://developers.cloudflare.com/cf/'
+			},
+			{
+				href: 'https://github.com/tilesprivacy/plugins',
+				key: 'repository',
+				value: 'https://github.com/tilesprivacy/plugins'
+			},
+			{
+				key: 'license',
+				value: 'MIT'
+			},
+			{
+				key: 'keywords',
+				value: 'cloudflare, workers, dns, storage, cli'
+			}
+		],
+		name: 'Cloudflare',
+		skills: [
+			{
+				description:
+					'Manage Cloudflare resources and Workers projects with the cf CLI. Use for Cloudflare account, zone, DNS, storage, security, or Worker development and deployment tasks; discover current commands and schemas before acting.',
+				name: 'cloudflare',
+				sourceUrl:
+					'https://github.com/tilesprivacy/plugins/blob/main/cloudflare/skills/cloudflare/SKILL.md'
+			}
+		],
+		slug: 'cloudflare',
+		sourceUrl: 'https://github.com/tilesprivacy/plugins/blob/main/cloudflare'
+	},
+	{
+		description: 'Search, read, and organize your Obsidian vault with the Obsidian CLI.',
+		downloadUrl: `${PLUGIN_DOWNLOAD_BASE_URL}/obsidian.zip`,
+		installCommand: `tiles plugin install ${PLUGIN_DOWNLOAD_BASE_URL}/obsidian.zip`,
+		mcpServers: [],
+		metadata: [
+			{
+				href: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+				key: '$schema',
+				value: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json'
+			},
+			{
+				key: 'name',
+				value: 'obsidian'
+			},
+			{
+				key: 'version',
+				value: '1.0.0'
+			},
+			{
+				key: 'description',
+				value: 'Search, read, and organize your Obsidian vault with the Obsidian CLI.'
+			},
+			{
+				key: 'author',
+				value: '{"name":"Tiles Privacy","url":"https://tiles.run"}'
+			},
+			{
+				href: 'https://obsidian.md/cli',
+				key: 'homepage',
+				value: 'https://obsidian.md/cli'
+			},
+			{
+				href: 'https://github.com/tilesprivacy/plugins',
+				key: 'repository',
+				value: 'https://github.com/tilesprivacy/plugins'
+			},
+			{
+				key: 'license',
+				value: 'MIT'
+			},
+			{
+				key: 'keywords',
+				value: 'obsidian, notes, knowledge-management, cli'
+			}
+		],
+		name: 'Obsidian',
+		skills: [
+			{
+				description:
+					'Work with Obsidian notes, daily notes, tasks, properties, and links through the Obsidian CLI. Use when the user asks to search, read, create, or organize content in an Obsidian vault.',
+				name: 'obsidian',
+				sourceUrl:
+					'https://github.com/tilesprivacy/plugins/blob/main/obsidian/skills/obsidian/SKILL.md'
+			}
+		],
+		slug: 'obsidian',
+		sourceUrl: 'https://github.com/tilesprivacy/plugins/blob/main/obsidian'
 	}
 ];
 

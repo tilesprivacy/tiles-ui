@@ -14,6 +14,13 @@
 
 {#if slug === 'caldir'}
 	<img alt="" aria-hidden="true" class={className} src={CALDIR_ICON} />
+{:else if slug === 'cloudflare' || slug === 'obsidian'}
+	<img
+		alt=""
+		aria-hidden="true"
+		class="{className} object-contain"
+		src={`/plugins/${slug}-icon.svg`}
+	/>
 {:else if slug === 'exa'}
 	<svg
 		aria-hidden="true"
