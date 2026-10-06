@@ -133,6 +133,24 @@
 					{plugin.description}
 				</p>
 
+				{#if plugin.requirements}
+					<p class="-mt-6 mb-10 max-w-3xl text-sm leading-6 text-muted-foreground">
+						{plugin.requirements}
+
+						{#if plugin.documentationUrl}
+							<a
+								class="ml-1 inline-flex items-center gap-1 text-foreground underline decoration-current/35 underline-offset-4 transition-opacity hover:opacity-75"
+								href={plugin.documentationUrl}
+								rel="noreferrer"
+								target="_blank"
+							>
+								Setup guide
+								<ArrowUpRight aria-hidden="true" class="h-3.5 w-3.5" />
+							</a>
+						{/if}
+					</p>
+				{/if}
+
 				<div class="mb-12">
 					<h2 class="mb-3 text-xl font-semibold tracking-tight">Usage</h2>
 

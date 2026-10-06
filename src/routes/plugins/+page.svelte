@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { ChevronRight, LoaderCircle, Plus } from '@lucide/svelte';
+	import { ChevronDown, ChevronRight, LoaderCircle, Plus } from '@lucide/svelte';
 	import { PluginControls, PluginIcon, PluginNotice } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
+	import * as Popover from '$lib/components/ui/popover';
 	import { getTilesPlugin, TILES_PLUGINS } from '$lib/plugins';
 	import { pluginsStore } from '$lib/stores';
 	import { onMount } from 'svelte';
 
 	let query = $state('');
 	let source = $state('');
+	let addOpen = $state(false);
 
 	onMount(() => {
 		void pluginsStore.refresh();
@@ -16,7 +18,10 @@
 	async function installFromSource(event: SubmitEvent) {
 		event.preventDefault();
 
-		if (await pluginsStore.install(source)) source = '';
+		if (await pluginsStore.install(source)) {
+			source = '';
+			addOpen = false;
+		}
 	}
 
 	const normalizedQuery = $derived(query.trim().toLowerCase());
@@ -43,9 +48,7 @@
 <main class="min-h-dvh px-5 pt-20 pb-32 sm:px-8 md:pt-24 lg:px-12">
 	<div class="mx-auto w-full max-w-3xl">
 		<section class="min-w-0">
-			<div
-				class="mb-12 flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-10"
-			>
+			<div class="mb-12 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
 				<div class="min-w-0 flex-1">
 					<h1 class="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Extend the Agent</h1>
 
@@ -62,22 +65,72 @@
 					</p>
 				</div>
 
-				<label class="relative block w-full md:mt-2 md:w-75 md:shrink-0">
-					<span class="sr-only">Search plugins</span>
+				{#if pluginsStore.available}
+					<Popover.Root bind:open={addOpen}>
+						<Popover.Trigger
+							class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm outline-none transition-colors hover:bg-primary/90 focus-visible:ring-3 focus-visible:ring-ring/50"
+						>
+							Add
+							<ChevronDown aria-hidden="true" class="h-4 w-4" />
+						</Popover.Trigger>
 
-					<input
-						bind:value={query}
-						class="h-10 w-full rounded-full border-0 bg-secondary/65 px-5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/75 focus:bg-secondary focus:ring-1 focus:ring-ring"
-						placeholder="Search plugins"
-						type="search"
-					/>
-				</label>
+						<Popover.Content
+							align="end"
+							class="w-[min(26rem,calc(100vw-2rem))] border-border bg-popover p-4"
+							sideOffset={8}
+						>
+							<form onsubmit={installFromSource}>
+								<h2 class="text-base font-semibold tracking-tight">Upload plugin archive</h2>
+
+								<p class="mt-1 text-sm leading-5 text-muted-foreground">
+									Install a compatible .zip plugin archive from a URL or local path.
+
+									<a
+										class="text-foreground underline decoration-current/35 underline-offset-4 transition-opacity hover:opacity-75"
+										href="https://www.tiles.run/book/manual#plugin-package-layout"
+										rel="noopener noreferrer"
+										target="_blank"
+									>
+										Learn More
+									</a>
+								</p>
+
+								<label class="mt-4 block">
+									<span class="sr-only">Plugin archive URL or local path</span>
+
+									<input
+										bind:value={source}
+										class="h-10 w-full rounded-lg border-0 bg-secondary/65 px-4 text-sm text-foreground ring-1 ring-border/60 outline-none transition-colors placeholder:text-muted-foreground/75 focus:bg-secondary focus:ring-ring"
+										disabled={pluginsStore.installing}
+										placeholder="Plugin archive URL or local path"
+										type="text"
+									/>
+								</label>
+
+								<Button
+									class="mt-3 w-full"
+									disabled={pluginsStore.installing || !source.trim()}
+									type="submit"
+								>
+									{#if pluginsStore.installing}
+										<LoaderCircle class="animate-spin" />
+										Installing
+									{:else}
+										Install archive
+									{/if}
+								</Button>
+							</form>
+						</Popover.Content>
+					</Popover.Root>
+				{/if}
 			</div>
 
 			{#if pluginsStore.available}
 				<div class="mb-12">
-					<h2 class="mb-4 text-xl font-semibold tracking-tight">
-						Installed <span class="text-muted-foreground/55">{pluginsStore.plugins.length}</span>
+					<h2 class="mb-4 flex items-baseline gap-2 text-xl font-semibold tracking-tight">
+						Installed <span class="text-muted-foreground/55 tabular-nums"
+							>{pluginsStore.plugins.length}</span
+						>
 					</h2>
 
 					{#if pluginsStore.plugins.length > 0}
@@ -121,33 +174,27 @@
 							{/each}
 						</div>
 					{/if}
-
-					<form class="mt-3 flex gap-2" onsubmit={installFromSource}>
-						<label class="min-w-0 flex-1">
-							<span class="sr-only">Plugin url or path</span>
-
-							<input
-								bind:value={source}
-								class="h-10 w-full rounded-lg border-0 bg-secondary/65 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/75 focus:bg-secondary focus:ring-1 focus:ring-ring"
-								disabled={pluginsStore.installing}
-								placeholder="Install from a url, folder or .zip path"
-								type="text"
-							/>
-						</label>
-
-						<Button class="h-10" disabled={pluginsStore.installing || !source.trim()} type="submit">
-							{#if pluginsStore.installing}
-								<LoaderCircle class="animate-spin" />
-								Installing
-							{:else}
-								Install
-							{/if}
-						</Button>
-					</form>
 				</div>
-
-				<h2 class="mb-4 text-xl font-semibold tracking-tight">Catalog</h2>
 			{/if}
+
+			<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<h2 class="flex items-baseline gap-2 text-xl font-semibold tracking-tight">
+					Discover <span class="text-muted-foreground/55 tabular-nums"
+						>{filteredPlugins.length}</span
+					>
+				</h2>
+
+				<label class="relative block w-full sm:w-72 sm:shrink-0">
+					<span class="sr-only">Search plugins</span>
+
+					<input
+						bind:value={query}
+						class="h-10 w-full rounded-full border-0 bg-secondary/65 px-5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/75 focus:bg-secondary focus:ring-1 focus:ring-ring"
+						placeholder="Search plugins"
+						type="search"
+					/>
+				</label>
+			</div>
 
 			<div class="grid gap-3 sm:grid-cols-2">
 				{#each filteredPlugins as plugin (plugin.slug)}
@@ -172,7 +219,7 @@
 									<span
 										class="shrink-0 rounded-full bg-background px-2 py-0.5 text-[11px] leading-4 text-muted-foreground ring-1 ring-border/60"
 									>
-										{installed.enabled ? 'Installed' : 'Off'}
+										{installed.enabled ? 'Installed' : 'Disabled'}
 									</span>
 								{/if}
 							</span>

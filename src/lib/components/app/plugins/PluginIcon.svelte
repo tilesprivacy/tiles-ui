@@ -14,7 +14,7 @@
 
 {#if slug === 'caldir'}
 	<img alt="" aria-hidden="true" class={className} src={CALDIR_ICON} />
-{:else if slug === 'cloudflare' || slug === 'obsidian'}
+{:else if slug === 'cloudflare' || slug === 'obsidian' || slug === 'solstone'}
 	<img
 		alt=""
 		aria-hidden="true"
