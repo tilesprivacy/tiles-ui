@@ -14,6 +14,8 @@ interface DraftMessage {
 }
 
 class DraftMessagesStore {
+	prefill = $state<string | null>(null);
+
 	private drafts = new Map<string, DraftMessage>();
 
 	clearDraftMessage(chatId: string | undefined): void {
@@ -36,6 +38,20 @@ class DraftMessagesStore {
 		} else {
 			this.drafts.delete(key);
 		}
+	}
+
+	/** also saved as the new chat draft, so the draft restore on navigation cannot undo it */
+	setPrefill(message: string): void {
+		this.saveDraftMessage(undefined, message, []);
+		this.prefill = message;
+	}
+
+	takePrefill(): string | null {
+		const message = this.prefill;
+
+		this.prefill = null;
+
+		return message;
 	}
 }
 

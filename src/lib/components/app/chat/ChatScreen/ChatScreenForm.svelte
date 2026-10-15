@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { ChatForm } from '$lib/components/app';
 	import { useDraftMessages } from '$lib/hooks/use-draft-messages.svelte';
-	import { deviceStore } from '$lib/stores';
+	import { deviceStore, draftMessagesStore } from '$lib/stores';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -129,6 +129,14 @@
 		if (navigation?.from != null && !deviceStore.isMobile) {
 			setTimeout(focusFormUnlessCaptured, 100);
 		}
+	});
+
+	// tiles://chat?draft= text, typed in and never sent
+	$effect(() => {
+		if (chatId || draftMessagesStore.prefill === null) return;
+
+		message = draftMessagesStore.takePrefill() ?? '';
+		setTimeout(() => chatFormRef?.focus(), 0);
 	});
 
 	$effect(() => {

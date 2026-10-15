@@ -1,5 +1,7 @@
 /** Query params the chat routes read from the URL. */
 export const URL_PARAMS = {
+	/** new chat input text, never sent */
+	DRAFT: 'draft',
 	/** Load the selected model instead of waiting for the first message. */
 	LOAD: 'load',
 	/** Model to select. */
