@@ -104,10 +104,11 @@ export const TILES_PLUGINS: TilesPlugin[] = [
 		sourceUrl: `${PLUGIN_SOURCE_BASE_URL}/caldir`
 	},
 	{
-		description: 'Manage Cloudflare resources and Workers projects with the Cloudflare CLI',
-		documentationUrl: 'https://developers.cloudflare.com/cf/',
-		downloadUrl: `${PLUGIN_DOWNLOAD_BASE_URL}/cloudflare.zip`,
-		installCommand: `tiles plugin install ${PLUGIN_DOWNLOAD_BASE_URL}/cloudflare.zip`,
+		description:
+			'Build with Cloudflare’s developer platform and share local inference remotely through Quick Tunnels',
+		documentationUrl: 'https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/',
+		downloadUrl: 'https://download.tiles.run/plugins/cloudflare.zip',
+		installCommand: 'tiles plugin install https://download.tiles.run/plugins/cloudflare.zip',
 		mcpServers: [],
 		metadata: [
 			{
@@ -121,11 +122,12 @@ export const TILES_PLUGINS: TilesPlugin[] = [
 			},
 			{
 				key: 'version',
-				value: '1.0.0'
+				value: '1.2.0'
 			},
 			{
 				key: 'description',
-				value: 'Manage Cloudflare resources and Workers projects with the Cloudflare CLI.'
+				value:
+					'Manage Cloudflare resources and Workers projects, and share Tiles inference with account-free Quick Tunnels.'
 			},
 			{
 				key: 'author',
@@ -147,23 +149,79 @@ export const TILES_PLUGINS: TilesPlugin[] = [
 			},
 			{
 				key: 'keywords',
-				value: 'cloudflare, workers, dns, storage, cli'
+				value: 'cloudflare, workers, dns, storage, cli, tunnel, tiles, inference'
 			}
 		],
 		name: 'Cloudflare',
-		requirements:
-			'Requires the Cloudflare CLI (cf) installed and authenticated with access to the Cloudflare account you want to manage. The CLI is currently in beta.',
+		requirements: 'Requires cloudflared.',
 		skills: [
 			{
 				description:
-					'Manage Cloudflare resources and Workers projects with the cf CLI. Use for Cloudflare account, zone, DNS, storage, security, or Worker development and deployment tasks; discover current commands and schemas before acting.',
+					'Manage Cloudflare resources and Workers projects with the cf CLI, or share Tiles inference through account-free Cloudflare Quick Tunnels. Use for Cloudflare resource, deployment, and Tiles remote inference sharing tasks.',
 				name: 'cloudflare',
 				sourceUrl:
-					'https://github.com/tilesprivacy/plugins/blob/main/cloudflare/skills/cloudflare/SKILL.md'
+					'https://github.com/tilesprivacy/plugins/blob/3396695e0d51a44cb8cffdabd260c8dda81a3185/cloudflare/skills/cloudflare/SKILL.md'
+			},
+			{
+				description:
+					'Share a local Tiles inference server with another device using account-free Cloudflare Quick Tunnels and a bundled non-streaming Responses API bridge. Use for temporary remote inference, client setup, troubleshooting, and teardown; named tunnels remain an option for streaming or authenticated hosting.',
+				name: 'tiles-remote-inference',
+				sourceUrl:
+					'https://github.com/tilesprivacy/plugins/blob/3396695e0d51a44cb8cffdabd260c8dda81a3185/cloudflare/skills/tiles-remote-inference/SKILL.md'
 			}
 		],
 		slug: 'cloudflare',
-		sourceUrl: 'https://github.com/tilesprivacy/plugins/blob/main/cloudflare'
+		sourceUrl:
+			'https://github.com/tilesprivacy/plugins/blob/3396695e0d51a44cb8cffdabd260c8dda81a3185/cloudflare'
+	},
+	{
+		description:
+			'Connects with your AI tools to bring your personal finance data to them, for Indian users',
+		documentationUrl: 'https://fold.money/mcp',
+		downloadUrl: 'https://download.tiles.run/plugins/fold.zip',
+		installCommand: 'tiles plugin install https://download.tiles.run/plugins/fold.zip',
+		mcpServers: [
+			{
+				endpoint: 'https://mcp.fold.money/mcp',
+				name: 'fold',
+				type: 'streamable-http'
+			}
+		],
+		metadata: [
+			{
+				href: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+				key: '$schema',
+				value: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json'
+			},
+			{
+				key: 'name',
+				value: 'fold'
+			},
+			{
+				key: 'version',
+				value: '1.0.0'
+			},
+			{
+				key: 'description',
+				value:
+					'Connects with your AI tools to bring your personal finance data to them, for Indian users.'
+			},
+			{
+				href: 'https://fold.money/mcp',
+				key: 'homepage',
+				value: 'https://fold.money/mcp'
+			},
+			{
+				key: 'keywords',
+				value: 'fold, personal-finance, banking, investments, mcp'
+			}
+		],
+		name: 'Fold',
+		requirements:
+			'Requires a Fold Plus annual or Believer plan. Enable MCP in Fold under Profile > Settings > Beta Playground, then connect your Fold account in Tiles.',
+		skills: [],
+		slug: 'fold',
+		sourceUrl: 'https://github.com/tilesprivacy/plugins/blob/main/fold'
 	},
 	{
 		description: 'Search, read, and organize your Obsidian vault with the Obsidian CLI',

@@ -21,6 +21,13 @@
 		class="{className} object-contain"
 		src={`/plugins/${slug}-icon.svg`}
 	/>
+{:else if slug === 'fold'}
+	<img
+		alt=""
+		aria-hidden="true"
+		class="{className} rounded-[3px] object-contain"
+		src="/plugins/fold-icon.png"
+	/>
 {:else if slug === 'exa'}
 	<svg
 		aria-hidden="true"
