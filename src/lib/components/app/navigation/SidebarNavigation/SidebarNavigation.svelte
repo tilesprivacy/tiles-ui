@@ -291,7 +291,8 @@
 {#if innerWidth > 768 || !page.url.hash.includes(ROUTES.SEARCH)}
 	<aside
 		class={[
-			'fixed md:sticky top-2 left-2 pt-2 z-10 w-[calc(100dvw-1rem)]',
+			// the mobile trigger and drawer sit above the conversation bar's blur
+			'fixed md:sticky top-2 left-2 pt-2 z-40 md:z-10 w-[calc(100dvw-1rem)]',
 			// on desktop it is a panel flush to the edge, not a floating card
 			'md:top-0 md:left-0 md:ml-0 md:mt-0 md:h-dvh md:pt-3',
 			uiStore.isSidebarExpanded &&
