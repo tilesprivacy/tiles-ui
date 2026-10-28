@@ -1,20 +1,21 @@
-<script lang="ts">
-	import logo from '#lib/assets/logo.svg?raw';
-</script>
-
-<main>
-	<div class="logo">{@html logo}</div>
-</main>
+<section>
+	<h1>Hello there</h1>
+	<p class="muted">Type a message to get started</p>
+</section>
 
 <style>
-	main {
+	section {
+		flex: 1;
 		display: grid;
-		place-items: center;
-		height: 100%;
+		place-content: center;
+		gap: 6px;
+		padding: 0 24px;
+		text-align: center;
 	}
 
-	.logo {
-		width: 48px;
-		color: var(--signal);
+	h1 {
+		font-size: 26px;
+		font-weight: 600;
+		letter-spacing: var(--tracking-display);
 	}
 </style>

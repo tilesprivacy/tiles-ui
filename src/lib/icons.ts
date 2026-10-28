@@ -2,7 +2,8 @@
 export const icons = {
 	plus: '<path d="M12 5v14M5 12h14"/>',
 	search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
-	sliders: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+	sliders:
+		'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
 	sidebar: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/>',
 	chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M10 2v4M14 2v4M10 18v4M14 18v4M2 10h4M2 14h4M18 10h4M18 14h4"/>',
 	up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
