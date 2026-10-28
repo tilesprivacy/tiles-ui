@@ -1,5 +1,6 @@
 @import './fonts.css';
 @import './tokens.css';
+@import './ui.css';
 
 *,
 *::before,
@@ -31,6 +32,16 @@ input,
 textarea,
 select {
 	font: inherit;
+	color: inherit;
+}
+
+button {
+	background: none;
+	border: 0;
+	cursor: pointer;
+}
+
+a {
 	color: inherit;
 }
 

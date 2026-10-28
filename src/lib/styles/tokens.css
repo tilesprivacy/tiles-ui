@@ -10,6 +10,12 @@
 	--rule: rgba(255, 255, 255, 0.1);
 	--alert: #ff5f52;
 
+	--code-keyword: #c4b5fd;
+	--code-string: #a7f3d0;
+	--code-number: #fdba74;
+	--code-title: #93c5fd;
+	--code-added: #86efac;
+
 	--font-ui: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 	--fs-title: 13px;
