@@ -1,0 +1,55 @@
+@import './fonts.css';
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html,
+body {
+	height: 100%;
+	background: var(--void);
+	color-scheme: dark;
+}
+
+body {
+	font-family: var(--font-ui);
+	font-size: var(--fs-title);
+	color: var(--bone);
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	/* geist ships the weights it needs, a synthesised bold isn't one of them */
+	font-synthesis: none;
+}
+
+button,
+input,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+::selection {
+	background: var(--signal);
+	color: var(--void);
+}
+
+:focus-visible {
+	outline: var(--hairline) solid var(--signal);
+	outline-offset: 2px;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}
+
+/* the chamfer, for plates: buttons, inputs and chips. never on surfaces */
+.cut {
+	clip-path: var(--clip-cut);
+}

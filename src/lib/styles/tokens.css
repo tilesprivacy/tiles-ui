@@ -1,0 +1,44 @@
+/* every value the UI is styled with, in step with the menu bar app */
+
+:root {
+	--signal: #f7ff61; /* yellow means live, and nothing else */
+	--void: #111111;
+	--bone: #ffffff;
+	--ash: #d4d4d8;
+	--slate: #8f8f9a;
+	--steel: #1d1d1d; /* the only fill */
+	--rule: rgba(255, 255, 255, 0.1);
+	--alert: #ff5f52;
+
+	--font-ui: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--fs-title: 13px;
+	--fs-body: 12px;
+	--fs-label: 11px;
+	--fs-mono: 11px;
+	--fs-chip: 10px;
+	--tracking-chip: 0.03em;
+	--tracking-display: -0.02em;
+
+	--radius: 10px;
+	--hairline: 1px;
+	--cut: 4px;
+	--clip-cut: polygon(
+		0 0,
+		100% 0,
+		100% calc(100% - var(--cut)),
+		calc(100% - var(--cut)) 100%,
+		0 100%
+	);
+
+	--dur-push: 180ms;
+	--dur-state: 140ms;
+	--ease-push: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--dur-push: 0ms;
+		--dur-state: 0ms;
+	}
+}
