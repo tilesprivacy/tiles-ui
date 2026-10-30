@@ -1,11 +1,20 @@
 <script lang="ts">
-	import { renderer } from '#lib/markdown.ts';
+	import { hasMath, loadMath, renderer } from '#lib/markdown.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 
 	let { text }: { text: string } = $props();
 
 	const render = renderer();
-	const html = $derived(render(text));
+	let mathReady = $state(false);
+
+	$effect(() => {
+		if (!mathReady && hasMath(text)) loadMath().then(() => (mathReady = true));
+	});
+
+	const html = $derived.by(() => {
+		void mathReady;
+		return render(text);
+	});
 
 	async function copy(event: MouseEvent) {
 		const button = (event.target as Element).closest('[data-copy]');
@@ -72,6 +81,11 @@
 		background: var(--steel);
 		padding: 1px 5px;
 		border-radius: 4px;
+	}
+
+	.md :global(.math) {
+		overflow-x: auto;
+		overflow-y: hidden;
 	}
 
 	.md :global(table) {

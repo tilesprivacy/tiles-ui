@@ -68,10 +68,29 @@ const marked = new Marked({
 	}
 });
 
+let mathLoaded: Promise<void> | null = null;
+// bumped once maths can render, so cached blocks render again
+let version = 0;
+
+export const hasMath = (text: string) => /\$\$|\\\[|\\\(|\$\S[^$\n]*\S?\$/.test(text);
+
+export function loadMath() {
+	mathLoaded ??= import('./math.ts').then(({ math }) => {
+		marked.use(math);
+		version++;
+	});
+	return mathLoaded;
+}
+
 // one cache per message, so a streaming reply only renders its last block again
 export function renderer() {
 	let blocks = new Map<string, string>();
+	let seen = version;
 	return (text: string) => {
+		if (seen !== version) {
+			blocks = new Map();
+			seen = version;
+		}
 		const tokens = marked.lexer(text);
 		const next = new Map<string, string>();
 		let html = '';
