@@ -1,15 +1,25 @@
 <script lang="ts">
+	import Elapsed from './Elapsed.svelte';
 	import Icon from './Icon.svelte';
 	import Markdown from './Markdown.svelte';
+	import { blockKey } from '#lib/pi.ts';
 	import type { Turn } from '#lib/state/chat.svelte.ts';
+	import { models } from '#lib/state/models.svelte.ts';
 	import { settings } from '#lib/state/settings.svelte.ts';
+	import { tiles } from '#lib/state/tiles.svelte.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 
 	let { turn, onretry }: { turn: Turn; onretry?: () => void } = $props();
 
 	const live = $derived(turn.state === 'streaming');
-	const blocks = $derived(turn.messages?.flatMap((m) => m.content) ?? []);
-	const answering = $derived(blocks.some((b) => b.type === 'text' && b.text));
+	const waiting = $derived(live && turn.phase === 'waiting');
+	// the block being written right now, when it's reasoning
+	const reasoning = $derived(
+		live && turn.phase === 'reasoning' && turn.messages?.length
+			? blockKey(turn.messages.length - 1, turn.messages.at(-1)!.content.length - 1)
+			: null
+	);
+	const seconds = (ms: number) => (ms < 1000 ? 'a moment' : `${Math.round(ms / 1000)}s`);
 
 	const brief = (args: unknown) => {
 		const values = args && typeof args === 'object' ? Object.values(args) : [args];
@@ -29,34 +39,54 @@
 {:else}
 	<article class="reply">
 		{#if turn.messages}
-			{#each blocks as block, i (i)}
-				{#if block.type === 'thinking' && block.thinking.trim()}
-					<details class="reasoning" open={live && !answering && settings.showReasoning}>
-						<summary>
-							<Icon name="brain" size={13} />
-							{#if live && !answering}<span class="shimmer">Reasoning…</span>
-							{:else}Reasoning{/if}
-						</summary>
-						<p>{block.thinking}</p>
-					</details>
-				{:else if block.type === 'toolCall'}
-					{@const run = turn.tools?.[block.id]}
-					<details class="tool" open={settings.toolDetails}>
-						<summary>
-							<Icon name="tool" size={13} />
-							<code>{block.name}</code>
-							<span class="args muted">{brief(block.arguments)}</span>
-							{#if run?.failed}<span class="error">failed</span>
-							{:else if !run?.done && live}<span class="spin"></span>
-							{:else if !run?.done}<span class="muted">stopped</span>{/if}
-						</summary>
-						<pre>{JSON.stringify(block.arguments, null, 2)}</pre>
-						{#if run?.output}<pre class="output">{run.output}</pre>{/if}
-					</details>
-				{:else if block.type === 'text' && block.text}
-					<Markdown text={block.text} />
-				{/if}
+			{#each turn.messages as message, m (m)}
+				{#each message.content as block, b (b)}
+					{@const key = blockKey(m, b)}
+					{@const time = turn.thought?.[key]}
+					{#if block.type === 'thinking' && block.thinking.trim()}
+						<details class="reasoning" open={key === reasoning && settings.openReasoning}>
+							<summary>
+								<Icon name="brain" size={13} />
+								{#if key === reasoning}
+									<span class="shimmer">Reasoning…</span>
+									{#if time}<Elapsed since={time.start} />{/if}
+								{:else if time?.ms != null}
+									Reasoned for {seconds(time.ms)}
+								{:else}
+									Reasoning
+								{/if}
+							</summary>
+							<p>{block.thinking}</p>
+						</details>
+					{:else if block.type === 'toolCall'}
+						{@const run = turn.tools?.[block.id]}
+						<details class="tool" open={settings.toolDetails}>
+							<summary>
+								<Icon name="tool" size={13} />
+								<code>{block.name}</code>
+								<span class="args muted">{brief(block.arguments)}</span>
+								{#if run?.failed}<span class="error">failed</span>
+								{:else if !run?.done && live}<span class="spin"></span>
+								{:else if !run?.done}<span class="muted">stopped</span>{/if}
+							</summary>
+							<pre>{JSON.stringify(block.arguments, null, 2)}</pre>
+							{#if run?.output}<pre class="output">{run.output}</pre>{/if}
+						</details>
+					{:else if block.type === 'text' && block.text}
+						<Markdown text={block.text} />
+					{/if}
+				{/each}
 			{/each}
+			{#if waiting}
+				<p class="status" role="status">
+					<span class="shimmer">
+						{tiles.model?.state === 'loaded'
+							? 'Thinking…'
+							: `Loading ${models.inUse?.label ?? 'the model'}…`}
+					</span>
+					{#if turn.since}<Elapsed since={turn.since} />{/if}
+				</p>
+			{/if}
 		{:else}
 			<Markdown text={turn.text} />
 		{/if}
@@ -121,6 +151,17 @@
 		padding: 2px 0 2px 12px;
 		border-left: var(--hairline) solid var(--rule);
 		color: var(--slate);
+	}
+
+	.status {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: var(--fs-body);
+	}
+
+	.reasoning summary :global(.elapsed) {
+		margin-left: 2px;
 	}
 
 	.reasoning p {

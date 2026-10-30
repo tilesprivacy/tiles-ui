@@ -2,6 +2,7 @@ import { goto } from '$app/navigation';
 import { api, ApiError, stream } from '#lib/api.ts';
 import { apply, type Turn } from '#lib/pi.ts';
 import { sessions } from '#lib/state/sessions.svelte.ts';
+import { tiles } from '#lib/state/tiles.svelte.ts';
 import { toasts } from '#lib/state/toasts.svelte.ts';
 import type { Chat } from '#lib/types.ts';
 
@@ -31,6 +32,8 @@ class Conversation {
 			text: '',
 			messages: [],
 			tools: {},
+			phase: 'waiting',
+			since: Date.now(),
 			state: 'streaming'
 		};
 		this.turns.push(reply);
@@ -38,6 +41,10 @@ class Conversation {
 
 		const saved = this.#save('user', prompt).then(() => sessions.load());
 		this.#controller = new AbortController();
+		// a model still loading is the longest wait, so the status line checks on it often
+		const loading = setInterval(() => {
+			if (live.phase === 'waiting' && tiles.model?.state !== 'loaded') tiles.ping();
+		}, 1500);
 		try {
 			for await (const { event, data } of stream('agent/prompt', {
 				method: 'POST',
@@ -56,6 +63,7 @@ class Conversation {
 					? 'Lost connection to Tiles'
 					: (err as Error).message;
 		}
+		clearInterval(loading);
 		this.streaming = false;
 		sessions.busy.delete(this.id);
 		this.#controller = null;

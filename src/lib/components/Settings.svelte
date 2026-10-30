@@ -17,7 +17,11 @@
 			['followReply', 'Follow the reply while it streams', 'Scrolling up stops following']
 		],
 		Display: [
-			['showReasoning', 'Show reasoning while it streams', 'It folds away once the answer starts'],
+			[
+				'openReasoning',
+				'Open reasoning while it streams',
+				'Otherwise it stays folded until you click it'
+			],
 			['toolDetails', 'Always show tool details', 'Otherwise a tool call opens on a click'],
 			['userMarkdown', 'Format your messages', 'Render your messages as markdown'],
 			['fullCode', 'Full-height code blocks', 'Otherwise long code scrolls inside its block'],

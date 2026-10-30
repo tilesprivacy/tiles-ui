@@ -3,7 +3,7 @@ const KEY = 'tiles.settings';
 const defaults = {
 	sendOnEnter: true,
 	followReply: true,
-	showReasoning: true,
+	openReasoning: false,
 	toolDetails: false,
 	userMarkdown: true,
 	fullCode: false,

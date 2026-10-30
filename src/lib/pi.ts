@@ -13,12 +13,20 @@ export type PiMessage = {
 
 export type ToolRun = { done: boolean; failed: boolean; output: string };
 
+// what a streaming reply is doing right now
+export type Phase = 'waiting' | 'reasoning' | 'tool' | 'writing';
+
 export type Turn = {
 	role: 'user' | 'assistant';
 	text: string;
 	// a live reply's Pi messages and tool runs, gone once the chat is reloaded
 	messages?: PiMessage[];
 	tools?: Record<string, ToolRun>;
+	phase?: Phase;
+	// when the phase began, for the timer
+	since?: number;
+	// each reasoning block's start and length, by message and block index
+	thought?: Record<string, { start: number; ms?: number }>;
 	state?: 'streaming' | 'done' | 'stopped' | 'failed';
 	error?: string;
 };
@@ -26,17 +34,38 @@ export type Turn = {
 const textOf = (content: { type: string; text?: string }[]) =>
 	content.flatMap((block) => (block.type === 'text' && block.text ? [block.text] : [])).join('');
 
+export const blockKey = (message: number, block: number) => `${message}:${block}`;
+
+function enter(turn: Turn, phase: Phase, now: number) {
+	if (turn.phase !== phase) turn.since = now;
+	turn.phase = phase;
+}
+
 // each update carries the whole message so far, so the latest one replaces it
-export function apply(turn: Turn, event: Record<string, any>) {
+export function apply(turn: Turn, event: Record<string, any>, now = Date.now()) {
 	const message: PiMessage | undefined = event.message;
 	switch (event.type) {
 		case 'message_start':
-			if (message?.role === 'assistant') turn.messages!.push(message);
+			if (message?.role !== 'assistant') break;
+			turn.messages!.push(message);
+			enter(turn, 'waiting', now);
 			break;
 		case 'message_update':
-		case 'message_end':
+		case 'message_end': {
 			if (message?.role !== 'assistant') break;
 			turn.messages![turn.messages!.length - 1] = message;
+			const update = event.assistantMessageEvent;
+			const key = blockKey(turn.messages!.length - 1, update?.contentIndex);
+			if (update?.type === 'thinking_start') {
+				(turn.thought ??= {})[key] = { start: now };
+				enter(turn, 'reasoning', now);
+			} else if (update?.type === 'thinking_end' && turn.thought?.[key]) {
+				turn.thought[key].ms = now - turn.thought[key].start;
+			} else if (update?.type?.startsWith('text_')) {
+				enter(turn, 'writing', now);
+			} else if (update?.type?.startsWith('toolcall_')) {
+				enter(turn, 'tool', now);
+			}
 			turn.text = turn
 				.messages!.map((m) => textOf(m.content))
 				.filter(Boolean)
@@ -46,8 +75,10 @@ export function apply(turn: Turn, event: Record<string, any>) {
 				turn.error = message.errorMessage ?? 'The model stopped with an error';
 			}
 			break;
+		}
 		case 'tool_execution_start':
 			turn.tools![event.toolCallId] = { done: false, failed: false, output: '' };
+			enter(turn, 'tool', now);
 			break;
 		case 'tool_execution_end':
 			turn.tools![event.toolCallId] = {
@@ -55,6 +86,8 @@ export function apply(turn: Turn, event: Record<string, any>) {
 				failed: !!event.isError,
 				output: textOf(event.result?.content ?? [])
 			};
+			// the model reads the result before it goes on
+			enter(turn, 'waiting', now);
 			break;
 	}
 }

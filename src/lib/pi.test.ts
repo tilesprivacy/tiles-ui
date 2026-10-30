@@ -46,3 +46,24 @@ test('a model error fails the reply with its message', () => {
 	});
 	expect(turn).toMatchObject({ state: 'failed', error: 'stream ended early' });
 });
+
+test('a reply says what it is doing, and how long it reasoned', () => {
+	const turn = reply();
+	const update = (type: string, ...content: unknown[]) => ({
+		type: 'message_update',
+		message: assistant(...content),
+		assistantMessageEvent: { type, contentIndex: 0 }
+	});
+	apply(turn, { type: 'message_start', message: assistant() }, 1000);
+	expect(turn.phase).toBe('waiting');
+	apply(turn, update('thinking_start', { type: 'thinking', thinking: '' }), 2000);
+	expect(turn).toMatchObject({ phase: 'reasoning', since: 2000 });
+	apply(turn, update('thinking_end', { type: 'thinking', thinking: 'hmm' }), 6500);
+	expect(turn.thought).toEqual({ '0:0': { start: 2000, ms: 4500 } });
+	apply(turn, update('text_delta', { type: 'text', text: 'Hi' }), 7000);
+	expect(turn).toMatchObject({ phase: 'writing', since: 7000 });
+	apply(turn, { type: 'tool_execution_start', toolCallId: 'c' }, 8000);
+	expect(turn.phase).toBe('tool');
+	apply(turn, { type: 'tool_execution_end', toolCallId: 'c', result: { content: [] } }, 9000);
+	expect(turn).toMatchObject({ phase: 'waiting', since: 9000 });
+});
