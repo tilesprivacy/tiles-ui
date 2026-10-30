@@ -1,31 +1,9 @@
 import { goto } from '$app/navigation';
 import { api, ApiError, stream } from '#lib/api.ts';
+import { apply, type Turn } from '#lib/pi.ts';
 import { sessions } from '#lib/state/sessions.svelte.ts';
 import { toasts } from '#lib/state/toasts.svelte.ts';
 import type { Chat } from '#lib/types.ts';
-
-// what Pi streams, as far as the UI reads it
-type Block =
-	| { type: 'text'; text: string }
-	| { type: 'thinking'; thinking: string }
-	| { type: 'toolCall'; id: string; name: string; arguments: unknown };
-
-type PiMessage = { role: string; content: Block[]; stopReason?: string; errorMessage?: string };
-
-type ToolRun = { done: boolean; failed: boolean; output: string };
-
-export type Turn = {
-	role: 'user' | 'assistant';
-	text: string;
-	// a live reply's Pi messages and tool runs, gone once the chat is reloaded
-	messages?: PiMessage[];
-	tools?: Record<string, ToolRun>;
-	state?: 'streaming' | 'done' | 'stopped' | 'failed';
-	error?: string;
-};
-
-const textOf = (content: { type: string; text?: string }[]) =>
-	content.flatMap((block) => (block.type === 'text' && block.text ? [block.text] : [])).join('');
 
 class Conversation {
 	turns = $state<Turn[]>([]);
@@ -67,7 +45,7 @@ class Conversation {
 				signal: this.#controller.signal
 			})) {
 				if (event === 'error') throw new Error(data);
-				this.#apply(live, JSON.parse(data));
+				apply(live, JSON.parse(data));
 			}
 			if (this.#controller.signal.aborted) live.state = 'stopped';
 			else if (live.state === 'streaming') live.state = 'done';
@@ -88,35 +66,6 @@ class Conversation {
 
 	stop() {
 		this.#controller?.abort();
-	}
-
-	#apply(turn: Turn, event: Record<string, any>) {
-		const message: PiMessage | undefined = event.message;
-		switch (event.type) {
-			case 'message_start':
-				if (message?.role === 'assistant') turn.messages!.push(message);
-				break;
-			case 'message_update':
-			case 'message_end':
-				if (message?.role !== 'assistant') break;
-				turn.messages![turn.messages!.length - 1] = message;
-				turn.text = turn.messages!.map((m) => textOf(m.content)).join('\n\n');
-				if (event.type === 'message_end' && message.stopReason === 'error') {
-					turn.state = 'failed';
-					turn.error = message.errorMessage ?? 'The model stopped with an error';
-				}
-				break;
-			case 'tool_execution_start':
-				turn.tools![event.toolCallId] = { done: false, failed: false, output: '' };
-				break;
-			case 'tool_execution_end':
-				turn.tools![event.toolCallId] = {
-					done: true,
-					failed: !!event.isError,
-					output: textOf(event.result?.content ?? [])
-				};
-				break;
-		}
 	}
 
 	async #save(role: 'user' | 'assistant', text: string) {
@@ -161,4 +110,4 @@ class Chats {
 }
 
 export const chats = new Chats();
-export type { Conversation, PiMessage, ToolRun };
+export type { Conversation, Turn };

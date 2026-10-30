@@ -11,7 +11,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"format": "prettier --write .",
-		"lint": "prettier --check ."
+		"lint": "prettier --check .",
+		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "4.0.0",
@@ -23,7 +24,8 @@
 		"svelte": "5.57.3",
 		"svelte-check": "4.7.7",
 		"typescript": "6.0.3",
-		"vite": "8.3.5"
+		"vite": "8.3.5",
+		"vitest": "5.0.5"
 	},
 	"imports": {
 		"#lib/*": "./src/lib/*"
