@@ -13,7 +13,7 @@
 
 	const live = $derived(turn.state === 'streaming');
 	const waiting = $derived(live && turn.phase === 'waiting');
-	// the block being written right now, when it's reasoning
+	// key of the reasoning block being written right now
 	const reasoning = $derived(
 		live && turn.phase === 'reasoning' && turn.messages?.length
 			? blockKey(turn.messages.length - 1, turn.messages.at(-1)!.content.length - 1)

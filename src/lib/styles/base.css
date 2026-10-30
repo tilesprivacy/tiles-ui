@@ -27,7 +27,7 @@ body {
 	color: var(--bone);
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
-	/* geist ships the weights it needs, a synthesised bold isn't one of them */
+	/* no fake bold, geist has the real weights */
 	font-synthesis: none;
 }
 

@@ -36,7 +36,7 @@
 		return () => clearInterval(timer);
 	});
 
-	// the menu bar app asks the page to route itself rather than reload
+	// the menu bar app routes the page without a reload
 	$effect(() => {
 		const open = (e: Event) => {
 			const path = (e as CustomEvent<string>).detail;
@@ -50,7 +50,7 @@
 
 	afterNavigate(() => (menuOpen = false));
 
-	// the list is newest first, so up is a newer chat
+	// newest first, up goes to a newer chat
 	function step(by: number) {
 		const at = sessions.list.findIndex((s) => s.id === page.params.id);
 		const next = sessions.list[at === -1 ? 0 : at + by];

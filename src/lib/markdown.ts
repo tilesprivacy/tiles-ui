@@ -51,7 +51,7 @@ const marked = new Marked({
 			const url = safeHref(href);
 			return url ? `<a href="${escape(url)}" target="_blank" rel="noreferrer">${label}</a>` : label;
 		},
-		// the page can't load outside images, so they become links
+		// outside images are blocked, show them as links
 		image: ({ href, text }) => {
 			const url = safeHref(href);
 			return url
@@ -69,7 +69,7 @@ const marked = new Marked({
 });
 
 let mathLoaded: Promise<void> | null = null;
-// bumped once maths can render, so cached blocks render again
+// bumped when KaTeX loads, to redo cached blocks
 let version = 0;
 
 export const hasMath = (text: string) => /\$\$|\\\[|\\\(|\$\S[^$\n]*\S?\$/.test(text);
@@ -82,7 +82,7 @@ export function loadMath() {
 	return mathLoaded;
 }
 
-// one cache per message, so a streaming reply only renders its last block again
+// one cache per message, a streaming reply only redoes its last block
 export function renderer() {
 	let blocks = new Map<string, string>();
 	let seen = version;

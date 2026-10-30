@@ -21,12 +21,12 @@ class Conversation {
 		this.#parent = chats.at(-1)?.id ?? null;
 	}
 
-	// false when it couldn't be sent, so the message box keeps the text
+	// returns false when nothing was sent
 	async send(text: string) {
 		const prompt = text.trim();
 		if (!prompt || this.streaming) return false;
 		this.streaming = true;
-		// Pi forgets its chat when Tiles restarts, and only the chat Pi is in can go on
+		// Pi loses its chat when Tiles restarts
 		if (!(await this.#inPi())) {
 			this.streaming = false;
 			if (chats.live === this) chats.live = null;
@@ -49,7 +49,7 @@ class Conversation {
 
 		const saved = this.#save('user', prompt).then(() => sessions.load());
 		this.#controller = new AbortController();
-		// a model still loading is the longest wait, so the status line checks on it often
+		// keeps the status line's loading state fresh
 		const loading = setInterval(() => {
 			if (live.phase === 'waiting' && tiles.model?.state !== 'loaded') tiles.ping();
 		}, 1500);
@@ -109,7 +109,7 @@ class Conversation {
 }
 
 class Chats {
-	// the chat Pi is in. only it can be continued until Tiles can reopen old chats
+	// the chat Pi is in, the only one that can go on for now
 	live = $state<Conversation | null>(null);
 
 	async start(text: string) {
@@ -119,11 +119,11 @@ class Chats {
 		this.live.send(text);
 	}
 
-	// an old chat stays read only, unless Pi is still in it from before a reload
+	// old chats are read only, unless Pi is still in one after a reload
 	async open(id: string) {
 		if (this.live?.id === id) return this.live;
 		const conversation = new Conversation(id);
-		// agent/state waits behind a streaming reply, which can only be the live chat's
+		// agent/state blocks while a reply streams, and only the live chat streams
 		const asking = this.live?.streaming
 			? null
 			: api<{ sessionId: string }>('agent/state').catch(() => null);

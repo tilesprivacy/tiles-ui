@@ -1,4 +1,4 @@
-/* latin subsets, vendored from the menu bar app so no font host learns when Tiles opens */
+/* latin subsets copied from the menu bar app, nothing loads from a font host */
 
 @font-face {
 	font-family: 'Geist';

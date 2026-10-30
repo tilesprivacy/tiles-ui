@@ -19,7 +19,7 @@ export type Phase = 'waiting' | 'reasoning' | 'tool' | 'writing';
 export type Turn = {
 	role: 'user' | 'assistant';
 	text: string;
-	// a live reply's Pi messages and tool runs, gone once the chat is reloaded
+	// Pi messages and tool runs of a live reply, lost on reload
 	messages?: PiMessage[];
 	tools?: Record<string, ToolRun>;
 	phase?: Phase;
@@ -41,7 +41,7 @@ function enter(turn: Turn, phase: Phase, now: number) {
 	turn.phase = phase;
 }
 
-// each update carries the whole message so far, so the latest one replaces it
+// every update has the whole message so far, the latest one wins
 export function apply(turn: Turn, event: Record<string, any>, now = Date.now()) {
 	const message: PiMessage | undefined = event.message;
 	switch (event.type) {

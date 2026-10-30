@@ -1,4 +1,4 @@
-// decimal units, the way the CLI and file managers count
+// decimal units, same as the CLI and file managers
 export function size(bytes: number | null | undefined) {
 	if (!bytes) return '0 GB';
 	return bytes >= 1e9

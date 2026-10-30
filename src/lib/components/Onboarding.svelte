@@ -63,10 +63,10 @@
 	const use = () => attempt(() => models.use(picked!).then(finish));
 	const pause = () => attempt(() => models.pause(picked!));
 
-	// the shell finishes booting, which starts the model server
+	// finish booting, this starts the model server
 	const finish = () => tiles.boot();
 
-	// a download started here goes straight on once it's done
+	// a model downloaded here moves setup on once it's done
 	$effect(() => {
 		if (started && info?.ready) finish();
 	});

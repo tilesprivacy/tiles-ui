@@ -26,7 +26,7 @@
 	});
 </script>
 
-<!-- only a scroll up by the reader stops following, never the reply growing or folding -->
+<!-- only the reader scrolling up stops following -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class="scroller"

@@ -17,7 +17,7 @@
 		streaming?: boolean;
 		// why this chat can't take a message right now
 		blocked?: string;
-		// returning false keeps the text, as it wasn't sent
+		// return false to keep the text in the box
 		onsend: (text: string) => unknown;
 		onstop?: () => void;
 	} = $props();

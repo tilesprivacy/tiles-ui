@@ -20,7 +20,7 @@ function load(): Settings {
 	}
 }
 
-// display preferences for this browser, so they live in localStorage, not in Tiles
+// display preferences for this browser, kept in localStorage
 export const settings = $state(load());
 
 export const defaultSettings: Readonly<Settings> = defaults;

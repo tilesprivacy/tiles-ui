@@ -9,7 +9,7 @@ export const isListed = (model: Model): model is Listed => !('error' in model);
 export const running = (download: Download) =>
 	download.state === 'downloading' || download.state === 'verifying';
 
-// a download must leave this much free, as Tiles itself checks
+// free space a download must leave, same as the daemon's check
 const SPARE = 1e9;
 
 // what a model's row says, and whether it can be picked
@@ -40,7 +40,7 @@ class Models {
 	list = $state<Model[]>([]);
 	reason = $state('');
 	#watching = false;
-	// picked in setup, so it's used once downloaded even if setup was left meanwhile
+	// the model picked in setup, used once its download is done
 	#wanted: string | null = null;
 
 	// what chats run on: the picked model, else the default
@@ -60,7 +60,7 @@ class Models {
 		}
 	}
 
-	// follows downloads from every client, the CLI included, for as long as the page is open
+	// follows downloads from every client, the CLI too
 	async watch() {
 		if (this.#watching) return;
 		this.#watching = true;
@@ -79,7 +79,7 @@ class Models {
 		const entry = this.list.find((m) => m.model === model);
 		if (!entry || !isListed(entry)) return;
 		entry.download = download;
-		// a finished download changes what's on disk, which only the list knows
+		// reload the list for the new disk usage
 		if (download.state === 'done') {
 			if (model === this.#wanted) this.use(model).catch(() => this.load());
 			else this.load();
@@ -96,7 +96,7 @@ class Models {
 		await this.load();
 	}
 
-	// deletes its files, and says how many bytes that freed
+	// deletes its files and returns the bytes freed
 	async remove(model: string) {
 		const { freed } = await api<{ freed: number }>('model/delete', 'POST', { model });
 		await this.load();

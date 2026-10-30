@@ -1,4 +1,4 @@
-// loaded only once a reply has maths, KaTeX is most of the app's weight
+// KaTeX is big, load it only when a reply has maths
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import type { MarkedExtension, Tokens } from 'marked';
@@ -8,7 +8,7 @@ const render = (tex: string, displayMode: boolean) =>
 
 // $$…$$ and \[…\] on their own
 const block = /^(?:\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\])(?:\n|$)/;
-// $…$ hugs its content, so "$5 and $10" stays text. \(…\) too
+// $…$ must hug its content, "$5 and $10" stays text. \(…\) too
 const inline = /^(?:\$(?!\s)((?:\\.|[^\\$\n])+?)(?<!\s)\$(?!\d)|\\\(((?:\\.|[^\\\n])+?)\\\))/;
 
 export const math: MarkedExtension = {

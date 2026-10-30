@@ -2,7 +2,7 @@ import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
-// in development Vite serves the UI and passes API calls on to the daemon
+// dev: Vite serves the UI and proxies API calls to the daemon
 const daemon = process.env.TILES_DAEMON ?? 'http://127.0.0.1:1729';
 
 export default defineConfig({
@@ -12,7 +12,7 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			// the daemon answers every unknown path with index.html, so app links like /chat/<id> load
+			// unknown paths get index.html, app links like /chat/<id> need it
 			adapter: adapter({ fallback: 'index.html' })
 		})
 	],
@@ -21,8 +21,7 @@ export default defineConfig({
 	},
 	server: {
 		proxy: {
-			// same origin as when the daemon serves the UI. changeOrigin sends the daemon's own
-			// address as the Host, which its Host check allows
+			// same origin, like the daemon's own UI. changeOrigin passes the daemon's Host check
 			'/v1': { target: daemon, changeOrigin: true }
 		}
 	}

@@ -7,11 +7,11 @@ export class ApiError extends Error {
 	}
 }
 
-// status 0 is the daemon not answering at all
+// status 0 means the daemon didn't answer
 const unreachable = () => new ApiError(0, "Can't reach Tiles");
 
 function init(method: string, body?: unknown, signal?: AbortSignal): RequestInit {
-	// the daemon only takes a POST that says it's JSON
+	// the daemon rejects a POST without a JSON content type
 	const json = method === 'POST';
 	return {
 		method,

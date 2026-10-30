@@ -1,4 +1,4 @@
-// the daemon's CSP only runs scripts from files, so the inline boot script moves into one
+// the daemon's CSP blocks inline scripts, move SvelteKit's boot script into a file
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const page = 'build/index.html';

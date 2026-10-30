@@ -41,7 +41,7 @@ class Tiles {
 		try {
 			this.account = await api<Account>('account/create', 'POST', { nickname });
 		} catch (err) {
-			// made from the CLI meanwhile
+			// already made from the CLI
 			if (status(err) !== 409) throw err;
 			this.account = await api<Account>('account/status');
 		}
@@ -55,7 +55,7 @@ class Tiles {
 		}
 	}
 
-	// `tab` is opened by the click, before the sign-in page is known, so it isn't blocked
+	// open `tab` right on the click, or the popup blocker stops it
 	async signIn(handle: string, tab: Window | null, signal: AbortSignal) {
 		const body = { user_handle: handle.trim().replace(/^@/, '') };
 		for await (const { event, data } of stream('atproto/login', { method: 'POST', body, signal })) {
