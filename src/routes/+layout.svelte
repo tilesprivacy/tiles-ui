@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '#lib/styles/base.css';
 	import { afterNavigate, goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import Icon from '#lib/components/Icon.svelte';
 	import Onboarding from '#lib/components/Onboarding.svelte';
 	import Settings from '#lib/components/Settings.svelte';
@@ -49,12 +50,21 @@
 
 	afterNavigate(() => (menuOpen = false));
 
+	// the list is newest first, so up is a newer chat
+	function step(by: number) {
+		const at = sessions.list.findIndex((s) => s.id === page.params.id);
+		const next = sessions.list[at === -1 ? 0 : at + by];
+		if (next) goto(`/chat/${next.id}`);
+	}
+
 	function shortcut(e: KeyboardEvent) {
 		if (!(e.metaKey || e.ctrlKey) || tiles.phase !== 'ready') return;
 		const key = e.key.toLowerCase();
 		if (key === 'k') searching = !searching;
 		else if (key === 'b') settings.sidebarOpen = !settings.sidebarOpen;
 		else if (key === 'o' && e.shiftKey) goto('/');
+		else if (e.shiftKey && (key === 'arrowup' || key === 'arrowdown'))
+			step(key === 'arrowup' ? -1 : 1);
 		else return;
 		e.preventDefault();
 	}
