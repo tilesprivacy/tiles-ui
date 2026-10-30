@@ -17,7 +17,8 @@
 		streaming?: boolean;
 		// why this chat can't take a message right now
 		blocked?: string;
-		onsend: (text: string) => void;
+		// returning false keeps the text, as it wasn't sent
+		onsend: (text: string) => unknown;
 		onstop?: () => void;
 	} = $props();
 
@@ -52,10 +53,11 @@
 		box.style.height = `${box.scrollHeight}px`;
 	});
 
-	function send() {
+	async function send() {
 		if (!text.trim() || !ready || streaming) return;
-		onsend(text);
+		const sent = text;
 		text = '';
+		if ((await onsend(sent)) === false) text = sent;
 	}
 
 	function keydown(e: KeyboardEvent) {

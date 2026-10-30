@@ -21,10 +21,18 @@ class Conversation {
 		this.#parent = chats.at(-1)?.id ?? null;
 	}
 
+	// false when it couldn't be sent, so the message box keeps the text
 	async send(text: string) {
 		const prompt = text.trim();
-		if (!prompt || this.streaming) return;
+		if (!prompt || this.streaming) return false;
 		this.streaming = true;
+		// Pi forgets its chat when Tiles restarts, and only the chat Pi is in can go on
+		if (!(await this.#inPi())) {
+			this.streaming = false;
+			if (chats.live === this) chats.live = null;
+			toasts.show("Tiles restarted, so this chat can't go on. Start a new chat to keep going.");
+			return false;
+		}
 		sessions.busy.add(this.id);
 		this.turns.push({ role: 'user', text: prompt });
 		const reply: Turn = {
@@ -70,6 +78,14 @@ class Conversation {
 		await saved;
 		// a reply stopped before any text has nothing worth keeping
 		if (live.text) await this.#save('assistant', live.text);
+		return true;
+	}
+
+	#inPi() {
+		return api<{ sessionId: string }>('agent/state').then(
+			(state) => state.sessionId === this.id,
+			() => false
+		);
 	}
 
 	stop() {
