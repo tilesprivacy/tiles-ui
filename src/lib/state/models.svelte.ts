@@ -96,6 +96,13 @@ class Models {
 		await this.load();
 	}
 
+	// deletes its files, and says how many bytes that freed
+	async remove(model: string) {
+		const { freed } = await api<{ freed: number }>('model/delete', 'POST', { model });
+		await this.load();
+		return freed;
+	}
+
 	async downloadToUse(model: string) {
 		this.#wanted = model;
 		await this.download(model);

@@ -15,7 +15,8 @@ export const icons = {
 	copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
 	check: '<path d="m5 12 5 5 9-10"/>',
 	chevron: '<path d="m6 9 6 6 6-6"/>',
-	x: '<path d="M6 6l12 12M18 6 6 18"/>'
+	x: '<path d="M6 6l12 12M18 6 6 18"/>',
+	trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>'
 } as const;
 
 export type IconName = keyof typeof icons;
