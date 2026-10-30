@@ -1,4 +1,4 @@
-# a tag like v2.0.0 publishes the built UI, which Tiles pins in its toolchain.toml and bundles
+# a tag like v0.2.0 publishes the built UI, which Tiles pins in its toolchain.toml and bundles
 name: Release
 
 on:
