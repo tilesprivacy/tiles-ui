@@ -10,6 +10,10 @@
 	padding: 0;
 }
 
+html {
+	zoom: var(--zoom);
+}
+
 html,
 body {
 	height: 100%;

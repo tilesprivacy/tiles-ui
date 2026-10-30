@@ -16,6 +16,9 @@
 	--code-title: #93c5fd;
 	--code-added: #86efac;
 
+	/* how large the whole UI is drawn, sizes below are at 1 */
+	--zoom: 1.15;
+
 	--font-ui: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 	--fs-title: 13px;
