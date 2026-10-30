@@ -24,7 +24,7 @@
 	let box: HTMLTextAreaElement;
 	let text = $state(read());
 
-	const model = $derived(models.list.find((m) => m.default));
+	const model = $derived(models.inUse);
 	const missing = $derived(model && !describe(model).ready);
 	const active = $derived(models.active);
 	const ready = $derived(tiles.server === 'on' && !missing && !blocked);
@@ -98,7 +98,7 @@
 			<button type="button" class="chip alert" onclick={start}>Model server off · Start</button>
 		{:else if tiles.server === 'starting'}
 			<span class="chip"><span class="dot"></span>Starting the model server…</span>
-		{:else if missing && active?.default && 'done' in active.download}
+		{:else if missing && active && active === model && 'done' in active.download}
 			<a
 				class="chip"
 				href="/models"

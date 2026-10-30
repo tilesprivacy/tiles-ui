@@ -59,7 +59,8 @@
 		signIn = null;
 	}
 
-	const download = () => attempt(() => models.download(picked!).then(() => (started = true)));
+	const download = () => attempt(() => models.downloadToUse(picked!).then(() => (started = true)));
+	const use = () => attempt(() => models.use(picked!).then(finish));
 	const pause = () => attempt(() => models.pause(picked!));
 
 	// the shell finishes booting, which starts the model server
@@ -134,12 +135,9 @@
 			{:else}
 				<ModelPicker options={models.list} bind:value={picked} />
 				{#if free != null}<p class="muted small">{size(free)} free on this computer</p>{/if}
-				{#if chosen && !chosen.default}
-					<p class="muted small">Chats use the default model until Tiles can switch models.</p>
-				{/if}
 				{#if error}<p class="error">{error}</p>{/if}
 				{#if info?.ready}
-					<button class="plate signal" onclick={finish}>Start</button>
+					<button class="plate signal" disabled={busy} onclick={use}>Start</button>
 				{:else}
 					<button
 						class="plate signal"

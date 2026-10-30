@@ -43,7 +43,11 @@
 							<span class="muted">{[info.size, info.note].filter(Boolean).join(' · ')}</span>
 						{/if}
 					</div>
-					{#if isListed(model) && !info.ready && !info.blocked}
+					{#if model === models.inUse && info.ready}
+						<span class="pill">In use</span>
+					{:else if info.ready}
+						<button class="plate" onclick={() => act(models.use(model.model!))}>Use</button>
+					{:else if isListed(model) && !info.blocked}
 						{#if running(model.download)}
 							<button class="plate ghost" onclick={() => act(models.pause(model.model))}
 								>Pause</button
@@ -121,6 +125,13 @@
 		margin-left: 6px;
 		font-size: var(--fs-label);
 		color: var(--signal);
+	}
+
+	.pill {
+		padding: 2px 9px;
+		border: var(--hairline) solid var(--rule);
+		border-radius: 999px;
+		font-size: var(--fs-label);
 	}
 
 	.plate {

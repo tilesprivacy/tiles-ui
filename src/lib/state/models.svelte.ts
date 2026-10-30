@@ -40,6 +40,11 @@ class Models {
 	list = $state<Model[]>([]);
 	reason = $state('');
 	#watching = false;
+	// picked in setup, so it's used once downloaded even if setup was left meanwhile
+	#wanted: string | null = null;
+
+	// what chats run on: the picked model, else the default
+	inUse = $derived(this.list.find((m) => m.current) ?? this.list.find((m) => m.default));
 
 	// the download under way, if any. one runs at a time
 	active = $derived(
@@ -75,11 +80,25 @@ class Models {
 		if (!entry || !isListed(entry)) return;
 		entry.download = download;
 		// a finished download changes what's on disk, which only the list knows
-		if (download.state === 'done') this.load();
+		if (download.state === 'done') {
+			if (model === this.#wanted) this.use(model).catch(() => this.load());
+			else this.load();
+		}
 	}
 
 	async download(model: string) {
 		this.#apply({ model, ...(await api<Download>('model/download', 'POST', { model })) });
+	}
+
+	async use(model: string) {
+		this.#wanted = null;
+		await api('model/select', 'POST', { model });
+		await this.load();
+	}
+
+	async downloadToUse(model: string) {
+		this.#wanted = model;
+		await this.download(model);
 	}
 
 	async pause(model: string) {
