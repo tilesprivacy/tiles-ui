@@ -15,6 +15,21 @@ class Engine {
 			this.status?.gpus.find((g) => g.name)
 	);
 
+	// what replies run on now. a pick that isn't downloaded yet waits on the one on disk
+	running = $derived.by(() => {
+		const status = this.status;
+		if (!status || !status.needs_download) return status?.engine;
+		return status.installed?.engine ?? 'cpu';
+	});
+
+	// "CUDA 13.4 on the NVIDIA GeForce RTX 5060 Ti", or "the CPU"
+	runsOn = $derived.by(() => {
+		const name = this.running;
+		if (!name) return '';
+		if (name === 'cpu') return 'the CPU';
+		return this.gpu?.name ? `${this.label(name)} on the ${this.gpu.name}` : this.label(name);
+	});
+
 	label = (name: EngineName | undefined) =>
 		this.status?.engines.find((e) => e.engine === name)?.label ?? name ?? '';
 

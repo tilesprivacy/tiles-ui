@@ -15,13 +15,6 @@
 	const onDisk = $derived(models.list.filter((m) => describe(m).ready));
 	// repo:quant, the quant is what tells two downloads of a model apart
 	const quant = (id: string | null) => id?.split(':')[1] ?? '';
-	const runsOn = $derived.by(() => {
-		const status = engine.status;
-		if (!status) return '';
-		if (status.engine === 'cpu') return 'the CPU';
-		const label = engine.label(status.engine);
-		return engine.gpu?.name ? `the ${engine.gpu.name} with ${label}` : label;
-	});
 
 	const close = (e: KeyboardEvent) => e.key === 'Escape' && (open = false);
 
@@ -62,7 +55,7 @@
 
 		{#if open}
 			<div class="menu tile">
-				{#if runsOn}<p class="muted">Runs on {runsOn}</p>{/if}
+				{#if engine.runsOn}<p class="muted">Runs on {engine.runsOn}</p>{/if}
 				<ul role="listbox" aria-label="Models on this computer">
 					{#each onDisk as m (m.id)}
 						<li role="option" aria-selected={m === model}>

@@ -1,10 +1,12 @@
 <script lang="ts">
+	import EngineSettings from './EngineSettings.svelte';
 	import { defaultSettings, settings, type Settings } from '#lib/state/settings.svelte.ts';
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 
 	let dialog: HTMLDialogElement;
-	let tab = $state<'General' | 'Display' | 'About'>('General');
+	const tabs = ['General', 'Display', 'Engine', 'About'] as const;
+	let tab = $state<(typeof tabs)[number]>('General');
 
 	$effect(() => {
 		if (open && !dialog.open) dialog.showModal();
@@ -33,7 +35,7 @@
 <dialog class="tile" bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
 	<nav>
 		<h2>Settings</h2>
-		{#each ['General', 'Display', 'About'] as const as name (name)}
+		{#each tabs as name (name)}
 			<button class="tile row-tile" class:on={tab === name} onclick={() => (tab = name)}
 				>{name}</button
 			>
@@ -42,7 +44,9 @@
 
 	<div class="body">
 		<h3>{tab}</h3>
-		{#if tab === 'About'}
+		{#if tab === 'Engine'}
+			<EngineSettings />
+		{:else if tab === 'About'}
 			<p>Tiles UI {__UI_VERSION__}</p>
 			<p><a href="https://tiles.run/book" target="_blank" rel="noreferrer">Read the docs</a></p>
 			<p>
@@ -61,9 +65,11 @@
 	</div>
 
 	<footer>
-		<button class="plate ghost" onclick={() => Object.assign(settings, defaultSettings)}
-			>Reset</button
-		>
+		{#if tab === 'General' || tab === 'Display'}
+			<button class="plate ghost" onclick={() => Object.assign(settings, defaultSettings)}
+				>Reset</button
+			>
+		{/if}
 		<button class="plate" onclick={() => (open = false)}>Done</button>
 	</footer>
 </dialog>

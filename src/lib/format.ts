@@ -19,6 +19,9 @@ export function timeLeft(done: number, total: number, perSecond: number) {
 export const percent = (done: number, total: number) =>
 	total ? Math.floor((done / total) * 100) : 0;
 
+// GPU memory in binary GB, the way cards are sold: 16 GB, not 17.1
+export const vram = (bytes: number) => `${Math.round(bytes / 2 ** 30)} GB`;
+
 const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 // a shortcut's label, ⌘ on a Mac and Ctrl everywhere else
