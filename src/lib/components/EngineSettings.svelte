@@ -253,7 +253,9 @@
 		color: var(--slate);
 	}
 
+	/* as tall as a chip, so cards with and without one line up */
 	header {
+		height: 24px;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -274,7 +276,9 @@
 		color: var(--signal);
 	}
 
+	/* as tall as its button, for the cards that have none */
 	footer {
+		min-height: 30px;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
