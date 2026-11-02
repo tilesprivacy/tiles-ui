@@ -28,9 +28,10 @@ export type Model = { id: string; label: string; default: boolean; current: bool
 export type EngineName = 'cuda-13' | 'cuda-12' | 'vulkan' | 'cpu' | 'metal';
 
 export type Gpu = {
-	vendor: 'nvidia' | 'amd' | 'intel' | 'other';
+	vendor: 'nvidia' | 'amd' | 'intel' | 'apple' | 'other';
 	name: string | null;
 	compute_capability: string | null;
+	// bytes. on a Mac its unified memory
 	vram: number | null;
 };
 

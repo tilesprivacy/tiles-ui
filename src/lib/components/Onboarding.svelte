@@ -237,7 +237,7 @@
 				<ModelPicker
 					options={models.list}
 					bind:value={picked}
-					vram={gpuSetup?.engine === 'cpu' ? null : engine.gpu?.vram}
+					vram={gpuSetup?.engine === 'cpu' ? null : engine.usableVram}
 				/>
 				{#if free != null}<p class="muted small">{size(free)} free on this computer</p>{/if}
 				{#if error}<p class="error">{error}</p>{/if}

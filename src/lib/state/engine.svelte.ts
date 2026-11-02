@@ -31,6 +31,11 @@ class Engine {
 		return status.installed?.engine ?? 'cpu';
 	});
 
+	// GPU memory a model can fill. a Mac's GPU gets about three quarters of its unified memory
+	usableVram = $derived(
+		this.gpu?.vram ? (this.gpu.vendor === 'apple' ? this.gpu.vram * 0.75 : this.gpu.vram) : null
+	);
+
 	// a Mac has Metal and nothing else to pick
 	apple = $derived(this.status?.engine === 'metal');
 
