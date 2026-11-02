@@ -26,6 +26,38 @@
 		background-color var(--dur-state);
 }
 
+/*
+ * the same shape drawn behind its content, for tiles a menu opens out of.
+ * the cut on .tile clips everything inside it, this leaves the element unclipped.
+ * set --fill for its colour
+ */
+:where(.frame) {
+	--c: var(--cut);
+	--line: var(--rule);
+	--fill: transparent;
+	position: relative;
+	isolation: isolate;
+}
+
+.frame::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border: var(--hairline) solid var(--line);
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%);
+	background:
+		linear-gradient(
+				to bottom right,
+				transparent calc(50% - var(--hairline)),
+				var(--line) 0 50%,
+				transparent 0
+			)
+			100% 100% / var(--c) var(--c) no-repeat border-box,
+		var(--fill);
+	transition: border-color var(--dur-state);
+}
+
 /* the cut would hide an outline, the border lights up instead */
 :is(.tile, .plate, .field, .chip):focus-visible {
 	outline: none;

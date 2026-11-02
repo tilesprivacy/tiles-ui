@@ -8,6 +8,7 @@
 	import Sidebar from '#lib/components/Sidebar.svelte';
 	import Splash from '#lib/components/Splash.svelte';
 	import Toasts from '#lib/components/Toasts.svelte';
+	import { engine } from '#lib/state/engine.svelte.ts';
 	import { models } from '#lib/state/models.svelte.ts';
 	import { sessions } from '#lib/state/sessions.svelte.ts';
 	import { settings } from '#lib/state/settings.svelte.ts';
@@ -27,6 +28,7 @@
 		sessions.load();
 		models.load();
 		models.watch();
+		engine.load();
 		// keeps the model chip and the reconnect bar current
 		const timer = setInterval(async () => {
 			const wasOffline = tiles.offline;

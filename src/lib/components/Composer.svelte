@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
+	import ModelChip from './ModelChip.svelte';
 	import { percent } from '#lib/format.ts';
 	import { describe, models } from '#lib/state/models.svelte.ts';
 	import { settings } from '#lib/state/settings.svelte.ts';
@@ -78,7 +79,7 @@
 </script>
 
 <form
-	class="composer tile"
+	class="composer frame"
 	onsubmit={(e) => {
 		e.preventDefault();
 		send();
@@ -113,10 +114,8 @@
 			</a>
 		{:else if missing}
 			<a class="chip alert" href="/models">No model yet · Download</a>
-		{:else if tiles.model?.state === 'loading'}
-			<span class="chip"><span class="live-dot"></span>Loading model…</span>
-		{:else if model}
-			<span class="chip">{model.label}</span>
+		{:else}
+			<ModelChip disabled={streaming} />
 		{/if}
 		{#if streaming}
 			<button type="button" class="send stop tile" aria-label="Stop" onclick={onstop}>
@@ -133,10 +132,10 @@
 <style>
 	.composer {
 		--c: var(--cut-l);
+		--fill: var(--steel);
 		display: grid;
 		gap: 10px;
 		padding: 12px 12px 10px 14px;
-		background-color: var(--steel);
 	}
 
 	.composer:focus-within {
