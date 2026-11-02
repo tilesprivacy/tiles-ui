@@ -3,7 +3,7 @@
 	import Account from './Account.svelte';
 	import Icon from './Icon.svelte';
 	import Logo from './Logo.svelte';
-	import { percent, size, timeLeft } from '#lib/format.ts';
+	import { keys, percent, size, timeLeft } from '#lib/format.ts';
 	import { models } from '#lib/state/models.svelte.ts';
 	import { sessions } from '#lib/state/sessions.svelte.ts';
 	import { settings } from '#lib/state/settings.svelte.ts';
@@ -58,14 +58,14 @@
 	{:else}
 		<div class="actions">
 			<a class="act" href="/" title="New chat">
-				<Icon name="plus" size={15} /><span>New chat</span><kbd>⇧⌘O</kbd>
+				<Icon name="plus" size={15} /><span>New chat</span><kbd>{keys('O', true)}</kbd>
 			</a>
 			<button
 				class="act"
 				title="Search"
 				onclick={() => ((settings.sidebarOpen = true), (searching = true))}
 			>
-				<Icon name="search" size={15} /><span>Search</span><kbd>⌘K</kbd>
+				<Icon name="search" size={15} /><span>Search</span><kbd>{keys('K')}</kbd>
 			</button>
 			<a
 				class="act"
@@ -244,6 +244,8 @@
 		overflow-y: auto;
 		padding: 4px 8px;
 		display: grid;
+		/* without the 0, a long title widens the sidebar instead of cutting off */
+		grid-template-columns: minmax(0, 1fr);
 		align-content: start;
 		gap: 1px;
 	}

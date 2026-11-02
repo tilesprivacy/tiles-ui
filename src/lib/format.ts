@@ -18,3 +18,9 @@ export function timeLeft(done: number, total: number, perSecond: number) {
 
 export const percent = (done: number, total: number) =>
 	total ? Math.floor((done / total) * 100) : 0;
+
+const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+// a shortcut's label, ⌘ on a Mac and Ctrl everywhere else
+export const keys = (key: string, shift = false) =>
+	mac ? `${shift ? '⇧' : ''}⌘${key}` : `Ctrl+${shift ? 'Shift+' : ''}${key}`;

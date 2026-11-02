@@ -47,7 +47,7 @@
 		{#if !compact}
 			<span class="who">
 				<span>{account.nickname}</span>
-				<span class="mono muted">{short(account.id)}</span>
+				<span class="muted">{tiles.atproto ? `@${tiles.atproto.handle}` : 'Local account'}</span>
 			</span>
 		{/if}
 	</button>
@@ -150,8 +150,8 @@
 		line-height: 1.3;
 	}
 
-	.who .mono {
-		font-size: var(--fs-mono);
+	.who .muted {
+		font-size: var(--fs-body);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
