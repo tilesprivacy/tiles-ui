@@ -54,7 +54,7 @@
 
 		{#if open}
 			<div class="menu tile">
-								<ul role="listbox" aria-label="Models on this computer">
+				<ul role="listbox" aria-label="Models on this computer">
 					{#each onDisk as m (m.id)}
 						<li role="option" aria-selected={m === model}>
 							<button

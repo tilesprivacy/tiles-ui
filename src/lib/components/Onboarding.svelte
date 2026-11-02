@@ -1,12 +1,14 @@
 <script lang="ts">
 	import GpuCard from './GpuCard.svelte';
+	import Icon from './Icon.svelte';
 	import Logo from './Logo.svelte';
 	import ModelPicker from './ModelPicker.svelte';
 	import Progress from './Progress.svelte';
 	import { percent, size } from '#lib/format.ts';
-	import { engine, installing } from '#lib/state/engine.svelte.ts';
+	import { about, engine, installing } from '#lib/state/engine.svelte.ts';
 	import { describe, isListed, models, running } from '#lib/state/models.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
+	import type { EngineName } from '#lib/types.ts';
 
 	let step = $state(1);
 	let busy = $state(false);
@@ -24,6 +26,12 @@
 	const gpuSetup = $derived(engine.status);
 	// the engine auto picks, as the daemon describes it
 	const best = $derived(gpuSetup?.engines.find((e) => e.engine === gpuSetup.engine));
+	// engines to download instead, the CPU has its own button
+	const others = $derived(
+		gpuSetup?.engines.filter((e) => !e.unavailable && e.download > 0 && e !== best) ?? []
+	);
+	let pickedEngine = $state<EngineName | null>(null);
+	const chosenEngine = $derived(others.find((e) => e.engine === pickedEngine) ?? best);
 	const engineInstall = $derived(gpuSetup?.download);
 
 	// the GPU step. a llama-server set by hand needs no engine
@@ -74,7 +82,12 @@
 	}
 
 	// the engine downloads in the background while a model is picked
-	const downloadEngine = () => attempt(() => engine.download().then(() => (step = 4)));
+	const downloadEngine = () =>
+		attempt(async () => {
+			if (chosenEngine && chosenEngine !== best) await engine.select(chosenEngine.engine);
+			await engine.download();
+			step = 4;
+		});
 	const useCpu = () => attempt(() => engine.select('cpu').then(() => (step = 4)));
 
 	const download = () => attempt(() => models.downloadToUse(picked!).then(() => (started = true)));
@@ -159,13 +172,47 @@
 					</p>
 					<button class="plate primary" onclick={() => (step = 4)}>Continue</button>
 				{:else}
-					<p class="muted small">
-						The engine for it is {best.label}, a {size(best.download)} download.
-					</p>
+					<div class="engines" role="radiogroup" aria-label="Engine">
+						<button
+							type="button"
+							class="option tile row-tile"
+							role="radio"
+							aria-checked={chosenEngine === best}
+							onclick={() => (pickedEngine = null)}
+						>
+							<i></i>
+							<span>
+								<b>{best.label}</b><span class="chip best">Recommended</span>
+								<small class="muted">{about[best.engine]}</small>
+							</span>
+							<span class="muted">{size(best.download)}</span>
+						</button>
+						{#if others.length}
+							<details class="others">
+								<summary>Other engines <Icon name="chevron" size={12} /></summary>
+								{#each others as other (other.engine)}
+									<button
+										type="button"
+										class="option tile row-tile"
+										role="radio"
+										aria-checked={chosenEngine === other}
+										onclick={() => (pickedEngine = other.engine)}
+									>
+										<i></i>
+										<span>
+											<b>{other.label}</b>
+											<small class="muted">{about[other.engine]}</small>
+										</span>
+										<span class="muted">{size(other.download)}</span>
+									</button>
+								{/each}
+							</details>
+						{/if}
+					</div>
 					<div class="row">
 						<button class="plate ghost" disabled={busy} onclick={useCpu}>Use the CPU</button>
-						<button class="plate primary" disabled={busy} onclick={downloadEngine}>
-							Download and continue
+						<button class="plate primary" disabled={busy || !chosenEngine} onclick={downloadEngine}>
+							Download {chosenEngine?.label}
 						</button>
 					</div>
 				{/if}
@@ -308,5 +355,76 @@
 	.small {
 		font-size: var(--fs-body);
 		margin-top: -8px;
+	}
+
+	.engines {
+		display: grid;
+		gap: 4px;
+	}
+
+	.option {
+		width: 100%;
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 12px;
+		text-align: left;
+	}
+
+	.option:hover,
+	.option[aria-checked='true'] {
+		background-color: var(--steel);
+	}
+
+	.option small {
+		display: block;
+		font-size: var(--fs-body);
+	}
+
+	.option b {
+		font-weight: 600;
+	}
+
+	/* a square radio, yellow once it's picked */
+	.option i {
+		width: 13px;
+		height: 13px;
+		border: var(--hairline) solid var(--slate);
+	}
+
+	.option[aria-checked='true'] i {
+		border-color: var(--signal);
+		background: var(--signal);
+		box-shadow: inset 0 0 0 2px var(--void);
+	}
+
+	.best {
+		--line: color-mix(in srgb, var(--signal) 40%, transparent);
+		margin-left: 8px;
+		color: var(--signal);
+	}
+
+	.others summary {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 12px;
+		list-style: none;
+		cursor: pointer;
+		font-size: var(--fs-body);
+		color: var(--slate);
+	}
+
+	.others summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.others summary:hover {
+		color: var(--bone);
+	}
+
+	.others[open] summary :global(svg) {
+		rotate: 180deg;
 	}
 </style>

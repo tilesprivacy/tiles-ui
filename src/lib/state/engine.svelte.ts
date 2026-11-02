@@ -1,6 +1,15 @@
 import { api, stream } from '#lib/api.ts';
 import type { EngineInstall, EngineName, EngineStatus } from '#lib/types.ts';
 
+// what each engine is for, as the user reads it
+export const about: Record<EngineName, string> = {
+	'cuda-13': 'NVIDIA GPUs and drivers from the last few years. The fastest on them',
+	'cuda-12': 'Older NVIDIA GPUs and drivers',
+	vulkan: 'Most GPUs, from AMD, Intel and NVIDIA',
+	cpu: 'Any computer. The slowest, and it always works',
+	metal: 'The GPU in Apple silicon Macs'
+};
+
 export const installing = (install: EngineInstall) =>
 	install.state === 'downloading' || install.state === 'unpacking' || install.state === 'checking';
 
@@ -43,6 +52,13 @@ class Engine {
 	async download() {
 		this.#set(await api<EngineInstall>('engine/download', 'POST'));
 		this.#follow();
+	}
+
+	// returns the bytes freed. replies go back to the CPU
+	async delete() {
+		const { freed } = await api<{ freed: number }>('engine/delete', 'POST');
+		await this.load();
+		return freed;
 	}
 
 	async pause() {

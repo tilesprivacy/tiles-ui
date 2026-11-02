@@ -1,22 +1,17 @@
 <script lang="ts">
 	import GpuCard from './GpuCard.svelte';
+	import Icon from './Icon.svelte';
 	import Progress from './Progress.svelte';
 	import { size } from '#lib/format.ts';
-	import { engine, installing } from '#lib/state/engine.svelte.ts';
+	import { about, engine, installing } from '#lib/state/engine.svelte.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 	import type { EngineChoice, EngineName } from '#lib/types.ts';
 
 	const status = $derived(engine.status);
+	// the card asking whether to delete
+	let confirming = $state<EngineName | null>(null);
 	const install = $derived(status?.download);
 	const busy = $derived(!!install && installing(install));
-
-	const about: Record<EngineName, string> = {
-		'cuda-13': 'NVIDIA GPUs and drivers from the last few years. The fastest on them',
-		'cuda-12': 'Older NVIDIA GPUs and drivers',
-		vulkan: 'Most GPUs, from AMD, Intel and NVIDIA',
-		cpu: 'Any computer. The slowest, and it always works',
-		metal: 'The GPU in Apple silicon Macs'
-	};
 
 	engine.load();
 
@@ -41,6 +36,14 @@
 		act(async () => {
 			await engine.select(choice.engine);
 			if (!onDisk(choice)) await engine.download();
+		});
+	}
+
+	async function remove(choice: EngineChoice) {
+		confirming = null;
+		await act(async () => {
+			const freed = await engine.delete();
+			toasts.show(`Deleted ${choice.label}, ${size(freed)} freed`);
 		});
 	}
 
@@ -128,6 +131,14 @@
 						<button class="plate" disabled={busy} onclick={() => act(() => engine.download())}
 							>Try again</button
 						>
+					{:else if confirming === choice.engine}
+						<p class="ask">
+							Delete {choice.label}? Models run on the CPU until an engine is downloaded again.
+						</p>
+						<footer>
+							<button class="plate ghost" onclick={() => (confirming = null)}>Cancel</button>
+							<button class="plate danger" onclick={() => remove(choice)}>Delete</button>
+						</footer>
 					{:else if !choice.unavailable}
 						<footer>
 							<span class="muted small">
@@ -137,11 +148,23 @@
 										? 'On this computer'
 										: size(choice.download)}
 							</span>
-							{#if !live}
-								<button class="plate" disabled={busy} onclick={() => use(choice)}>
-									{onDisk(choice) ? 'Use' : 'Download'}
-								</button>
-							{/if}
+							<span class="actions">
+								{#if choice.download > 0 && onDisk(choice)}
+									<button
+										class="icon tile row-tile"
+										aria-label="Delete {choice.label}"
+										title="Delete"
+										disabled={busy}
+										onclick={() => (confirming = choice.engine)}
+										><Icon name="trash" size={14} /></button
+									>
+								{/if}
+								{#if !live}
+									<button class="plate" disabled={busy} onclick={() => use(choice)}>
+										{onDisk(choice) ? 'Use' : 'Download'}
+									</button>
+								{/if}
+							</span>
 						</footer>
 					{/if}
 				</article>
@@ -267,5 +290,34 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+	}
+
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.icon {
+		width: 28px;
+		height: 28px;
+		display: grid;
+		place-items: center;
+		color: var(--slate);
+	}
+
+	.icon:hover:not(:disabled) {
+		color: var(--alert);
+		background-color: var(--lift);
+	}
+
+	.card p.ask {
+		min-height: 0;
+		color: var(--ash);
+	}
+
+	.danger {
+		--line: color-mix(in srgb, var(--alert) 45%, transparent);
+		color: var(--alert);
 	}
 </style>
