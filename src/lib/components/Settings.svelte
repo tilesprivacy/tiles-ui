@@ -30,11 +30,13 @@
 	};
 </script>
 
-<dialog bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
+<dialog class="tile" bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
 	<nav>
 		<h2>Settings</h2>
 		{#each ['General', 'Display', 'About'] as const as name (name)}
-			<button class:on={tab === name} onclick={() => (tab = name)}>{name}</button>
+			<button class="tile row-tile" class:on={tab === name} onclick={() => (tab = name)}
+				>{name}</button
+			>
 		{/each}
 	</nav>
 
@@ -72,9 +74,8 @@
 		height: min(600px, calc(100dvh - 32px));
 		margin: auto;
 		padding: 0;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 14px;
-		background: var(--void);
+		--c: var(--cut-l);
+		background-color: var(--panel);
 		color: var(--bone);
 	}
 
@@ -104,14 +105,13 @@
 
 	nav button {
 		padding: 7px 10px;
-		border-radius: 7px;
 		color: var(--ash);
 		text-align: left;
 	}
 
 	nav button.on,
 	nav button:hover {
-		background: var(--steel);
+		background-color: var(--steel);
 		color: var(--bone);
 	}
 
@@ -150,8 +150,8 @@
 		width: 30px;
 		height: 17px;
 		flex: none;
-		border-radius: 9px;
-		background: var(--rule);
+		background: var(--lift);
+		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
 		cursor: pointer;
 		transition: background var(--dur-state);
 	}
@@ -163,13 +163,12 @@
 		left: 2px;
 		width: 13px;
 		height: 13px;
-		border-radius: 50%;
 		background: var(--slate);
 		transition: translate var(--dur-state) var(--ease-push);
 	}
 
 	[role='switch']:checked {
-		background: var(--signal);
+		background: var(--bone);
 	}
 
 	[role='switch']:checked::after {

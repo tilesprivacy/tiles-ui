@@ -5,7 +5,7 @@
 <section>
 	<p class="plate">{page.status === 404 ? 'Not found' : 'Something went wrong'}</p>
 	{#if page.status !== 404 && page.error}<p class="muted">{page.error.message}</p>{/if}
-	<a class="plate signal" href="/">Go home</a>
+	<a class="plate primary" href="/">Go home</a>
 </section>
 
 <style>

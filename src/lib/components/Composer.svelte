@@ -78,7 +78,7 @@
 </script>
 
 <form
-	class="composer"
+	class="composer tile"
 	onsubmit={(e) => {
 		e.preventDefault();
 		send();
@@ -99,28 +99,31 @@
 		{:else if tiles.server === 'off'}
 			<button type="button" class="chip alert" onclick={start}>Model server off · Start</button>
 		{:else if tiles.server === 'starting'}
-			<span class="chip"><span class="dot"></span>Starting the model server…</span>
+			<span class="chip"><span class="live-dot"></span>Starting the model server…</span>
 		{:else if missing && active && active === model && 'done' in active.download}
 			<a
 				class="chip"
 				href="/models"
 				title="Downloading {active.label}. You can send once it's done"
 			>
-				<span class="dot"></span>Downloading {percent(active.download.done, active.download.total)}%
+				<span class="live-dot"></span>Downloading {percent(
+					active.download.done,
+					active.download.total
+				)}%
 			</a>
 		{:else if missing}
 			<a class="chip alert" href="/models">No model yet · Download</a>
 		{:else if tiles.model?.state === 'loading'}
-			<span class="chip"><span class="dot"></span>Loading model…</span>
+			<span class="chip"><span class="live-dot"></span>Loading model…</span>
 		{:else if model}
 			<span class="chip">{model.label}</span>
 		{/if}
 		{#if streaming}
-			<button type="button" class="send stop" aria-label="Stop" onclick={onstop}>
+			<button type="button" class="send stop tile" aria-label="Stop" onclick={onstop}>
 				<Icon name="stop" size={15} />
 			</button>
 		{:else}
-			<button class="send" aria-label="Send" disabled={!ready || !text.trim()}>
+			<button class="send tile" aria-label="Send" disabled={!ready || !text.trim()}>
 				<Icon name="up" size={15} />
 			</button>
 		{/if}
@@ -129,16 +132,15 @@
 
 <style>
 	.composer {
+		--c: var(--cut-l);
 		display: grid;
 		gap: 10px;
 		padding: 12px 12px 10px 14px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 14px;
-		background: var(--steel);
+		background-color: var(--steel);
 	}
 
 	.composer:focus-within {
-		border-color: color-mix(in srgb, var(--bone) 22%, transparent);
+		--line: var(--edge);
 	}
 
 	textarea {
@@ -147,6 +149,7 @@
 		background: none;
 		outline: none;
 		resize: none;
+		font-size: var(--fs-read);
 		line-height: 1.5;
 	}
 
@@ -170,31 +173,27 @@
 		text-decoration: none;
 	}
 
-	.dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: var(--signal);
-	}
-
 	.send {
+		--line: var(--bone);
 		width: 30px;
 		height: 30px;
 		flex: none;
 		display: grid;
 		place-items: center;
-		background: var(--signal);
+		background-color: var(--bone);
 		color: var(--void);
-		clip-path: var(--clip-cut);
 	}
 
 	.send:disabled {
-		background: var(--rule);
+		--line: var(--rule);
+		background-color: var(--lift);
 		color: var(--slate);
 		cursor: default;
 	}
 
+	/* a reply is running */
 	.send.stop {
-		background: var(--bone);
+		--line: var(--signal);
+		background-color: var(--signal);
 	}
 </style>

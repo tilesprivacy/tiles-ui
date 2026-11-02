@@ -33,7 +33,7 @@
 		display: grid;
 		gap: 10px;
 		min-width: 0;
-		line-height: 1.6;
+		line-height: var(--lh-read);
 		overflow-wrap: anywhere;
 	}
 
@@ -106,10 +106,8 @@
 	}
 
 	.md :global(.code) {
-		border: var(--hairline) solid var(--rule);
-		border-radius: var(--radius);
-		background: var(--steel);
-		overflow: hidden;
+		--c: var(--cut-m);
+		background-color: var(--steel);
 	}
 
 	.md :global(.code-head) {
@@ -136,6 +134,7 @@
 		font-family: var(--font-mono);
 		font-size: var(--fs-body);
 		line-height: 1.55;
+		color: var(--code-text);
 		tab-size: 4;
 	}
 
@@ -143,6 +142,7 @@
 	.md :global(.hljs-built_in),
 	.md :global(.hljs-selector-tag) {
 		color: var(--code-keyword);
+		font-weight: 500;
 	}
 
 	.md :global(.hljs-string),

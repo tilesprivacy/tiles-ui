@@ -1,0 +1,64 @@
+/* browser defaults, before ui.css so its tiles win over them */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	zoom: var(--zoom);
+}
+
+html,
+body {
+	height: 100%;
+	background: var(--void);
+	color-scheme: dark;
+}
+
+body {
+	font-family: var(--font-ui);
+	font-size: var(--fs-title);
+	color: var(--bone);
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	/* no fake bold, geist has the real weights */
+	font-synthesis: none;
+}
+
+button,
+input,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+/* :where, so a tile's border and drawn cut win over this reset */
+:where(button) {
+	background: none;
+	border: 0;
+	cursor: pointer;
+}
+
+a {
+	color: inherit;
+}
+
+::selection {
+	background: var(--signal);
+	color: var(--void);
+}
+
+:focus-visible {
+	outline: var(--hairline) solid var(--signal);
+	outline-offset: 2px;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}

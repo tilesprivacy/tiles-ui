@@ -50,7 +50,7 @@
 </div>
 
 {#if !following}
-	<button class="down" aria-label="Scroll to the bottom" onclick={() => down('smooth')}>
+	<button class="down tile" aria-label="Scroll to the bottom" onclick={() => down('smooth')}>
 		<Icon name="down" size={15} />
 	</button>
 {/if}
@@ -82,9 +82,7 @@
 		height: 30px;
 		display: grid;
 		place-items: center;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 50%;
-		background: var(--steel);
+		background-color: var(--steel);
 		color: var(--ash);
 	}
 </style>

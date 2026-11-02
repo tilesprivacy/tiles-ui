@@ -42,8 +42,8 @@
 </script>
 
 {#if account}
-	<button class="badge" popovertarget="account" aria-label="Your accounts">
-		<span class="avatar" class:live={tiles.atproto}>{initial}</span>
+	<button class="badge tile row-tile" popovertarget="account" aria-label="Your accounts">
+		<span class="avatar tile" class:live={tiles.atproto}>{initial}</span>
 		{#if !compact}
 			<span class="who">
 				<span>{account.nickname}</span>
@@ -52,14 +52,14 @@
 		{/if}
 	</button>
 
-	<div id="account" popover>
+	<div id="account" class="tile" popover>
 		<section>
 			<h2>Tiles Account</h2>
 			<div class="row">
 				<span class="plate initial">{initial}</span>
 				<b>{account.nickname}</b>
 			</div>
-			<button class="did" onclick={() => copy(account.id)} aria-label="Copy your DID">
+			<button class="did tile" onclick={() => copy(account.id)} aria-label="Copy your DID">
 				<span>{account.id}</span>
 				<Icon name="copy" size={13} />
 			</button>
@@ -96,7 +96,7 @@
 						placeholder="alice.bsky.social"
 						spellcheck="false"
 					/>
-					<button class="plate signal" disabled={!handle.trim()}>Connect</button>
+					<button class="plate primary" disabled={!handle.trim()}>Connect</button>
 				</form>
 				{#if error}<p class="error">{error}</p>{/if}
 			{/if}
@@ -111,12 +111,11 @@
 		align-items: center;
 		gap: 10px;
 		padding: 4px;
-		border-radius: 8px;
 		text-align: left;
 	}
 
 	.badge:hover {
-		background: var(--steel);
+		background-color: var(--steel);
 	}
 
 	.avatar {
@@ -126,21 +125,18 @@
 		flex: none;
 		display: grid;
 		place-items: center;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 50%;
-		background: var(--steel);
+		background-color: var(--steel);
 		font-weight: 600;
 	}
 
 	.avatar.live::after {
 		content: '';
 		position: absolute;
-		right: -1px;
-		bottom: -1px;
-		width: 8px;
-		height: 8px;
-		border: 2px solid var(--void);
-		border-radius: 50%;
+		/* top right, the bottom right is cut off */
+		top: 0;
+		right: 0;
+		width: 6px;
+		height: 6px;
 		background: var(--signal);
 	}
 
@@ -164,9 +160,8 @@
 		padding: 14px;
 		display: none;
 		gap: 14px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 12px;
-		background: var(--void);
+		--c: var(--cut-m);
+		background-color: var(--panel);
 		color: var(--bone);
 	}
 
@@ -210,9 +205,7 @@
 		display: flex;
 		gap: 8px;
 		padding: 8px 10px;
-		border: var(--hairline) solid var(--rule);
-		background: var(--steel);
-		clip-path: var(--clip-cut);
+		background-color: var(--steel);
 		font-family: var(--font-mono);
 		font-size: var(--fs-mono);
 		color: var(--ash);

@@ -1,52 +1,91 @@
 /* the few parts every screen shares */
 
+/*
+ * a tile, the shape of everything in Tiles: a cut bottom-right corner, with the
+ * border drawn along the cut too. --c is the cut, --line the border colour.
+ * set background-color, not background, or the drawn cut goes away.
+ * :where keeps it at zero specificity, so any rule can change --c and --line
+ */
+:where(.tile, .plate, .field, .chip, .md .code) {
+	--c: var(--cut);
+	--line: var(--rule);
+	border: var(--hairline) solid var(--line);
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%);
+	background-image: linear-gradient(
+		to bottom right,
+		transparent calc(50% - var(--hairline)),
+		var(--line) 0 50%,
+		transparent 0
+	);
+	background-origin: border-box;
+	background-position: 100% 100%;
+	background-size: var(--c) var(--c);
+	background-repeat: no-repeat;
+	transition:
+		border-color var(--dur-state),
+		background-color var(--dur-state);
+}
+
+/* the cut would hide an outline, the border lights up instead */
+:is(.tile, .plate, .field, .chip):focus-visible {
+	outline: none;
+	--line: var(--signal);
+}
+
+/* a row in a list, a tile only once it's hovered or picked */
+.row-tile {
+	--line: transparent;
+}
+
 .plate {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
 	padding: 8px 14px;
-	border: var(--hairline) solid var(--rule);
-	background: var(--steel);
+	background-color: var(--steel);
 	font-weight: 500;
 	white-space: nowrap;
 	cursor: pointer;
-	clip-path: var(--clip-cut);
-	transition: border-color var(--dur-state);
 }
 
 .plate:hover:not(:disabled) {
-	border-color: var(--slate);
+	--line: var(--slate);
 }
 
-.plate.signal {
-	background: var(--signal);
-	border-color: var(--signal);
+.plate.primary {
+	--line: var(--bone);
+	background-color: var(--bone);
 	color: var(--void);
 	font-weight: 600;
 }
 
+.plate.primary:hover:not(:disabled) {
+	--line: var(--ash);
+	background-color: var(--ash);
+}
+
 .plate.ghost {
-	background: transparent;
+	background-color: transparent;
 	color: var(--ash);
 }
 
 .plate:disabled {
+	--line: var(--rule);
+	background-color: var(--steel);
+	color: var(--slate);
 	cursor: default;
-	opacity: 0.45;
 }
 
 .field {
 	width: 100%;
 	padding: 11px 13px;
-	border: var(--hairline) solid var(--rule);
-	background: var(--steel);
-	clip-path: var(--clip-cut);
+	background-color: var(--steel);
 	outline: none;
 }
 
 .field:focus {
-	border-color: var(--signal);
+	--line: var(--signal);
 }
 
 .field::placeholder {
@@ -54,21 +93,27 @@
 }
 
 .chip {
+	--c: 3px;
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	padding: 3px 8px;
-	border: var(--hairline) solid var(--rule);
-	border-radius: 6px;
-	font-family: var(--font-mono);
-	font-size: var(--fs-mono);
+	font-size: var(--fs-label);
 	color: var(--ash);
 	white-space: nowrap;
 }
 
 .chip.alert {
+	--line: color-mix(in srgb, var(--alert) 35%, transparent);
 	color: var(--alert);
-	border-color: color-mix(in srgb, var(--alert) 35%, transparent);
+}
+
+/* something live, a tile of signal */
+.live-dot {
+	width: 6px;
+	height: 6px;
+	flex: none;
+	background: var(--signal);
 }
 
 .spin {

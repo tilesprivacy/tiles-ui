@@ -45,9 +45,9 @@
 				onstop={() => conversation?.stop()}
 			/>
 		{:else}
-			<div class="readonly">
+			<div class="readonly tile">
 				<span>Continuing older chats is coming. Start a new chat to keep going.</span>
-				<a class="plate signal" href="/">New chat</a>
+				<a class="plate primary" href="/">New chat</a>
 			</div>
 		{/if}
 	</div>
@@ -67,9 +67,8 @@
 		justify-content: space-between;
 		gap: 12px;
 		flex-wrap: wrap;
+		--c: var(--cut-m);
 		padding: 14px 16px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 12px;
 		color: var(--ash);
 	}
 

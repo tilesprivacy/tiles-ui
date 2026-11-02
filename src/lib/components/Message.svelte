@@ -33,7 +33,7 @@
 </script>
 
 {#if turn.role === 'user'}
-	<div class="user">
+	<div class="user tile">
 		{#if settings.userMarkdown}<Markdown text={turn.text} />{:else}<p>{turn.text}</p>{/if}
 	</div>
 {:else}
@@ -60,7 +60,7 @@
 						</details>
 					{:else if block.type === 'toolCall'}
 						{@const run = turn.tools?.[block.id]}
-						<details class="tool" open={settings.toolDetails}>
+						<details class="tool tile" open={settings.toolDetails}>
 							<summary>
 								<Icon name="tool" size={13} />
 								<code>{block.name}</code>
@@ -101,7 +101,7 @@
 		{/if}
 
 		{#if !live && turn.text}
-			<button class="copy" onclick={copy} aria-label="Copy the reply"
+			<button class="copy tile row-tile" onclick={copy} aria-label="Copy the reply"
 				><Icon name="copy" size={13} /></button
 			>
 		{/if}
@@ -110,12 +110,13 @@
 
 <style>
 	.user {
+		--c: var(--cut-m);
 		justify-self: end;
 		max-width: 80%;
 		padding: 9px 13px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: var(--radius);
-		background: var(--steel);
+		background-color: var(--steel);
+		font-size: var(--fs-read);
+		line-height: var(--lh-read);
 		white-space: pre-wrap;
 	}
 
@@ -127,6 +128,8 @@
 		display: grid;
 		gap: 12px;
 		min-width: 0;
+		font-size: var(--fs-read);
+		line-height: var(--lh-read);
 	}
 
 	details {
@@ -185,8 +188,6 @@
 
 	.tool {
 		padding: 8px 11px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 8px;
 	}
 
 	.tool code {
@@ -241,7 +242,6 @@
 	.copy {
 		justify-self: start;
 		padding: 4px;
-		border-radius: 6px;
 		color: var(--slate);
 		opacity: 0;
 		transition: opacity var(--dur-state);

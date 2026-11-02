@@ -4,7 +4,7 @@
 
 <ol role="status" aria-live="polite">
 	{#each toasts.list as toast (toast.id)}
-		<li>
+		<li class="tile">
 			<span>{toast.text}</span>
 			{#if toast.action}
 				<button
@@ -36,9 +36,8 @@
 		gap: 12px;
 		max-width: 360px;
 		padding: 10px 14px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: var(--radius);
-		background: var(--steel);
+		--c: var(--cut-m);
+		background-color: var(--steel);
 		font-size: var(--fs-body);
 	}
 

@@ -43,7 +43,7 @@
 		<p class="error">{models.reason}</p>
 		<button class="plate" onclick={() => models.load()}>Try again</button>
 	{:else}
-		<ul>
+		<ul class="tile">
 			{#each models.list as model (model.id)}
 				{@const info = describe(model)}
 				<li class:off={info.blocked}>
@@ -66,11 +66,11 @@
 							{info.ready ? 'Delete' : 'Discard'}
 						</button>
 					{:else if model === models.inUse && info.ready}
-						<span class="pill">In use</span>
+						<span class="chip"><span class="live-dot"></span>In use</span>
 					{:else if info.ready}
 						<button class="plate" onclick={() => act(models.use(model.model!))}>Use</button>
 						<button
-							class="icon"
+							class="icon tile row-tile"
 							aria-label="Delete {model.label}"
 							title="Delete"
 							onclick={() => (confirming = model.model)}><Icon name="trash" size={15} /></button
@@ -90,7 +90,7 @@
 							</button>
 							{#if model.download.state === 'paused'}
 								<button
-									class="icon"
+									class="icon tile row-tile"
 									aria-label="Discard the {model.label} download"
 									title="Discard"
 									onclick={() => (confirming = model.model)}><Icon name="trash" size={15} /></button
@@ -123,10 +123,9 @@
 	}
 
 	ul {
+		--c: var(--cut-m);
 		list-style: none;
-		border: var(--hairline) solid var(--rule);
-		border-radius: var(--radius);
-		overflow: hidden;
+		background-color: var(--panel);
 	}
 
 	li {
@@ -160,14 +159,7 @@
 	.tag {
 		margin-left: 6px;
 		font-size: var(--fs-label);
-		color: var(--signal);
-	}
-
-	.pill {
-		padding: 2px 9px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 999px;
-		font-size: var(--fs-label);
+		color: var(--slate);
 	}
 
 	.ask {
@@ -180,17 +172,16 @@
 		place-items: center;
 		width: 28px;
 		height: 28px;
-		border-radius: 6px;
 		color: var(--slate);
 	}
 
 	.icon:hover {
 		color: var(--alert);
-		background: var(--steel);
+		background-color: var(--steel);
 	}
 
 	.danger {
-		border-color: color-mix(in srgb, var(--alert) 45%, transparent);
+		--line: color-mix(in srgb, var(--alert) 45%, transparent);
 		color: var(--alert);
 	}
 

@@ -80,7 +80,11 @@
 		<Sidebar bind:searching onsettings={() => (settingsOpen = true)} />
 		<button class="scrim" aria-label="Close the menu" onclick={() => (menuOpen = false)}></button>
 		<main>
-			<button class="menu-button" aria-label="Open the menu" onclick={() => (menuOpen = true)}>
+			<button
+				class="menu-button tile row-tile"
+				aria-label="Open the menu"
+				onclick={() => (menuOpen = true)}
+			>
 				<Icon name="sidebar" />
 			</button>
 			{@render children()}
@@ -169,7 +173,6 @@
 			z-index: 5;
 			width: 32px;
 			height: 32px;
-			border-radius: 8px;
 			color: var(--slate);
 		}
 	}

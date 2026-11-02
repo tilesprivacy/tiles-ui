@@ -23,7 +23,7 @@
 	}}
 >
 	<button
-		class="current"
+		class="current tile"
 		aria-haspopup="listbox"
 		aria-expanded={open}
 		onclick={() => (open = !open)}
@@ -34,11 +34,16 @@
 		<Icon name="chevron" size={14} />
 	</button>
 	{#if open}
-		<ul role="listbox">
+		<ul class="tile" role="listbox">
 			{#each options as model (model.id)}
 				{@const info = describe(model)}
 				<li role="option" aria-selected={model.model === value} aria-disabled={info.blocked}>
-					<button disabled={info.blocked} onclick={() => pick(model.model)} onkeydown={close}>
+					<button
+						class="tile row-tile"
+						disabled={info.blocked}
+						onclick={() => pick(model.model)}
+						onkeydown={close}
+					>
 						<span class="name">
 							{model.label}{#if model.default}<span class="tag">Default</span>{/if}
 						</span>
@@ -62,16 +67,13 @@
 		align-items: center;
 		gap: 10px;
 		padding: 11px 14px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 8px;
-		background: var(--steel);
+		background-color: var(--steel);
 		color: var(--slate);
 		text-align: left;
 	}
 
 	.current:is(:focus-visible, [aria-expanded='true']) {
-		border-color: var(--signal);
-		outline: none;
+		--line: var(--signal);
 	}
 
 	.current .name {
@@ -90,7 +92,7 @@
 		margin-left: 6px;
 		font-size: var(--fs-label);
 		font-weight: 500;
-		color: var(--signal);
+		color: var(--slate);
 	}
 
 	ul {
@@ -98,11 +100,10 @@
 		inset: calc(100% + 6px) 0 auto;
 		z-index: 10;
 		display: grid;
+		--c: var(--cut-m);
 		padding: 4px;
 		list-style: none;
-		border: var(--hairline) solid var(--rule);
-		border-radius: 8px;
-		background: var(--void);
+		background-color: var(--panel);
 	}
 
 	li button {
@@ -111,14 +112,12 @@
 		grid-template-columns: 1fr auto;
 		gap: 2px 12px;
 		padding: 8px 10px;
-		border-radius: 6px;
 		text-align: left;
 	}
 
 	li button:is(:hover, :focus-visible):not(:disabled),
 	li[aria-selected='true'] button {
-		background: var(--steel);
-		outline: none;
+		background-color: var(--steel);
 	}
 
 	li button:disabled {

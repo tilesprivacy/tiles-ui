@@ -36,7 +36,7 @@
 	<div class="top">
 		<a href="/" aria-label="New chat"><Logo /></a>
 		<button
-			class="icon"
+			class="icon tile row-tile"
 			aria-label={rail ? 'Open the sidebar' : 'Close the sidebar'}
 			onclick={() => (settings.sidebarOpen = !settings.sidebarOpen)}
 		>
@@ -45,7 +45,7 @@
 	</div>
 
 	{#if searching && !rail}
-		<label class="search">
+		<label class="search tile">
 			<Icon name="search" size={14} />
 			<!-- svelte-ignore a11y_autofocus -->
 			<input
@@ -57,18 +57,18 @@
 		</label>
 	{:else}
 		<div class="actions">
-			<a class="act" href="/" title="New chat">
+			<a class="act tile row-tile" href="/" title="New chat">
 				<Icon name="plus" size={15} /><span>New chat</span><kbd>{keys('O', true)}</kbd>
 			</a>
 			<button
-				class="act"
+				class="act tile row-tile"
 				title="Search"
 				onclick={() => ((settings.sidebarOpen = true), (searching = true))}
 			>
 				<Icon name="search" size={15} /><span>Search</span><kbd>{keys('K')}</kbd>
 			</button>
 			<a
-				class="act"
+				class="act tile row-tile"
 				class:on={page.url.pathname === '/models'}
 				href="/models"
 				title={tip || 'Models'}
@@ -80,7 +80,7 @@
 					<Icon name="chip" size={15} /><span>Models</span>
 				{/if}
 			</a>
-			<button class="act" title="Settings" onclick={onsettings}>
+			<button class="act tile row-tile" title="Settings" onclick={onsettings}>
 				<Icon name="sliders" size={15} /><span>Settings</span>
 			</button>
 		</div>
@@ -98,7 +98,7 @@
 				<h3>{name}</h3>
 				{#each list as session (session.id)}
 					<a
-						class="chat"
+						class="chat tile row-tile"
 						class:on={page.params.id === session.id}
 						href="/chat/{session.id}"
 						title={session.name}
@@ -123,7 +123,7 @@
 		display: flex;
 		flex-direction: column;
 		border-right: var(--hairline) solid var(--rule);
-		background: var(--void);
+		background: var(--panel);
 	}
 
 	nav.rail {
@@ -148,13 +148,12 @@
 		height: 26px;
 		display: grid;
 		place-items: center;
-		border-radius: 6px;
 		color: var(--slate);
 	}
 
 	.icon:hover {
 		color: var(--bone);
-		background: var(--steel);
+		background-color: var(--steel);
 	}
 
 	.actions {
@@ -168,14 +167,13 @@
 		align-items: center;
 		gap: 10px;
 		padding: 7px 8px;
-		border-radius: 7px;
 		color: var(--ash);
 		text-decoration: none;
 	}
 
 	.act:hover,
 	.act.on {
-		background: var(--steel);
+		background-color: var(--steel);
 		color: var(--bone);
 	}
 
@@ -213,7 +211,7 @@
 	.ring :global(svg) {
 		padding: 1px;
 		border-radius: 50%;
-		background: var(--void);
+		background: var(--panel);
 		box-sizing: content-box;
 	}
 
@@ -223,9 +221,8 @@
 		align-items: center;
 		gap: 8px;
 		padding: 6px 9px;
-		border: var(--hairline) solid var(--signal);
-		border-radius: 8px;
-		background: var(--steel);
+		--line: var(--signal);
+		background-color: var(--steel);
 		color: var(--slate);
 	}
 
@@ -267,7 +264,6 @@
 		align-items: center;
 		gap: 8px;
 		padding: 6px 8px;
-		border-radius: 7px;
 		color: var(--ash);
 		text-decoration: none;
 	}
@@ -284,8 +280,12 @@
 
 	.chat:hover,
 	.chat.on {
-		background: var(--steel);
+		background-color: var(--steel);
 		color: var(--bone);
+	}
+
+	.chat.on {
+		box-shadow: inset 2px 0 var(--bone);
 	}
 
 	.foot {

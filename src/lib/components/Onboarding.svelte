@@ -76,7 +76,7 @@
 	<form class="step" onsubmit={(e) => e.preventDefault()}>
 		<Logo size={34} />
 		<div class="steps" aria-label="Step {step} of 3">
-			{#each [1, 2, 3] as n (n)}<i class:on={n <= step}></i>{/each}
+			{#each [1, 2, 3] as n (n)}<i class:done={n < step} class:on={n === step}></i>{/each}
 			<span>Step {step} of 3</span>
 		</div>
 
@@ -86,7 +86,7 @@
 			<!-- svelte-ignore a11y_autofocus -->
 			<input class="field" bind:value={nickname} placeholder="Nickname" maxlength="64" autofocus />
 			{#if error}<p class="error">{error}</p>{/if}
-			<button class="plate signal" disabled={busy || !nickname.trim()} onclick={createAccount}>
+			<button class="plate primary" disabled={busy || !nickname.trim()} onclick={createAccount}>
 				Create Tiles Account
 			</button>
 		{:else if step === 2}
@@ -104,7 +104,7 @@
 			/>
 			{#if error}<p class="error">{error}</p>{/if}
 			{#if signIn}
-				<div class="wait">
+				<div class="wait tile">
 					<span class="spin"></span>
 					<span>Waiting for your browser…</span>
 					<button class="link" onclick={() => signIn?.abort()}>Cancel</button>
@@ -114,7 +114,7 @@
 					<button class="plate ghost" onclick={() => ((step = 3), (error = ''))}
 						>Skip for now</button
 					>
-					<button class="plate signal" disabled={!handle.trim()} onclick={connect}>Connect</button>
+					<button class="plate primary" disabled={!handle.trim()} onclick={connect}>Connect</button>
 				</div>
 			{/if}
 		{:else}
@@ -124,7 +124,7 @@
 				<p class="error">{models.reason}</p>
 				<button class="plate" onclick={() => models.load()}>Try again</button>
 			{:else if listed && running(listed.download)}
-				<div class="model">
+				<div class="model tile">
 					<b>{listed.label}</b>
 					<Progress download={listed.download} />
 				</div>
@@ -137,10 +137,10 @@
 				{#if free != null}<p class="muted small">{size(free)} free on this computer</p>{/if}
 				{#if error}<p class="error">{error}</p>{/if}
 				{#if info?.ready}
-					<button class="plate signal" disabled={busy} onclick={use}>Start</button>
+					<button class="plate primary" disabled={busy} onclick={use}>Start</button>
 				{:else}
 					<button
-						class="plate signal"
+						class="plate primary"
 						disabled={busy || !listed || info?.blocked}
 						onclick={download}
 					>
@@ -182,6 +182,11 @@
 		background: var(--rule);
 	}
 
+	.steps i.done {
+		background: var(--bone);
+	}
+
+	/* the step you're on */
 	.steps i.on {
 		background: var(--signal);
 	}
@@ -217,9 +222,8 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
+		--c: var(--cut-m);
 		padding: 12px 14px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: var(--radius);
 		color: var(--ash);
 	}
 
@@ -237,9 +241,8 @@
 	.model {
 		display: grid;
 		gap: 12px;
+		--c: var(--cut-m);
 		padding: 14px;
-		border: var(--hairline) solid var(--rule);
-		border-radius: var(--radius);
 	}
 
 	.small {

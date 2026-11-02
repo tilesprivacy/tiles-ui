@@ -1,26 +1,32 @@
 /* every value the UI is styled with, in step with the menu bar app */
 
 :root {
-	--signal: #f7ff61; /* yellow means live, and nothing else */
-	--void: #111111;
+	--signal: #f7ff61; /* yellow means live: a reply, a download, the model in use, focus */
+	--void: #111111; /* the page */
+	--panel: #161616; /* the sidebar, dialogs and menus */
+	--steel: #1d1d1d; /* what you type into or press */
+	--lift: #262626; /* steel, hovered */
 	--bone: #ffffff;
 	--ash: #d4d4d8;
 	--slate: #8f8f9a;
-	--steel: #1d1d1d; /* the only fill */
 	--rule: rgba(255, 255, 255, 0.1);
+	--edge: rgba(255, 255, 255, 0.2); /* a rule that's hovered or holds focus */
 	--alert: #ff5f52;
 
-	--code-keyword: #c4b5fd;
-	--code-string: #a7f3d0;
-	--code-number: #fdba74;
-	--code-title: #93c5fd;
-	--code-added: #86efac;
+	/* code keeps to the palette, literals take a muted signal */
+	--code-text: var(--ash);
+	--code-keyword: var(--bone);
+	--code-string: #d4d98c;
+	--code-number: #eaef9f;
+	--code-title: var(--bone);
+	--code-added: #9fd4a3;
 
 	/* zoom for the whole UI, sizes below are at 1 */
 	--zoom: 1.15;
 
 	--font-ui: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--fs-read: 14px; /* chat text */
 	--fs-title: 13px;
 	--fs-body: 12px;
 	--fs-label: 11px;
@@ -28,17 +34,13 @@
 	--fs-chip: 10px;
 	--tracking-chip: 0.03em;
 	--tracking-display: -0.02em;
+	--lh-read: 1.65;
 
-	--radius: 10px;
+	/* the cut corner every tile has, larger on larger things */
 	--hairline: 1px;
-	--cut: 4px;
-	--clip-cut: polygon(
-		0 0,
-		100% 0,
-		100% calc(100% - var(--cut)),
-		calc(100% - var(--cut)) 100%,
-		0 100%
-	);
+	--cut: 4px; /* chips, buttons, fields and rows */
+	--cut-m: 8px; /* cards, menus and messages */
+	--cut-l: 12px; /* the composer and dialogs */
 
 	--dur-push: 180ms;
 	--dur-state: 140ms;
