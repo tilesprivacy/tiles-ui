@@ -14,7 +14,7 @@
 	background-image: linear-gradient(
 		to bottom right,
 		transparent calc(50% - var(--hairline)),
-		var(--cut-line, var(--line)) 0 50%,
+		var(--line) 0 50%,
 		transparent 0
 	);
 	background-origin: border-box;
@@ -50,17 +50,12 @@
 		linear-gradient(
 				to bottom right,
 				transparent calc(50% - var(--hairline)),
-				var(--cut-line, var(--line)) 0 50%,
+				var(--line) 0 50%,
 				transparent 0
 			)
 			100% 100% / var(--c) var(--c) no-repeat border-box,
 		var(--fill);
 	transition: border-color var(--dur-state);
-}
-
-/* a tile can draw its cut in signal, the mark of a main surface */
-.signed {
-	--cut-line: var(--signal);
 }
 
 /* the cut would hide an outline, the border lights up instead */
@@ -143,6 +138,44 @@
 .chip.alert {
 	--line: color-mix(in srgb, var(--alert) 35%, transparent);
 	color: var(--alert);
+}
+
+/* an on/off switch, a tile track with a square knob */
+[role='switch'] {
+	appearance: none;
+	position: relative;
+	width: 30px;
+	height: 17px;
+	flex: none;
+	background: var(--lift);
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+	cursor: pointer;
+	transition: background var(--dur-state);
+}
+
+[role='switch']::after {
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 13px;
+	height: 13px;
+	background: var(--slate);
+	transition: translate var(--dur-state) var(--ease-push);
+}
+
+[role='switch']:checked {
+	background: var(--signal);
+}
+
+[role='switch']:checked::after {
+	translate: 13px 0;
+	background: var(--void);
+}
+
+[role='switch']:disabled {
+	cursor: default;
+	opacity: 0.5;
 }
 
 /* something live, a tile of signal */

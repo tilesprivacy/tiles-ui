@@ -32,7 +32,7 @@
 	};
 </script>
 
-<dialog class="tile signed" bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
+<dialog class="tile" bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
 	<nav>
 		<h2>Settings</h2>
 		{#each tabs as name (name)}
@@ -152,38 +152,6 @@
 	small {
 		display: block;
 		font-size: var(--fs-body);
-	}
-
-	[role='switch'] {
-		appearance: none;
-		position: relative;
-		width: 30px;
-		height: 17px;
-		flex: none;
-		background: var(--lift);
-		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
-		cursor: pointer;
-		transition: background var(--dur-state);
-	}
-
-	[role='switch']::after {
-		content: '';
-		position: absolute;
-		top: 2px;
-		left: 2px;
-		width: 13px;
-		height: 13px;
-		background: var(--slate);
-		transition: translate var(--dur-state) var(--ease-push);
-	}
-
-	[role='switch']:checked {
-		background: var(--signal);
-	}
-
-	[role='switch']:checked::after {
-		translate: 13px 0;
-		background: var(--void);
 	}
 
 	.body p {

@@ -1,14 +1,22 @@
 <script lang="ts">
+	import Icon from './Icon.svelte';
 	import Progress from './Progress.svelte';
 	import { size, vram } from '#lib/format.ts';
 	import { engine, installing } from '#lib/state/engine.svelte.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
-	import type { EngineName } from '#lib/types.ts';
+	import type { EngineChoice, EngineName } from '#lib/types.ts';
 
 	const status = $derived(engine.status);
 	const install = $derived(status?.download);
 	const busy = $derived(!!install && installing(install));
-	const wanted = $derived(status?.engines.find((e) => e.engine === status.engine));
+
+	const about: Record<EngineName, string> = {
+		'cuda-13': 'NVIDIA GPUs and drivers from the last few years. The fastest on them',
+		'cuda-12': 'Older NVIDIA GPUs and drivers',
+		vulkan: 'Most GPUs, from AMD, Intel and NVIDIA',
+		cpu: 'Any computer. The slowest, and it always works',
+		metal: 'The GPU in Apple silicon Macs'
+	};
 
 	engine.load();
 
@@ -20,214 +28,283 @@
 		}
 	}
 
-	const pick = (name: EngineName | 'auto') => act(() => engine.select(name));
+	const onDisk = (choice: EngineChoice) =>
+		choice.download === 0 || status?.installed?.engine === choice.engine;
+
+	// the card's install, when it's the one downloading or the one that failed
+	const installOf = (name: EngineName) =>
+		install && 'engine' in install && install.engine === name && install.state !== 'done'
+			? install
+			: undefined;
+
+	function use(choice: EngineChoice) {
+		act(async () => {
+			await engine.select(choice.engine);
+			if (!onDisk(choice)) await engine.download();
+		});
+	}
+
+	// off keeps what runs now, as a pick of its own
+	const automatic = (on: boolean) =>
+		act(() => engine.select(on ? 'auto' : (engine.running ?? status!.engine)));
 </script>
 
 {#if engine.reason && !status}
 	<p class="error">{engine.reason}</p>
 	<button class="plate" onclick={() => engine.load()}>Try again</button>
-{:else if status && install}
-	<p class="muted intro">
-		The engine is the build of llama.cpp that runs your models. Tiles picks the fastest one for this
-		computer.
-	</p>
+{:else if status}
+	<section>
+		<h4>Hardware</h4>
+		{#each status.gpus.filter((g) => g.name) as gpu, i (i)}
+			<div class="gpu tile">
+				<Icon name="chip" size={18} />
+				<span class="name">{gpu.name}</span>
+				{#if gpu.vram}<span class="chip">{vram(gpu.vram)}</span>{/if}
+				<span class="muted small">
+					{[
+						gpu.compute_capability ? `Compute ${gpu.compute_capability}` : '',
+						gpu.vendor === 'nvidia' && status.nvidia_driver ? `Driver ${status.nvidia_driver}` : ''
+					]
+						.filter(Boolean)
+						.join(', ')}
+				</span>
+			</div>
+		{:else}
+			<div class="gpu tile">
+				<Icon name="chip" size={18} />
+				<span class="name">No GPU found</span>
+				<span class="muted small">Models run on the CPU</span>
+			</div>
+		{/each}
+	</section>
 
-	<div class="now tile">
-		<span class="muted">Models run on</span>
-		<b>{engine.runsOn.charAt(0).toUpperCase() + engine.runsOn.slice(1)}</b>
-		<span class="muted small">
-			{[
-				engine.gpu?.vram ? `${vram(engine.gpu.vram)} of GPU memory` : '',
-				status.nvidia_driver ? `NVIDIA driver ${status.nvidia_driver}` : '',
-				`llama.cpp ${status.llama_cpp}`
-			]
-				.filter(Boolean)
-				.join(', ')}
-		</span>
-		{#if status.override}
-			<p class="small">
-				Replies use the llama-server in TILES_LLAMA_SERVER_BIN, whatever is picked here:
-				<span class="mono">{status.override}</span>
-			</p>
-		{/if}
-	</div>
-
-	{#if install.state === 'downloading' || install.state === 'paused'}
-		<div class="install">
-			<span>Downloading {engine.label(install.engine)}</span>
-			<Progress download={install} />
-			{#if install.state === 'downloading'}
-				<button class="plate ghost" onclick={() => act(() => engine.pause())}>Pause</button>
-			{:else}
-				<button class="plate" onclick={() => act(() => engine.download())}>Continue</button>
-			{/if}
-		</div>
-	{:else if install.state === 'unpacking' || install.state === 'checking'}
-		<div class="install">
-			<span class="wait">
-				<span class="spin"></span>
-				{install.state === 'unpacking'
-					? `Unpacking ${engine.label(install.engine)}…`
-					: `Checking ${engine.label(install.engine)} runs here…`}
-			</span>
-		</div>
-	{:else if install.state === 'failed'}
-		<div class="install">
-			<p class="error">{install.reason}</p>
-			<button class="plate" onclick={() => act(() => engine.download())}>Try again</button>
-		</div>
-	{:else if status.needs_download && wanted}
-		<div class="install">
-			<span>
-				{wanted.label} isn't downloaded yet. Until it is, models keep running on {engine.running ===
-				'cpu'
-					? 'the CPU'
-					: engine.label(engine.running)}.
-			</span>
-			<button class="plate primary" onclick={() => act(() => engine.download())}>
-				Download {size(wanted.download)}
-			</button>
-		</div>
+	{#if status.override}
+		<p class="override tile">
+			Replies use the llama-server set in TILES_LLAMA_SERVER_BIN, whatever is picked here.
+			<span class="mono">{status.override}</span>
+		</p>
 	{/if}
 
-	<fieldset disabled={busy}>
-		<legend>Run models with</legend>
-		<label class="choice tile row-tile">
-			<input
-				type="radio"
-				name="engine"
-				checked={status.pick === 'auto'}
-				onchange={() => pick('auto')}
-			/>
+	<section>
+		<div class="head">
+			<h4>Engines</h4>
+			<span class="muted small">llama.cpp {status.llama_cpp}</span>
+		</div>
+		<label class="auto">
 			<span
-				>Automatic<small class="muted">{engine.label(status.auto)} for this computer</small></span
+				>Pick the engine automatically<small class="muted"
+					>Tiles picks {engine.label(status.auto)} for this computer</small
+				></span
 			>
+			<input
+				type="checkbox"
+				role="switch"
+				checked={status.pick === 'auto'}
+				disabled={busy}
+				onchange={(e) => automatic(e.currentTarget.checked)}
+			/>
 		</label>
-		{#each status.engines as choice (choice.engine)}
-			<label class="choice tile row-tile" class:off={choice.unavailable}>
-				<input
-					type="radio"
-					name="engine"
-					checked={status.pick === choice.engine}
-					disabled={!!choice.unavailable}
-					onchange={() => pick(choice.engine)}
-				/>
-				<span
-					>{choice.label}<small class="muted"
-						>{choice.unavailable ??
-							(status.installed?.engine === choice.engine
-								? 'On this computer'
-								: choice.download
-									? `${size(choice.download)} download`
-									: 'Comes with Tiles')}</small
-					></span
+
+		<div class="grid">
+			{#each status.engines as choice (choice.engine)}
+				{@const live = engine.running === choice.engine}
+				{@const own = installOf(choice.engine)}
+				<article
+					class="card tile"
+					class:live
+					class:off={choice.unavailable}
+					aria-label={choice.label}
 				>
-			</label>
-		{/each}
-		{#if busy}<p class="muted small">Pause the download to pick another engine.</p>{/if}
-	</fieldset>
+					<header>
+						<b>{choice.label}</b>
+						{#if live}
+							<span class="chip"><span class="live-dot"></span>In use</span>
+						{:else if choice.unavailable}
+							<span class="chip">Can't run here</span>
+						{:else if choice.engine === status.auto}
+							<span class="chip best">Best for this computer</span>
+						{/if}
+					</header>
+					<p class="muted">{choice.unavailable ?? about[choice.engine]}</p>
+
+					{#if own?.state === 'downloading' || own?.state === 'paused'}
+						<Progress download={own} />
+						{#if own.state === 'downloading'}
+							<button class="plate ghost" onclick={() => act(() => engine.pause())}>Pause</button>
+						{:else}
+							<button class="plate" onclick={() => act(() => engine.download())}>Continue</button>
+						{/if}
+					{:else if own?.state === 'unpacking' || own?.state === 'checking'}
+						<span class="wait muted small">
+							<span class="spin"></span>
+							{own.state === 'unpacking' ? 'Unpacking…' : 'Checking it runs here…'}
+						</span>
+					{:else if own?.state === 'failed'}
+						<p class="error">{own.reason}</p>
+						<button class="plate" disabled={busy} onclick={() => act(() => engine.download())}
+							>Try again</button
+						>
+					{:else if !choice.unavailable}
+						<footer>
+							<span class="muted small">
+								{choice.download === 0
+									? 'Comes with Tiles'
+									: onDisk(choice)
+										? 'On this computer'
+										: size(choice.download)}
+							</span>
+							{#if !live}
+								<button class="plate" disabled={busy} onclick={() => use(choice)}>
+									{onDisk(choice) ? 'Use' : 'Download'}
+								</button>
+							{/if}
+						</footer>
+					{/if}
+				</article>
+			{/each}
+		</div>
+		{#if busy}<p class="muted small">Pause the download to switch engines.</p>{/if}
+	</section>
 {:else}
 	<span class="spin"></span>
 {/if}
 
 <style>
-	.intro {
-		padding-bottom: 10px;
-		font-size: var(--fs-body);
-	}
-
-	.now {
-		--c: var(--cut-m);
+	section {
 		display: grid;
-		gap: 3px;
-		padding: 12px 14px;
-		background-color: var(--steel);
+		gap: 10px;
+		padding-bottom: 22px;
 	}
 
-	.now b {
-		font-weight: 600;
+	h4 {
+		font-size: var(--fs-body);
+		font-weight: 500;
+		color: var(--slate);
 	}
 
-	.now p {
-		margin-top: 6px;
-		color: var(--ash);
+	.head {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
 	}
 
 	.small {
 		font-size: var(--fs-body);
 	}
 
-	.install {
+	.gpu {
+		--c: var(--cut-m);
 		display: grid;
-		gap: 10px;
-		padding: 14px 0 4px;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 2px 12px;
+		padding: 12px 14px;
+		background-color: var(--steel);
 	}
 
-	.install .plate {
+	.gpu :global(svg) {
+		grid-row: span 2;
+		color: var(--signal);
+	}
+
+	.gpu .name {
+		font-weight: 600;
+	}
+
+	.gpu .muted {
+		grid-column: 2 / -1;
+	}
+
+	.override {
+		--c: var(--cut-m);
+		margin-bottom: 20px;
+		padding: 10px 12px;
+		font-size: var(--fs-body);
+		color: var(--ash);
+	}
+
+	.override .mono {
+		display: block;
+		margin-top: 4px;
+		color: var(--slate);
+	}
+
+	.auto {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 16px;
+		padding: 4px 0 8px;
+		cursor: pointer;
+	}
+
+	.auto small {
+		display: block;
+		font-size: var(--fs-body);
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		gap: 10px;
+	}
+
+	.card {
+		--c: var(--cut-m);
+		display: grid;
+		align-content: start;
+		gap: 8px;
+		padding: 12px 14px;
+		background-color: var(--panel);
+	}
+
+	.card.live {
+		--line: var(--edge);
+		background-color: var(--steel);
+	}
+
+	.card.off {
+		color: var(--slate);
+	}
+
+	header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 8px;
+	}
+
+	header b {
+		font-weight: 600;
+	}
+
+	.card p {
+		min-height: 2.6em;
+		font-size: var(--fs-body);
+	}
+
+	.best {
+		--line: color-mix(in srgb, var(--signal) 40%, transparent);
+		color: var(--signal);
+	}
+
+	footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 8px;
+		margin-top: 2px;
+	}
+
+	.card .plate {
 		justify-self: start;
+		padding: 5px 12px;
+		font-size: var(--fs-body);
 	}
 
 	.wait {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		color: var(--ash);
-	}
-
-	fieldset {
-		display: grid;
-		gap: 2px;
-		margin-top: 16px;
-		border: 0;
-	}
-
-	legend {
-		padding-bottom: 8px;
-		font-weight: 600;
-	}
-
-	.choice {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 9px 10px;
-		cursor: pointer;
-	}
-
-	.choice:hover:not(.off) {
-		background-color: var(--steel);
-	}
-
-	.choice.off {
-		cursor: default;
-		color: var(--slate);
-	}
-
-	.choice small {
-		display: block;
-		font-size: var(--fs-body);
-	}
-
-	input[type='radio'] {
-		appearance: none;
-		width: 13px;
-		height: 13px;
-		flex: none;
-		border: var(--hairline) solid var(--slate);
-	}
-
-	input[type='radio']:checked {
-		border-color: var(--signal);
-		background: var(--signal);
-		box-shadow: inset 0 0 0 2px var(--panel);
-	}
-
-	input[type='radio']:focus-visible {
-		outline: var(--hairline) solid var(--signal);
-		outline-offset: 2px;
-	}
-
-	fieldset:disabled .choice {
-		cursor: default;
+		gap: 8px;
 	}
 </style>
