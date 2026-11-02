@@ -3,7 +3,12 @@
 	import { vram } from '#lib/format.ts';
 	import type { Gpu } from '#lib/types.ts';
 
-	let { gpu, driver = null }: { gpu?: Gpu; driver?: string | null } = $props();
+	// apple: a Mac, its GPU runs models with Metal, which comes with Tiles
+	let {
+		gpu,
+		driver = null,
+		apple = false
+	}: { gpu?: Gpu; driver?: string | null; apple?: boolean } = $props();
 
 	const details = $derived(
 		[
@@ -17,7 +22,10 @@
 
 <div class="gpu tile">
 	<Icon name="chip" size={18} />
-	{#if gpu?.name}
+	{#if apple}
+		<span class="name">Apple silicon GPU</span>
+		<span class="muted">Runs models with Metal, which comes with Tiles</span>
+	{:else if gpu?.name}
 		<span class="name">{gpu.name}</span>
 		{#if gpu.vram}<span class="chip">{vram(gpu.vram)}</span>{/if}
 		{#if details}<span class="muted">{details}</span>{/if}

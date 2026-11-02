@@ -31,6 +31,9 @@ class Engine {
 		return status.installed?.engine ?? 'cpu';
 	});
 
+	// a Mac has Metal and nothing else to pick
+	apple = $derived(this.status?.engine === 'metal');
+
 	label = (name: EngineName | undefined) =>
 		this.status?.engines.find((e) => e.engine === name)?.label ?? name ?? '';
 

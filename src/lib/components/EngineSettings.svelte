@@ -61,7 +61,7 @@
 		{#each status.gpus.filter((g) => g.name) as gpu, i (i)}
 			<GpuCard {gpu} driver={status.nvidia_driver} />
 		{:else}
-			<GpuCard />
+			<GpuCard apple={engine.apple} />
 		{/each}
 	</section>
 
@@ -77,20 +77,22 @@
 			<h4>Engines</h4>
 			<span class="muted small">llama.cpp {status.llama_cpp}</span>
 		</div>
-		<label class="auto">
-			<span
-				>Pick the engine automatically<small class="muted"
-					>Tiles picks {engine.label(status.auto)} for this computer</small
-				></span
-			>
-			<input
-				type="checkbox"
-				role="switch"
-				checked={status.pick === 'auto'}
-				disabled={busy}
-				onchange={(e) => automatic(e.currentTarget.checked)}
-			/>
-		</label>
+		{#if !engine.apple}
+			<label class="auto">
+				<span
+					>Pick the engine automatically<small class="muted"
+						>Tiles picks {engine.label(status.auto)} for this computer</small
+					></span
+				>
+				<input
+					type="checkbox"
+					role="switch"
+					checked={status.pick === 'auto'}
+					disabled={busy}
+					onchange={(e) => automatic(e.currentTarget.checked)}
+				/>
+			</label>
+		{/if}
 
 		<div class="grid">
 			{#each status.engines as choice (choice.engine)}

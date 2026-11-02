@@ -38,7 +38,8 @@
 	$effect(() => {
 		if (step !== 3) return;
 		engine.load().then(() => {
-			if (engine.status?.override) step = 4;
+			// nothing to set up: a llama-server set by hand, or a Mac's Metal
+			if (engine.status?.override || engine.apple) step = 4;
 		});
 	});
 
