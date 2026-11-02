@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
-	import { engine } from '#lib/state/engine.svelte.ts';
 	import { describe, models } from '#lib/state/models.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
@@ -55,8 +54,7 @@
 
 		{#if open}
 			<div class="menu tile">
-				{#if engine.runsOn}<p class="muted">Runs on {engine.runsOn}</p>{/if}
-				<ul role="listbox" aria-label="Models on this computer">
+								<ul role="listbox" aria-label="Models on this computer">
 					{#each onDisk as m (m.id)}
 						<li role="option" aria-selected={m === model}>
 							<button
@@ -125,10 +123,6 @@
 		padding: 6px;
 		background-color: var(--panel);
 		font-size: var(--fs-body);
-	}
-
-	.menu p {
-		padding: 4px 8px 6px;
 	}
 
 	ul {

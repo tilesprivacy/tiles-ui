@@ -1,8 +1,10 @@
 <script lang="ts">
+	import GpuCard from './GpuCard.svelte';
 	import Logo from './Logo.svelte';
 	import ModelPicker from './ModelPicker.svelte';
 	import Progress from './Progress.svelte';
-	import { size } from '#lib/format.ts';
+	import { percent, size } from '#lib/format.ts';
+	import { engine, installing } from '#lib/state/engine.svelte.ts';
 	import { describe, isListed, models, running } from '#lib/state/models.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
 
@@ -19,9 +21,21 @@
 	const listed = $derived(chosen && isListed(chosen) ? chosen : undefined);
 	const info = $derived(chosen ? describe(chosen) : undefined);
 	const free = $derived(models.list.find(isListed)?.free_disk);
+	const gpuSetup = $derived(engine.status);
+	// the engine auto picks, as the daemon describes it
+	const best = $derived(gpuSetup?.engines.find((e) => e.engine === gpuSetup.engine));
+	const engineInstall = $derived(gpuSetup?.download);
 
+	// the GPU step. a llama-server set by hand needs no engine
 	$effect(() => {
 		if (step !== 3) return;
+		engine.load().then(() => {
+			if (engine.status?.override) step = 4;
+		});
+	});
+
+	$effect(() => {
+		if (step !== 4) return;
 		models.load().then(() => {
 			const start = models.list.find((m) => m.current) ?? models.list.find((m) => m.default);
 			picked ??= start?.model ?? null;
@@ -59,6 +73,10 @@
 		signIn = null;
 	}
 
+	// the engine downloads in the background while a model is picked
+	const downloadEngine = () => attempt(() => engine.download().then(() => (step = 4)));
+	const useCpu = () => attempt(() => engine.select('cpu').then(() => (step = 4)));
+
 	const download = () => attempt(() => models.downloadToUse(picked!).then(() => (started = true)));
 	const use = () => attempt(() => models.use(picked!).then(finish));
 	const pause = () => attempt(() => models.pause(picked!));
@@ -75,9 +93,9 @@
 <main>
 	<form class="step" onsubmit={(e) => e.preventDefault()}>
 		<Logo size={34} />
-		<div class="steps" aria-label="Step {step} of 3">
-			{#each [1, 2, 3] as n (n)}<i class:on={n <= step}></i>{/each}
-			<span>Step {step} of 3</span>
+		<div class="steps" aria-label="Step {step} of 4">
+			{#each [1, 2, 3, 4] as n (n)}<i class:on={n <= step}></i>{/each}
+			<span>Step {step} of 4</span>
 		</div>
 
 		{#if step === 1}
@@ -117,6 +135,41 @@
 					<button class="plate primary" disabled={!handle.trim()} onclick={connect}>Connect</button>
 				</div>
 			{/if}
+		{:else if step === 3}
+			<h1>Set up your GPU</h1>
+			<p class="muted">
+				Tiles runs models on your GPU when it can. That takes an engine, a one-time download.
+			</p>
+			{#if engine.reason && !gpuSetup}
+				<p class="error">{engine.reason}</p>
+				<button class="plate" onclick={() => engine.load()}>Try again</button>
+			{:else if !gpuSetup || !engineInstall}
+				<span class="spin"></span>
+			{:else}
+				<GpuCard gpu={engine.gpu} driver={gpuSetup.nvidia_driver} />
+				{#if error}<p class="error">{error}</p>{/if}
+				{#if installing(engineInstall)}
+					<p class="muted small">{engine.label(gpuSetup.engine)} is downloading.</p>
+					<button class="plate primary" onclick={() => (step = 4)}>Continue</button>
+				{:else if !gpuSetup.needs_download || !best}
+					<p class="muted small">
+						{gpuSetup.engine === 'cpu'
+							? 'Models run on the CPU. You can pick an engine any time in Settings.'
+							: `${engine.label(gpuSetup.engine)} is ready.`}
+					</p>
+					<button class="plate primary" onclick={() => (step = 4)}>Continue</button>
+				{:else}
+					<p class="muted small">
+						The engine for it is {best.label}, a {size(best.download)} download.
+					</p>
+					<div class="row">
+						<button class="plate ghost" disabled={busy} onclick={useCpu}>Use the CPU</button>
+						<button class="plate primary" disabled={busy} onclick={downloadEngine}>
+							Download and continue
+						</button>
+					</div>
+				{/if}
+			{/if}
 		{:else}
 			<h1>Download your model</h1>
 			<p class="muted">Tiles runs this model on your computer. Nothing you type leaves it.</p>
@@ -133,7 +186,11 @@
 					<button class="plate" onclick={finish}>Explore Tiles meanwhile</button>
 				</div>
 			{:else}
-				<ModelPicker options={models.list} bind:value={picked} />
+				<ModelPicker
+					options={models.list}
+					bind:value={picked}
+					vram={gpuSetup?.engine === 'cpu' ? null : engine.gpu?.vram}
+				/>
 				{#if free != null}<p class="muted small">{size(free)} free on this computer</p>{/if}
 				{#if error}<p class="error">{error}</p>{/if}
 				{#if info?.ready}
@@ -148,6 +205,14 @@
 					</button>
 				{/if}
 				<button class="link" onclick={finish}>Skip for now</button>
+			{/if}
+			{#if engineInstall?.state === 'downloading'}
+				<p class="muted small">
+					{engine.label(engineInstall.engine)} is downloading in the background, {percent(
+						engineInstall.done,
+						engineInstall.total
+					)}%
+				</p>
 			{/if}
 		{/if}
 	</form>

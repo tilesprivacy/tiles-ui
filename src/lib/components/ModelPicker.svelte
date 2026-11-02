@@ -1,9 +1,13 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
-	import { describe } from '#lib/state/models.svelte.ts';
+	import { describe, fit } from '#lib/state/models.svelte.ts';
 	import type { Model } from '#lib/types.ts';
 
-	let { options, value = $bindable() }: { options: Model[]; value: string | null } = $props();
+	let {
+		options,
+		value = $bindable(),
+		vram = null
+	}: { options: Model[]; value: string | null; vram?: number | null } = $props();
 
 	let open = $state(false);
 	const chosen = $derived(options.find((m) => m.model === value));
@@ -48,7 +52,9 @@
 							{model.label}{#if model.default}<span class="tag">Default</span>{/if}
 						</span>
 						<span class="muted">{info.size}</span>
-						{#if info.note}<span class="note muted">{info.note}</span>{/if}
+						{#if info.note || fit(model, vram)}
+							<span class="note muted">{info.note || fit(model, vram)}</span>
+						{/if}
 					</button>
 				</li>
 			{/each}

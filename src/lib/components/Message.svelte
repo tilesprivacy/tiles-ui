@@ -26,6 +26,31 @@
 		return values.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))).join(' ');
 	};
 
+	// opens and closes with the stream when settings ask for it, a click wins otherwise
+	function unfold(node: HTMLDetailsElement, want: boolean) {
+		let was = want;
+		if (want) node.open = true;
+		return {
+			update(next: boolean) {
+				if (next !== was) node.open = next;
+				was = next;
+			}
+		};
+	}
+
+	// keeps live reasoning on its newest line, unless it was scrolled up
+	function follow(node: HTMLElement, _text: string) {
+		let pinned = true;
+		const onscroll = () => (pinned = node.scrollHeight - node.scrollTop - node.clientHeight < 24);
+		node.addEventListener('scroll', onscroll);
+		return {
+			update() {
+				if (pinned) node.scrollTop = node.scrollHeight;
+			},
+			destroy: () => node.removeEventListener('scroll', onscroll)
+		};
+	}
+
 	async function copy() {
 		await navigator.clipboard.writeText(turn.text);
 		toasts.show('Copied');
@@ -44,7 +69,11 @@
 					{@const key = blockKey(m, b)}
 					{@const time = turn.thought?.[key]}
 					{#if block.type === 'thinking' && block.thinking.trim()}
-						<details class="reasoning" open={key === reasoning && settings.openReasoning}>
+						<details
+							class="reasoning"
+							class:live={key === reasoning}
+							use:unfold={key === reasoning && settings.openReasoning}
+						>
 							<summary>
 								<Icon name="brain" size={13} />
 								{#if key === reasoning}
@@ -55,12 +84,13 @@
 								{:else}
 									Reasoning
 								{/if}
+								<span class="fold"><Icon name="chevron" size={12} /></span>
 							</summary>
-							<p>{block.thinking}</p>
+							<p use:follow={block.thinking}>{block.thinking}</p>
 						</details>
 					{:else if block.type === 'toolCall'}
 						{@const run = turn.tools?.[block.id]}
-						<details class="tool tile" open={settings.toolDetails}>
+						<details class="tool tile" use:unfold={settings.toolDetails}>
 							<summary>
 								<Icon name="tool" size={13} />
 								<code>{block.name}</code>
@@ -152,8 +182,31 @@
 
 	.reasoning {
 		padding: 2px 0 2px 12px;
-		border-left: var(--hairline) solid var(--rule);
+		border-left: 2px solid var(--rule);
 		color: var(--slate);
+		transition: border-color var(--dur-state);
+	}
+
+	/* reasoning that's streaming right now is live */
+	.reasoning.live {
+		border-left-color: var(--signal);
+	}
+
+	.reasoning.live summary :global(svg:first-child) {
+		color: var(--signal);
+	}
+
+	.reasoning summary:hover {
+		color: var(--ash);
+	}
+
+	.fold {
+		display: grid;
+		transition: rotate var(--dur-state) var(--ease-push);
+	}
+
+	.reasoning[open] .fold {
+		rotate: 180deg;
 	}
 
 	.status {
@@ -168,7 +221,11 @@
 	}
 
 	.reasoning p {
-		margin-top: 6px;
+		max-height: 320px;
+		margin-top: 8px;
+		overflow-y: auto;
+		font-size: var(--fs-title);
+		line-height: 1.6;
 		white-space: pre-wrap;
 	}
 

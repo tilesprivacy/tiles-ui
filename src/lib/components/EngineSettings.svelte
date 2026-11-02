@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Icon from './Icon.svelte';
+	import GpuCard from './GpuCard.svelte';
 	import Progress from './Progress.svelte';
-	import { size, vram } from '#lib/format.ts';
+	import { size } from '#lib/format.ts';
 	import { engine, installing } from '#lib/state/engine.svelte.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 	import type { EngineChoice, EngineName } from '#lib/types.ts';
@@ -56,25 +56,9 @@
 	<section>
 		<h4>Hardware</h4>
 		{#each status.gpus.filter((g) => g.name) as gpu, i (i)}
-			<div class="gpu tile">
-				<Icon name="chip" size={18} />
-				<span class="name">{gpu.name}</span>
-				{#if gpu.vram}<span class="chip">{vram(gpu.vram)}</span>{/if}
-				<span class="muted small">
-					{[
-						gpu.compute_capability ? `Compute ${gpu.compute_capability}` : '',
-						gpu.vendor === 'nvidia' && status.nvidia_driver ? `Driver ${status.nvidia_driver}` : ''
-					]
-						.filter(Boolean)
-						.join(', ')}
-				</span>
-			</div>
+			<GpuCard {gpu} driver={status.nvidia_driver} />
 		{:else}
-			<div class="gpu tile">
-				<Icon name="chip" size={18} />
-				<span class="name">No GPU found</span>
-				<span class="muted small">Models run on the CPU</span>
-			</div>
+			<GpuCard />
 		{/each}
 	</section>
 
@@ -190,29 +174,6 @@
 
 	.small {
 		font-size: var(--fs-body);
-	}
-
-	.gpu {
-		--c: var(--cut-m);
-		display: grid;
-		grid-template-columns: auto 1fr auto;
-		align-items: center;
-		gap: 2px 12px;
-		padding: 12px 14px;
-		background-color: var(--steel);
-	}
-
-	.gpu :global(svg) {
-		grid-row: span 2;
-		color: var(--signal);
-	}
-
-	.gpu .name {
-		font-weight: 600;
-	}
-
-	.gpu .muted {
-		grid-column: 2 / -1;
 	}
 
 	.override {

@@ -22,14 +22,6 @@ class Engine {
 		return status.installed?.engine ?? 'cpu';
 	});
 
-	// "CUDA 13.4 on the NVIDIA GeForce RTX 5060 Ti", or "the CPU"
-	runsOn = $derived.by(() => {
-		const name = this.running;
-		if (!name) return '';
-		if (name === 'cpu') return 'the CPU';
-		return this.gpu?.name ? `${this.label(name)} on the ${this.gpu.name}` : this.label(name);
-	});
-
 	label = (name: EngineName | undefined) =>
 		this.status?.engines.find((e) => e.engine === name)?.label ?? name ?? '';
 

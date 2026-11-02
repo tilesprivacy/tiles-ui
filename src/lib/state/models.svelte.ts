@@ -9,6 +9,17 @@ export const isListed = (model: Model): model is Listed => !('error' in model);
 export const running = (download: Download) =>
 	download.state === 'downloading' || download.state === 'verifying';
 
+// room a model needs past its file, for its context and llama.cpp itself
+const GPU_SPARE = 1.5e9;
+
+// whether a model's file fits in GPU memory. '' when that's not known
+export function fit(model: Model, vram: number | null | undefined) {
+	if (!vram || !isListed(model) || !model.total) return '';
+	return model.total + GPU_SPARE <= vram
+		? 'Fits your GPU'
+		: 'Bigger than your GPU, part runs on the CPU';
+}
+
 // free space a download must leave, same as the daemon's check
 const SPARE = 1e9;
 
