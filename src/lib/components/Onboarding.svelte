@@ -76,7 +76,7 @@
 	<form class="step" onsubmit={(e) => e.preventDefault()}>
 		<Logo size={34} />
 		<div class="steps" aria-label="Step {step} of 3">
-			{#each [1, 2, 3] as n (n)}<i class:done={n < step} class:on={n === step}></i>{/each}
+			{#each [1, 2, 3] as n (n)}<i class:on={n <= step}></i>{/each}
 			<span>Step {step} of 3</span>
 		</div>
 
@@ -182,11 +182,6 @@
 		background: var(--rule);
 	}
 
-	.steps i.done {
-		background: var(--bone);
-	}
-
-	/* the step you're on */
 	.steps i.on {
 		background: var(--signal);
 	}

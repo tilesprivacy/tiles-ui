@@ -1,7 +1,8 @@
 /* every value the UI is styled with, in step with the menu bar app */
 
 :root {
-	--signal: #f7ff61; /* yellow means live: a reply, a download, the model in use, focus */
+	/* yellow marks what's live, what's on and where you are. a touch on every screen, never a big fill */
+	--signal: #f7ff61;
 	--void: #111111; /* the page */
 	--panel: #161616; /* the sidebar, dialogs and menus */
 	--steel: #1d1d1d; /* what you type into or press */

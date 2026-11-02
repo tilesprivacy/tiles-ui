@@ -92,7 +92,7 @@
 		margin-left: 6px;
 		font-size: var(--fs-label);
 		font-weight: 500;
-		color: var(--slate);
+		color: var(--signal);
 	}
 
 	ul {

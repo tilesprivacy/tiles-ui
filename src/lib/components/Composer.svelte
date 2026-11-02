@@ -79,7 +79,7 @@
 </script>
 
 <form
-	class="composer frame"
+	class="composer frame signed"
 	onsubmit={(e) => {
 		e.preventDefault();
 		send();

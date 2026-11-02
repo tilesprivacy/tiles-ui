@@ -159,7 +159,7 @@
 	.tag {
 		margin-left: 6px;
 		font-size: var(--fs-label);
-		color: var(--slate);
+		color: var(--signal);
 	}
 
 	.ask {

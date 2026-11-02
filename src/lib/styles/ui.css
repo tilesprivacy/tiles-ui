@@ -14,7 +14,7 @@
 	background-image: linear-gradient(
 		to bottom right,
 		transparent calc(50% - var(--hairline)),
-		var(--line) 0 50%,
+		var(--cut-line, var(--line)) 0 50%,
 		transparent 0
 	);
 	background-origin: border-box;
@@ -50,12 +50,17 @@
 		linear-gradient(
 				to bottom right,
 				transparent calc(50% - var(--hairline)),
-				var(--line) 0 50%,
+				var(--cut-line, var(--line)) 0 50%,
 				transparent 0
 			)
 			100% 100% / var(--c) var(--c) no-repeat border-box,
 		var(--fill);
 	transition: border-color var(--dur-state);
+}
+
+/* a tile can draw its cut in signal, the mark of a main surface */
+.signed {
+	--cut-line: var(--signal);
 }
 
 /* the cut would hide an outline, the border lights up instead */

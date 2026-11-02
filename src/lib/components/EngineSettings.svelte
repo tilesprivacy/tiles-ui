@@ -217,8 +217,8 @@
 	}
 
 	input[type='radio']:checked {
-		border-color: var(--bone);
-		background: var(--bone);
+		border-color: var(--signal);
+		background: var(--signal);
 		box-shadow: inset 0 0 0 2px var(--panel);
 	}
 

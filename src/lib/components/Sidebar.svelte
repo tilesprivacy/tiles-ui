@@ -284,8 +284,9 @@
 		color: var(--bone);
 	}
 
+	.act.on,
 	.chat.on {
-		box-shadow: inset 2px 0 var(--bone);
+		box-shadow: inset 2px 0 var(--signal);
 	}
 
 	.foot {

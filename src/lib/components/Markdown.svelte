@@ -63,6 +63,10 @@
 		text-decoration-color: var(--slate);
 	}
 
+	.md :global(a:hover) {
+		text-decoration-color: var(--signal);
+	}
+
 	.md :global(blockquote) {
 		border-left: var(--hairline) solid var(--rule);
 		padding-left: 12px;

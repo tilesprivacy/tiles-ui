@@ -32,7 +32,7 @@
 	};
 </script>
 
-<dialog class="tile" bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
+<dialog class="tile signed" bind:this={dialog} onclose={() => (open = false)} aria-label="Settings">
 	<nav>
 		<h2>Settings</h2>
 		{#each tabs as name (name)}
@@ -121,6 +121,10 @@
 		color: var(--bone);
 	}
 
+	nav button.on {
+		box-shadow: inset 2px 0 var(--signal);
+	}
+
 	.body {
 		padding: 22px 26px;
 		overflow-y: auto;
@@ -174,7 +178,7 @@
 	}
 
 	[role='switch']:checked {
-		background: var(--bone);
+		background: var(--signal);
 	}
 
 	[role='switch']:checked::after {
