@@ -36,15 +36,36 @@ pub fn init(problem: Option<String>) {
 
 /// the window to the front, made if there's none
 pub fn open(app: &AppHandle) {
+    show(app, None);
+}
+
+/// the window on one of the UI's pages, like `/chat/<id>`
+#[cfg(target_os = "macos")]
+pub fn open_at(app: &AppHandle, path: &str) {
+    show(app, Some(path));
+}
+
+fn show(app: &AppHandle, path: Option<&str>) {
     #[cfg(target_os = "macos")]
     in_dock(app, true);
     if let Some(window) = app.get_webview_window(LABEL) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+        // the layout routes it without a reload, see `tiles:open` in +layout.svelte
+        if let Some(path) = path {
+            let path = serde_json::to_string(path).expect("a string always serializes");
+            let _ = window.eval(format!(
+                "window.dispatchEvent(new CustomEvent('tiles:open', {{ detail: {path} }}))"
+            ));
+        }
         return;
     }
-    match build(app) {
+    // the app's pages fall back to index.html, which routes to the path
+    let url = path.map_or_else(WebviewUrl::default, |path| {
+        WebviewUrl::App(path.trim_start_matches('/').into())
+    });
+    match build(app, url) {
         #[cfg(target_os = "macos")]
         Ok(window) => {
             let app = app.clone();
@@ -74,9 +95,9 @@ fn in_dock(app: &AppHandle, shown: bool) {
     }
 }
 
-fn build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
+fn build(app: &AppHandle, url: WebviewUrl) -> tauri::Result<WebviewWindow> {
     let scale = TEXT_SCALE.get().copied().unwrap_or(1.0);
-    let window = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::default())
+    let window = WebviewWindowBuilder::new(app, LABEL, url)
         .title("Tiles")
         .inner_size(WIDTH * scale, HEIGHT * scale)
         .min_inner_size(MIN_WIDTH * scale, MIN_HEIGHT * scale)

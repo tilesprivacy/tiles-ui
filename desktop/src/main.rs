@@ -31,6 +31,7 @@ fn main() {
             menubar::panel::panel_ready,
             menubar::panel::resize_panel,
             menubar::panel::quit_app,
+            menubar::panel::open_chat,
             menubar::paths::data_dir,
             menubar::paths::reveal_path,
             menubar::clipboard::copy_text,

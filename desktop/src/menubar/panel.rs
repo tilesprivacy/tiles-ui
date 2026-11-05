@@ -360,6 +360,17 @@ pub fn quit_app(app: AppHandle) {
     super::daemon::quit(&app);
 }
 
+/// a chat from the panel's list, opened in the chat window
+#[tauri::command]
+pub fn open_chat(app: AppHandle, id: String) {
+    // ids come from the daemon, anything else never reaches a url
+    if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        return;
+    }
+    hide(&app);
+    crate::window::open_at(&app, &format!("/chat/{id}"));
+}
+
 /// frontend reporting it has painted a frame, see [`warm_up`]
 #[tauri::command]
 pub fn panel_ready(app: AppHandle) {
