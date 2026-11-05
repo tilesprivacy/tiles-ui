@@ -63,3 +63,14 @@ test('every POST says it is JSON, even without a body', async () => {
 		})
 	);
 });
+
+test('in the desktop app, calls go to the daemon the app names', async () => {
+	vi.stubGlobal('__TILES_DESKTOP__', { daemon: 'http://127.0.0.1:1729' });
+	const fetch = vi.fn(async () => Response.json({ status: 'success', data: 1 }));
+	vi.stubGlobal('fetch', fetch);
+	await api('account/status');
+	expect(fetch).toHaveBeenCalledWith(
+		'http://127.0.0.1:1729/v1/tilekit/account/status',
+		expect.anything()
+	);
+});

@@ -1,7 +1,12 @@
 import { api, ApiError, stream } from '#lib/api.ts';
+import { desktop } from '#lib/desktop.ts';
 import type { Account, Atproto, LoadedModel } from '#lib/types.ts';
 
-type Phase = 'loading' | 'welcome' | 'starting' | 'ready' | 'failed';
+// connecting: the desktop app is still bringing the daemon up
+type Phase = 'loading' | 'connecting' | 'welcome' | 'starting' | 'ready' | 'failed';
+
+// the app starts the daemon, a daemon still down after this isn't coming
+const CONNECT_TRIES = 30;
 
 const status = (err: unknown) => (err instanceof ApiError ? err.status : -1);
 const reason = (err: unknown) => (err instanceof Error ? err.message : String(err));
@@ -19,7 +24,7 @@ class Tiles {
 	async boot() {
 		this.phase = 'loading';
 		try {
-			this.account = await api<Account>('account/status');
+			this.account = await this.reach();
 		} catch (err) {
 			if (status(err) === 404) this.phase = 'welcome';
 			else this.fail(err);
@@ -35,6 +40,23 @@ class Tiles {
 			}
 		}
 		this.phase = 'ready';
+	}
+
+	// in the app, waits while the daemon comes up
+	async reach() {
+		const app = desktop();
+		if (app?.problem) throw new Error(app.problem);
+		for (let tries = 1; ; tries++) {
+			try {
+				return await api<Account>('account/status');
+			} catch (err) {
+				if (!app || status(err) !== 0) throw err;
+				if (tries === CONNECT_TRIES)
+					throw new Error("Tiles isn't running. Start it with `tiles daemon start`.");
+				this.phase = 'connecting';
+				await new Promise((done) => setTimeout(done, 1000));
+			}
+		}
 	}
 
 	async createAccount(nickname: string) {
@@ -62,6 +84,8 @@ class Tiles {
 			const message = JSON.parse(data);
 			if (event === 'authorize') {
 				if (tab) tab.location.href = message.url;
+				// the app gives no tab, leaving for the link opens it in the browser
+				else if (desktop()) location.assign(message.url);
 				else window.open(message.url, '_blank', 'noopener');
 			} else if (event === 'signed_in') {
 				this.atproto = message;

@@ -1,3 +1,5 @@
+import { desktop } from './desktop.ts';
+
 export class ApiError extends Error {
 	constructor(
 		readonly status: number,
@@ -24,7 +26,7 @@ function init(method: string, body?: unknown, signal?: AbortSignal): RequestInit
 async function send(path: string, request: RequestInit) {
 	let res: Response;
 	try {
-		res = await fetch(`/v1/tilekit/${path}`, request);
+		res = await fetch(`${desktop()?.daemon ?? ''}/v1/tilekit/${path}`, request);
 	} catch (err) {
 		if (request.signal?.aborted) throw err;
 		throw unreachable();

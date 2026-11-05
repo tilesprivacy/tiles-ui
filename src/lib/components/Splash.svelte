@@ -18,6 +18,9 @@
 		<h1>Tiles couldn't start</h1>
 		<p class="error">{tiles.reason}</p>
 		<button class="plate" onclick={() => tiles.boot()}>Try again</button>
+	{:else if tiles.phase === 'connecting'}
+		<h1>Starting Tiles…</h1>
+		<p class="muted">Waiting for Tiles to come up.</p>
 	{:else if tiles.phase === 'starting'}
 		<h1>Starting Tiles…</h1>
 		<p class="muted">Getting the model server ready. This only happens once after Tiles starts.</p>
