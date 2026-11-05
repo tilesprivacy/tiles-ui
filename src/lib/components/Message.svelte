@@ -140,7 +140,7 @@
 
 <style>
 	.user {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		justify-self: end;
 		max-width: 80%;
 		padding: 9px 13px;

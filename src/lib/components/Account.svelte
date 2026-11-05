@@ -164,7 +164,7 @@
 		padding: 14px;
 		display: none;
 		gap: 14px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		background-color: var(--panel);
 		color: var(--bone);
 	}

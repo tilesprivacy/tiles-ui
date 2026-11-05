@@ -123,7 +123,7 @@
 	}
 
 	ul {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		list-style: none;
 		background-color: var(--panel);
 	}

@@ -110,7 +110,7 @@
 	}
 
 	.md :global(.code) {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		background-color: var(--steel);
 	}
 

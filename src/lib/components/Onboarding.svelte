@@ -334,7 +334,7 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		padding: 12px 14px;
 		color: var(--ash);
 	}
@@ -353,7 +353,7 @@
 	.model {
 		display: grid;
 		gap: 12px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		padding: 14px;
 	}
 

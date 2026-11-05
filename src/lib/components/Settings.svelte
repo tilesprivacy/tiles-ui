@@ -80,7 +80,7 @@
 		height: min(600px, calc(100dvh - 32px));
 		margin: auto;
 		padding: 0;
-		--c: var(--cut-l);
+		--r: var(--radius-l);
 		background-color: var(--panel);
 		color: var(--bone);
 	}
@@ -119,10 +119,6 @@
 	nav button:hover {
 		background-color: var(--steel);
 		color: var(--bone);
-	}
-
-	nav button.on {
-		box-shadow: inset 2px 0 var(--signal);
 	}
 
 	.body {

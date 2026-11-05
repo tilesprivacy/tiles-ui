@@ -1,64 +1,21 @@
 /* the few parts every screen shares */
 
 /*
- * a tile, the shape of everything in Tiles: a cut bottom-right corner, with the
- * border drawn along the cut too. --c is the cut, --line the border colour.
- * set background-color, not background, or the drawn cut goes away.
- * :where keeps it at zero specificity, so any rule can change --c and --line
+ * a tile, the shape of everything in Tiles: a hairline border with softly rounded
+ * corners. --r is the radius, --line the border colour.
+ * :where keeps it at zero specificity, so any rule can change --r and --line
  */
 :where(.tile, .plate, .field, .chip, .md .code) {
-	--c: var(--cut);
+	--r: var(--radius);
 	--line: var(--rule);
 	border: var(--hairline) solid var(--line);
-	clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%);
-	background-image: linear-gradient(
-		to bottom right,
-		transparent calc(50% - var(--hairline)),
-		var(--line) 0 50%,
-		transparent 0
-	);
-	background-origin: border-box;
-	background-position: 100% 100%;
-	background-size: var(--c) var(--c);
-	background-repeat: no-repeat;
+	border-radius: var(--r);
 	transition:
 		border-color var(--dur-state),
 		background-color var(--dur-state);
 }
 
-/*
- * the same shape drawn behind its content, for tiles a menu opens out of.
- * the cut on .tile clips everything inside it, this leaves the element unclipped.
- * set --fill for its colour
- */
-:where(.frame) {
-	--c: var(--cut);
-	--line: var(--rule);
-	--fill: transparent;
-	position: relative;
-	isolation: isolate;
-}
-
-.frame::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	z-index: -1;
-	border: var(--hairline) solid var(--line);
-	clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%);
-	background:
-		linear-gradient(
-				to bottom right,
-				transparent calc(50% - var(--hairline)),
-				var(--line) 0 50%,
-				transparent 0
-			)
-			100% 100% / var(--c) var(--c) no-repeat border-box,
-		var(--fill);
-	transition: border-color var(--dur-state);
-}
-
-/* the cut would hide an outline, the border lights up instead */
+/* the border lights up instead of an outline around it */
 :where(:root:not([data-input='pointer'])) :is(.tile, .plate, .field, .chip):focus-visible {
 	outline: none;
 	--line: var(--signal);
@@ -67,6 +24,20 @@
 /* a row in a list, a tile only once it's hovered or picked */
 .row-tile {
 	--line: transparent;
+}
+
+/* a picked row gets a short bar on its left, clear of the rounded corners */
+.row-tile.on {
+	position: relative;
+}
+
+.row-tile.on::before {
+	content: '';
+	position: absolute;
+	inset: 28% auto 28% 0;
+	width: 2px;
+	border-radius: 2px;
+	background-color: var(--signal);
 }
 
 .plate {
@@ -125,7 +96,6 @@
 }
 
 .chip {
-	--c: 3px;
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;

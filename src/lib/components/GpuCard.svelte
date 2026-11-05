@@ -41,7 +41,7 @@
 
 <style>
 	.gpu {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		display: grid;
 		grid-template-columns: auto 1fr auto;
 		align-items: center;

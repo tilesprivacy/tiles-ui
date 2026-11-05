@@ -67,7 +67,7 @@
 		justify-content: space-between;
 		gap: 12px;
 		flex-wrap: wrap;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		padding: 14px 16px;
 		color: var(--ash);
 	}
