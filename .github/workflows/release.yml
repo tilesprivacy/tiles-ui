@@ -27,3 +27,57 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "${GITHUB_REF_NAME}" "tiles-ui-${GITHUB_REF_NAME}.tar.gz" --title "${GITHUB_REF_NAME}" --generate-notes
+
+  # the desktop app, with the UI built into it. unsigned for now
+  desktop-linux:
+    needs: release
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.95.0
+      # 22.04 for an older glibc, the app runs on more distros
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev librsvg2-dev
+      - run: npm ci
+      # the app takes the tag's version, package.json still has the -dev one
+      - run: npx tauri build --no-bundle --config "{\"version\":\"${GITHUB_REF_NAME#v}\"}"
+      - name: Package the app
+        run: |
+          NAME="tiles-desktop-${GITHUB_REF_NAME}-x86_64-linux"
+          mkdir "${NAME}"
+          cp desktop/target/release/tiles-desktop desktop/linux/tiles.desktop "${NAME}/"
+          cp desktop/icons/128x128@2x.png "${NAME}/tiles.png"
+          tar -czf "${NAME}.tar.gz" "${NAME}"
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" "tiles-desktop-${GITHUB_REF_NAME}-x86_64-linux.tar.gz"
+
+  desktop-macos:
+    needs: release
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.95.0
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - run: npm ci
+      # one app for Apple silicon and Intel Macs
+      - run: npx tauri build --bundles app --target universal-apple-darwin --config "{\"version\":\"${GITHUB_REF_NAME#v}\"}"
+      - name: Package the app
+        run: ditto -c -k --keepParent desktop/target/universal-apple-darwin/release/bundle/macos/Tiles.app "tiles-desktop-${GITHUB_REF_NAME}-macos.zip"
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" "tiles-desktop-${GITHUB_REF_NAME}-macos.zip"

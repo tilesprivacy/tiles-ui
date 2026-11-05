@@ -1,0 +1,11 @@
+# Tiles' install.sh puts the full path of tiles-desktop in Exec
+[Desktop Entry]
+Type=Application
+Name=Tiles
+Comment=A local-first AI assistant that works for you
+Exec=tiles-desktop
+Icon=tiles
+Terminal=false
+Categories=Utility;
+StartupNotify=true
+StartupWMClass=tiles-desktop
