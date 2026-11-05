@@ -3,6 +3,7 @@
 	import Account from './Account.svelte';
 	import Icon from './Icon.svelte';
 	import Logo from './Logo.svelte';
+	import { dragsWindow } from '#lib/drag.ts';
 	import { keys, percent, size, timeLeft } from '#lib/format.ts';
 	import { models } from '#lib/state/models.svelte.ts';
 	import { sessions } from '#lib/state/sessions.svelte.ts';
@@ -33,7 +34,8 @@
 </script>
 
 <nav class:rail aria-label="Tiles">
-	<div class="top">
+	<!-- in the app's own title bar on Linux, where its empty space moves the window -->
+	<div class="top" use:dragsWindow>
 		<a href="/" aria-label="New chat"><Logo /></a>
 		<button
 			class="icon tile row-tile"
@@ -130,6 +132,14 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 12px 12px 8px 14px;
+	}
+
+	nav:not(.rail) .top {
+		min-height: var(--titlebar, 0);
+	}
+
+	:global(.chrome) nav:not(.rail) .top {
+		padding-block: 0;
 	}
 
 	.rail .top {

@@ -1,0 +1,17 @@
+{
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "chat",
+	"description": "The title bar the UI draws on Linux moves, sizes and closes its window.",
+	"windows": ["chat"],
+	"platforms": ["linux"],
+	"permissions": [
+		"core:window:allow-minimize",
+		"core:window:allow-toggle-maximize",
+		"core:window:allow-close",
+		"core:window:allow-is-maximized",
+		"core:window:allow-start-dragging",
+		"core:window:allow-start-resize-dragging",
+		"core:event:allow-listen",
+		"core:event:allow-unlisten"
+	]
+}

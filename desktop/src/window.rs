@@ -21,10 +21,14 @@ const GROUND: Color = Color(0x11, 0x11, 0x11, 0xff);
 
 static TEXT_SCALE: OnceLock<f64> = OnceLock::new();
 static PROBLEM: OnceLock<String> = OnceLock::new();
+#[cfg(target_os = "linux")]
+static TITLEBAR: OnceLock<serde_json::Value> = OnceLock::new();
 
 /// on the main thread, where gtk can be asked. `problem` is why Tiles couldn't be started
 pub fn init(problem: Option<String>) {
     TEXT_SCALE.get_or_init(text_scale);
+    #[cfg(target_os = "linux")]
+    TITLEBAR.get_or_init(titlebar);
     if let Some(problem) = problem {
         let _ = PROBLEM.set(problem);
     }
@@ -72,7 +76,7 @@ fn in_dock(app: &AppHandle, shown: bool) {
 
 fn build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     let scale = TEXT_SCALE.get().copied().unwrap_or(1.0);
-    WebviewWindowBuilder::new(app, LABEL, WebviewUrl::default())
+    let window = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::default())
         .title("Tiles")
         .inner_size(WIDTH * scale, HEIGHT * scale)
         .min_inner_size(MIN_WIDTH * scale, MIN_HEIGHT * scale)
@@ -92,8 +96,11 @@ fn build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
                 open_outside(&url);
             }
             NewWindowResponse::Deny
-        })
-        .build()
+        });
+    // the UI draws the title bar, see Titlebar.svelte
+    #[cfg(target_os = "linux")]
+    let window = window.decorations(false);
+    window.build()
 }
 
 /// tells the UI where the daemon is, see desktop.ts
@@ -101,6 +108,10 @@ fn desktop_script() -> String {
     let mut desktop = serde_json::json!({ "daemon": daemon::url() });
     if let Some(problem) = PROBLEM.get() {
         desktop["problem"] = problem.as_str().into();
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(titlebar) = TITLEBAR.get() {
+        desktop["titlebar"] = titlebar.clone();
     }
     format!("window.__TILES_DESKTOP__ = {desktop};")
 }
@@ -144,6 +155,36 @@ fn text_scale() -> f64 {
     1.0
 }
 
+/// the window buttons where the desktop puts them, from gtk's `gtk-decoration-layout`
+#[cfg(target_os = "linux")]
+fn titlebar() -> serde_json::Value {
+    use gtk::prelude::GtkSettingsExt;
+
+    let layout = gtk::Settings::default()
+        .and_then(|settings| settings.gtk_decoration_layout())
+        .map_or_else(
+            || ":minimize,maximize,close".to_owned(),
+            |layout| layout.to_string(),
+        );
+    buttons(&layout)
+}
+
+/// `icon:minimize,maximize,close` is left of the colon and right of it, a layout
+/// without one is all left. names the UI doesn't draw, like icon or menu, are dropped
+#[cfg(target_os = "linux")]
+fn buttons(layout: &str) -> serde_json::Value {
+    let (left, right) = layout.split_once(':').unwrap_or((layout, ""));
+    let side = |names: &str| -> Vec<String> {
+        names
+            .split(',')
+            .map(str::trim)
+            .filter(|name| matches!(*name, "minimize" | "maximize" | "close"))
+            .map(str::to_owned)
+            .collect()
+    };
+    serde_json::json!({ "left": side(left), "right": side(right) })
+}
+
 /// webkitgtk's dmabuf renderer trips explicit sync on NVIDIA under Wayland and
 /// the window stays blank. read by webkit at start, before any thread exists
 #[cfg(target_os = "linux")]
@@ -181,5 +222,36 @@ mod tests {
         for url in outside {
             assert!(!is_inside(&url.parse().unwrap()), "{url}");
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn window_buttons_follow_the_desktop() {
+        let sides = |layout| {
+            let buttons = buttons(layout);
+            (buttons["left"].clone(), buttons["right"].clone())
+        };
+        assert_eq!(
+            sides("icon:minimize,maximize,close"),
+            (
+                serde_json::json!([]),
+                serde_json::json!(["minimize", "maximize", "close"])
+            )
+        );
+        assert_eq!(
+            sides("appmenu:close"),
+            (serde_json::json!([]), serde_json::json!(["close"]))
+        );
+        assert_eq!(
+            sides("close,minimize:"),
+            (
+                serde_json::json!(["close", "minimize"]),
+                serde_json::json!([])
+            )
+        );
+        assert_eq!(
+            sides("close"),
+            (serde_json::json!(["close"]), serde_json::json!([]))
+        );
     }
 }

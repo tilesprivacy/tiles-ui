@@ -7,12 +7,14 @@
 	import Settings from '#lib/components/Settings.svelte';
 	import Sidebar from '#lib/components/Sidebar.svelte';
 	import Splash from '#lib/components/Splash.svelte';
+	import Titlebar from '#lib/components/Titlebar.svelte';
 	import Toasts from '#lib/components/Toasts.svelte';
 	import { engine } from '#lib/state/engine.svelte.ts';
 	import { models } from '#lib/state/models.svelte.ts';
 	import { sessions } from '#lib/state/sessions.svelte.ts';
 	import { settings } from '#lib/state/settings.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
+	import { desktop } from '#lib/desktop.ts';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -85,34 +87,55 @@
 	onmousedowncapture={() => (document.documentElement.dataset.input = 'pointer')}
 />
 
-{#if tiles.phase === 'ready'}
-	<div class="shell" class:menu={menuOpen}>
-		{#if tiles.offline}
-			<p class="offline" role="alert"><span class="spin"></span>Tiles stopped. Reconnecting…</p>
+<div class="window" class:chrome={!!desktop()?.titlebar}>
+	{#if desktop()?.titlebar}
+		<Titlebar />
+	{/if}
+	<div class="view">
+		{#if tiles.phase === 'ready'}
+			<div class="shell" class:menu={menuOpen}>
+				{#if tiles.offline}
+					<p class="offline" role="alert"><span class="spin"></span>Tiles stopped. Reconnecting…</p>
+				{/if}
+				<Sidebar bind:searching onsettings={() => (settingsOpen = true)} />
+				<button class="scrim" aria-label="Close the menu" onclick={() => (menuOpen = false)}
+				></button>
+				<main>
+					<button
+						class="menu-button tile row-tile"
+						aria-label="Open the menu"
+						onclick={() => (menuOpen = true)}
+					>
+						<Icon name="sidebar" />
+					</button>
+					{@render children()}
+				</main>
+			</div>
+			<Settings bind:open={settingsOpen} />
+		{:else if tiles.phase === 'welcome'}
+			<Onboarding />
+		{:else}
+			<Splash />
 		{/if}
-		<Sidebar bind:searching onsettings={() => (settingsOpen = true)} />
-		<button class="scrim" aria-label="Close the menu" onclick={() => (menuOpen = false)}></button>
-		<main>
-			<button
-				class="menu-button tile row-tile"
-				aria-label="Open the menu"
-				onclick={() => (menuOpen = true)}
-			>
-				<Icon name="sidebar" />
-			</button>
-			{@render children()}
-		</main>
 	</div>
-	<Settings bind:open={settingsOpen} />
-{:else if tiles.phase === 'welcome'}
-	<Onboarding />
-{:else}
-	<Splash />
-{/if}
+</div>
 
 <Toasts />
 
 <style>
+	.window {
+		position: relative;
+		height: 100%;
+	}
+
+	.chrome {
+		--titlebar: 36px;
+	}
+
+	.view {
+		height: 100%;
+	}
+
 	.shell {
 		height: 100%;
 		display: grid;
@@ -125,11 +148,13 @@
 		min-height: 0;
 		display: flex;
 		flex-direction: column;
+		padding-top: var(--titlebar, 0);
 	}
 
+	/* under the title bar the app draws, not over it */
 	.offline {
-		position: fixed;
-		inset: 0 0 auto;
+		position: absolute;
+		inset: var(--titlebar, 0) 0 auto;
 		z-index: 40;
 		display: flex;
 		align-items: center;
