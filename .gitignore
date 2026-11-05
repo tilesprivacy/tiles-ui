@@ -5,3 +5,7 @@ node_modules
 .env
 .env.*
 vite.config.ts.timestamp-*
+
+# the desktop app
+/desktop/target
+/desktop/gen

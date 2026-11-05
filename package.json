@@ -12,12 +12,14 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
-		"test": "vitest run"
+		"test": "vitest run",
+		"desktop": "tauri"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "4.0.0",
 		"@sveltejs/kit": "3.1.0",
 		"@sveltejs/vite-plugin-svelte": "7.3.1",
+		"@tauri-apps/cli": "2.11.4",
 		"@types/node": "22.20.5",
 		"prettier": "3.9.10",
 		"prettier-plugin-svelte": "4.1.1",
