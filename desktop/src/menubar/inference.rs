@@ -4,7 +4,9 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use super::{daemon, tray};
+use super::daemon;
+#[cfg(target_os = "macos")]
+use super::tray;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
@@ -88,6 +90,7 @@ fn set(app: &AppHandle, next: State) {
     if *state == next {
         return;
     }
+    #[cfg(target_os = "macos")]
     let power = next.power;
     *state = next.clone();
     drop(state);
@@ -95,8 +98,11 @@ fn set(app: &AppHandle, next: State) {
     let _ = app.emit(STATE_EVENT, next);
 
     // the status item dims with the panel's mark, and AppKit wants the main thread
-    let handle = app.clone();
-    let _ = app.run_on_main_thread(move || tray::set_live(&handle, power == Power::On));
+    #[cfg(target_os = "macos")]
+    {
+        let handle = app.clone();
+        let _ = app.run_on_main_thread(move || tray::set_live(&handle, power == Power::On));
+    }
 }
 
 fn set_power(app: &AppHandle, power: Power) {

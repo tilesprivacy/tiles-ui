@@ -3,7 +3,6 @@
 
 mod daemon;
 mod login;
-#[cfg(target_os = "macos")]
 mod menubar;
 #[cfg(target_os = "linux")]
 mod tray;
@@ -63,11 +62,9 @@ fn main() {
                 eprintln!("[daemon] {problem}");
             }
             window::init(problem);
+            menubar::init(app.handle())?;
             #[cfg(target_os = "macos")]
-            let icon = {
-                menubar::init(app.handle())?;
-                true
-            };
+            let icon = true;
             #[cfg(target_os = "linux")]
             let icon = tray::init(app.handle());
             // at login only the icon comes up, when there is one to come back through

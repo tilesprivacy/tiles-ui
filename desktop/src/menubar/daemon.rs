@@ -3,7 +3,9 @@
 use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
 
-use super::{account, atproto, inference, lid, remote, sessions};
+#[cfg(target_os = "macos")]
+use super::lid;
+use super::{account, atproto, inference, remote, sessions};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
@@ -107,6 +109,7 @@ async fn watch(app: AppHandle) {
         .expect("a client with only a timeout set always builds");
 
     loop {
+        #[cfg(target_os = "macos")]
         lid::wake();
 
         match ping(&liveness).await {
