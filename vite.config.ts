@@ -22,7 +22,9 @@ export default defineConfig({
 	server: {
 		proxy: {
 			// same origin, like the daemon's own UI. changeOrigin passes the daemon's Host check
-			'/v1': { target: daemon, changeOrigin: true }
+			'/v1': { target: daemon, changeOrigin: true },
+			// the menu bar panel's own dev server, see desktop/panel
+			'/panel': { target: 'http://localhost:1420', ws: true }
 		}
 	}
 });

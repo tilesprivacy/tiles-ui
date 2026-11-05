@@ -32,14 +32,41 @@ pub fn init(problem: Option<String>) {
 
 /// the window to the front, made if there's none
 pub fn open(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    in_dock(app, true);
     if let Some(window) = app.get_webview_window(LABEL) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
         return;
     }
-    if let Err(err) = build(app) {
-        eprintln!("[window] couldn't open the window: {err}");
+    match build(app) {
+        #[cfg(target_os = "macos")]
+        Ok(window) => {
+            let app = app.clone();
+            window.on_window_event(move |event| {
+                if matches!(event, tauri::WindowEvent::Destroyed) {
+                    in_dock(&app, false);
+                }
+            });
+        }
+        #[cfg(not(target_os = "macos"))]
+        Ok(_) => {}
+        Err(err) => eprintln!("[window] couldn't open the window: {err}"),
+    }
+}
+
+/// a menu bar app, in the Dock only while the window is open. the switch has to
+/// come before the window shows
+#[cfg(target_os = "macos")]
+fn in_dock(app: &AppHandle, shown: bool) {
+    let policy = if shown {
+        tauri::ActivationPolicy::Regular
+    } else {
+        tauri::ActivationPolicy::Accessory
+    };
+    if let Err(err) = app.set_activation_policy(policy) {
+        eprintln!("[window] couldn't change the Dock icon: {err}");
     }
 }
 
