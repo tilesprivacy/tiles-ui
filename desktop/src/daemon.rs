@@ -38,6 +38,28 @@ pub fn start() -> Result<(), String> {
     Ok(())
 }
 
+/// Stops the daemon and waits for it, for the tray's Quit
+#[cfg(target_os = "linux")]
+pub fn stop() {
+    if cfg!(debug_assertions) && env::var_os("TILES_BIN").is_none() {
+        return;
+    }
+    let Some(tiles) = tiles() else {
+        return;
+    };
+    let stopped = Command::new(&tiles)
+        .args(["daemon", "stop"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .status();
+    if let Err(err) = stopped {
+        eprintln!(
+            "[daemon] couldn't stop Tiles with {}: {err}",
+            tiles.display()
+        );
+    }
+}
+
 /// the `tiles` CLI. a Mac app gets no shell PATH, the install folders come first
 fn tiles() -> Option<PathBuf> {
     if let Some(bin) = env::var_os("TILES_BIN") {

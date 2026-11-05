@@ -1,9 +1,12 @@
-//! The Tiles desktop app, the UI in a window of its own and on a Mac the menu
-//! bar. It starts the daemon the UI talks to, and the menu bar's Quit stops it
+//! The Tiles desktop app, the UI in a window of its own, with the menu bar on a
+//! Mac and a tray on Linux. It starts the daemon the UI talks to, and Quit stops it
 
 mod daemon;
+mod login;
 #[cfg(target_os = "macos")]
 mod menubar;
+#[cfg(target_os = "linux")]
+mod tray;
 mod window;
 
 fn main() {
@@ -14,7 +17,12 @@ fn main() {
         // has to be registered first, so a second copy exits before it opens a window
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             window::open(app);
-        }));
+        }))
+        .plugin(
+            tauri_plugin_autostart::Builder::new()
+                .arg(login::BACKGROUND)
+                .build(),
+        );
 
     #[cfg(target_os = "macos")]
     let builder = builder
@@ -56,15 +64,31 @@ fn main() {
             }
             window::init(problem);
             #[cfg(target_os = "macos")]
-            menubar::init(app.handle())?;
-            window::open(app.handle());
+            let icon = {
+                menubar::init(app.handle())?;
+                true
+            };
+            #[cfg(target_os = "linux")]
+            let icon = tray::init(app.handle());
+            // at login only the icon comes up, when there is one to come back through
+            let background = std::env::args().any(|arg| arg == login::BACKGROUND);
+            if !(background && icon) {
+                window::open(app.handle());
+            }
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("failed to start the Tiles app")
         .run(|app, event| {
-            #[cfg(not(target_os = "macos"))]
-            let _ = (app, event);
+            #[cfg(target_os = "linux")]
+            if let tauri::RunEvent::ExitRequested {
+                code: None, api, ..
+            } = event
+                // the tray keeps it running with the window closed
+                && app.tray_by_id(tray::ID).is_some()
+            {
+                api.prevent_exit();
+            }
             #[cfg(target_os = "macos")]
             match event {
                 // the menu bar keeps running with the window closed

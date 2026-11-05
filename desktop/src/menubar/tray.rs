@@ -11,8 +11,8 @@ use tauri_nspanel::objc2::rc::Retained;
 use tauri_nspanel::objc2::runtime::{AnyObject, Sel};
 use tauri_nspanel::objc2::{AnyThread, DefinedClass, MainThreadOnly, define_class, msg_send, sel};
 use tauri_nspanel::objc2_app_kit::{
-    NSAutoresizingMaskOptions, NSEvent, NSImage, NSMenu, NSMenuItem, NSStatusBar, NSStatusItem,
-    NSVariableStatusItemLength, NSView,
+    NSAutoresizingMaskOptions, NSControlStateValueOff, NSControlStateValueOn, NSEvent, NSImage,
+    NSMenu, NSMenuItem, NSStatusBar, NSStatusItem, NSVariableStatusItemLength, NSView,
 };
 use tauri_nspanel::objc2_foundation::{
     MainThreadMarker, NSData, NSObjectProtocol, NSPoint, NSSize, NSString,
@@ -135,6 +135,14 @@ define_class!(
             crate::window::open(&self.ivars().app);
         }
 
+        #[unsafe(method(login:))]
+        fn login(&self, sender: Option<&NSMenuItem>) {
+            let on = crate::login::toggle(&self.ivars().app);
+            if let Some(item) = sender {
+                item.setState(checked(on));
+            }
+        }
+
         #[unsafe(method(quit:))]
         fn quit(&self, _sender: Option<&AnyObject>) {
             daemon::quit(&self.ivars().app);
@@ -218,8 +226,20 @@ fn build_menu(mtm: MainThreadMarker, target: &StatusTarget) -> Retained<NSMenu> 
 
     // quit is unconditional
     menu.addItem(&item(mtm, target, "Open Tiles", sel!(open:), "o"));
+    let login = item(mtm, target, "Start at Login", sel!(login:), "");
+    login.setState(checked(crate::login::enabled(&target.ivars().app)));
+    menu.addItem(&login);
+    menu.addItem(&NSMenuItem::separatorItem(mtm));
     menu.addItem(&item(mtm, target, "Quit Tiles", sel!(quit:), "q"));
     menu
+}
+
+fn checked(on: bool) -> isize {
+    if on {
+        NSControlStateValueOn
+    } else {
+        NSControlStateValueOff
+    }
 }
 
 /// the panel loses key before the click that caused it is delivered, so this
