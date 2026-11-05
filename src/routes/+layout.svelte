@@ -60,6 +60,11 @@
 	}
 
 	function shortcut(e: KeyboardEvent) {
+		// from anywhere, not only the search box. a dialog takes its own Escape
+		if (e.key === 'Escape' && searching && !(e.target as Element).closest('dialog')) {
+			searching = false;
+			return;
+		}
 		if (!(e.metaKey || e.ctrlKey) || tiles.phase !== 'ready') return;
 		const key = e.key.toLowerCase();
 		if (key === 'k') searching = !searching;
@@ -72,7 +77,13 @@
 	}
 </script>
 
-<svelte:window onkeydown={shortcut} />
+<!-- focus rings only once Tab moves focus. WebKit also shows them when a dialog hands
+     focus back after a click or an Escape, and WebKitGTK sends no pointerdown to listen for -->
+<svelte:window
+	onkeydown={shortcut}
+	onkeydowncapture={(e) => e.key === 'Tab' && delete document.documentElement.dataset.input}
+	onmousedowncapture={() => (document.documentElement.dataset.input = 'pointer')}
+/>
 
 {#if tiles.phase === 'ready'}
 	<div class="shell" class:menu={menuOpen}>

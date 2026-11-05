@@ -79,7 +79,11 @@
 			{:else if signIn}
 				<div class="row">
 					<span class="spin"></span>
-					<span>Waiting for your browser…</span>
+					{#if tiles.authorizing}
+						<span>Waiting for your browser…</span>
+					{:else}
+						<span>Getting the sign-in page ready…</span>
+					{/if}
 					<button class="link" onclick={() => signIn?.abort()}>Cancel</button>
 				</div>
 			{:else}

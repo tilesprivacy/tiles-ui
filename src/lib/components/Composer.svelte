@@ -144,6 +144,8 @@
 
 	textarea {
 		max-height: 200px;
+		/* it wraps, and WebKit under the root zoom still thinks it's wider than it is */
+		overflow-x: hidden;
 		border: 0;
 		background: none;
 		outline: none;

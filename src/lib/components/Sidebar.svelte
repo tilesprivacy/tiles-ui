@@ -48,12 +48,7 @@
 		<label class="search tile">
 			<Icon name="search" size={14} />
 			<!-- svelte-ignore a11y_autofocus -->
-			<input
-				bind:value={query}
-				placeholder="Search chats"
-				autofocus
-				onkeydown={(e) => e.key === 'Escape' && (searching = false)}
-			/>
+			<input bind:value={query} placeholder="Search chats" autofocus />
 		</label>
 	{:else}
 		<div class="actions">
@@ -221,7 +216,7 @@
 		align-items: center;
 		gap: 8px;
 		padding: 6px 9px;
-		--line: var(--signal);
+		--line: var(--edge);
 		background-color: var(--steel);
 		color: var(--slate);
 	}

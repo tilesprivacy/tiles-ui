@@ -59,7 +59,7 @@
 }
 
 /* the cut would hide an outline, the border lights up instead */
-:is(.tile, .plate, .field, .chip):focus-visible {
+:where(:root:not([data-input='pointer'])) :is(.tile, .plate, .field, .chip):focus-visible {
 	outline: none;
 	--line: var(--signal);
 }
@@ -117,7 +117,7 @@
 }
 
 .field:focus {
-	--line: var(--signal);
+	--line: var(--edge);
 }
 
 .field::placeholder {
