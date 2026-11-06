@@ -10,7 +10,7 @@
 	span {
 		display: block;
 		flex: none;
-		color: var(--signal);
+		color: var(--bone);
 	}
 
 	span :global(svg) {
