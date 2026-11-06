@@ -4,6 +4,7 @@
 	import type { Model } from '#lib/types.ts';
 	import { size } from '#lib/format.ts';
 	import { describe, isListed, models, running } from '#lib/state/models.svelte.ts';
+	import { tiles } from '#lib/state/tiles.svelte.ts';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 
 	const free = $derived(models.list.find(isListed)?.free_disk);
@@ -12,9 +13,19 @@
 
 	async function remove(model: Model) {
 		confirming = null;
+		const unload = model === models.inUse;
 		try {
-			const freed = await models.remove(model.model!);
-			toasts.show(`Deleted ${model.label}, ${size(freed)} freed`);
+			const { freed, current } = await models.remove(model.model!, unload);
+			if (!unload) {
+				toasts.show(`Deleted ${model.label}, ${size(freed)} freed`);
+				return;
+			}
+			const next = models.list.find((m) => m.model === current);
+			toasts.show(
+				`Deleted ${model.label}. ${next ? `Chats use ${next.label} now` : 'Download a model to keep chatting'}`
+			);
+			// the model server stopped with it
+			tiles.ping();
 		} catch (err) {
 			toasts.show((err as Error).message);
 		}
@@ -59,7 +70,11 @@
 					</div>
 					{#if confirming === model.model}
 						<span class="ask"
-							>{info.ready ? 'Delete it from this computer?' : 'Discard the download?'}</span
+							>{!info.ready
+								? 'Discard the download?'
+								: model === models.inUse
+									? 'Chats use it. Unload and delete it?'
+									: 'Delete it from this computer?'}</span
 						>
 						<button class="plate ghost" onclick={() => (confirming = null)}>Cancel</button>
 						<button class="plate danger" onclick={() => remove(model)}>
@@ -67,6 +82,12 @@
 						</button>
 					{:else if model === models.inUse && info.ready}
 						<span class="chip"><span class="live-dot"></span>In use</span>
+						<button
+							class="icon tile row-tile"
+							aria-label="Delete {model.label}"
+							title="Delete"
+							onclick={() => (confirming = model.model)}><Icon name="trash" size={15} /></button
+						>
 					{:else if info.ready}
 						<button class="plate" onclick={() => act(models.use(model.model!))}>Use</button>
 						<button

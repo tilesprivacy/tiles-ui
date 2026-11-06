@@ -10,7 +10,6 @@
 	let conversation = $state<Conversation | null>(null);
 
 	const id = $derived(page.params.id!);
-	const live = $derived(!!conversation && chats.live === conversation);
 	const title = $derived(sessions.list.find((s) => s.id === id)?.name ?? 'Chat');
 
 	$effect(() => {
@@ -32,24 +31,14 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && conversation?.stop()} />
 
 {#if conversation}
-	<Thread
-		turns={conversation.turns}
-		onretry={live ? (text) => conversation?.send(text) : undefined}
-	/>
+	<Thread turns={conversation.turns} onretry={(text) => conversation?.send(text)} />
 	<div class="bottom">
-		{#if live}
-			<Composer
-				draft={id}
-				streaming={conversation.streaming}
-				onsend={(text) => conversation?.send(text)}
-				onstop={() => conversation?.stop()}
-			/>
-		{:else}
-			<div class="readonly tile">
-				<span>Continuing older chats is coming. Start a new chat to keep going.</span>
-				<a class="plate primary" href="/">New chat</a>
-			</div>
-		{/if}
+		<Composer
+			draft={id}
+			streaming={conversation.streaming}
+			onsend={(text) => conversation?.send(text)}
+			onstop={() => conversation?.stop()}
+		/>
 	</div>
 {/if}
 
@@ -59,22 +48,5 @@
 		max-width: 728px;
 		margin: 0 auto;
 		padding: 12px 24px 18px;
-	}
-
-	.readonly {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-		flex-wrap: wrap;
-		--r: var(--radius-m);
-		padding: 14px 16px;
-		color: var(--ash);
-	}
-
-	.readonly .plate {
-		padding: 6px 12px;
-		font-size: var(--fs-body);
-		text-decoration: none;
 	}
 </style>

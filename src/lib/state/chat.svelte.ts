@@ -26,11 +26,9 @@ class Conversation {
 		const prompt = text.trim();
 		if (!prompt || this.streaming) return false;
 		this.streaming = true;
-		// Pi loses its chat when Tiles restarts
-		if (!(await this.#inPi())) {
+		// Pi is in another chat, or lost this one when Tiles restarted
+		if (!(await this.#inPi()) && !(await this.#resume())) {
 			this.streaming = false;
-			if (chats.live === this) chats.live = null;
-			toasts.show("Tiles restarted, so this chat can't go on. Start a new chat to keep going.");
 			return false;
 		}
 		sessions.busy.add(this.id);
@@ -81,6 +79,18 @@ class Conversation {
 		return true;
 	}
 
+	// Pi goes on with it in a fresh session, the daemon hands Pi the chat so far
+	async #resume() {
+		try {
+			await api('session/resume', 'POST', { session_id: this.id });
+			chats.live = this;
+			return true;
+		} catch (err) {
+			toasts.show((err as Error).message);
+			return false;
+		}
+	}
+
 	#inPi() {
 		return api<{ sessionId: string }>('agent/state').then(
 			(state) => state.sessionId === this.id,
@@ -109,7 +119,7 @@ class Conversation {
 }
 
 class Chats {
-	// the chat Pi is in, the only one that can go on for now
+	// the chat Pi is in, any other one is resumed on its next message
 	live = $state<Conversation | null>(null);
 
 	async start(text: string) {
@@ -119,7 +129,7 @@ class Chats {
 		this.live.send(text);
 	}
 
-	// old chats are read only, unless Pi is still in one after a reload
+	// Pi may still be in it after a reload
 	async open(id: string) {
 		if (this.live?.id === id) return this.live;
 		const conversation = new Conversation(id);
