@@ -39,9 +39,9 @@
 
 	/* the cut corner every tile has, larger on larger things */
 	--hairline: 1px;
-	--cut: 4px; /* chips, buttons, fields and rows */
-	--cut-m: 8px; /* cards, menus and messages */
-	--cut-l: 12px; /* the composer and dialogs */
+	--radius: 6px; /* chips, buttons, fields and rows */
+	--radius-m: 10px; /* cards, menus and messages */
+	--radius-l: 14px; /* the composer and dialogs */
 
 	--dur-push: 180ms;
 	--dur-state: 140ms;

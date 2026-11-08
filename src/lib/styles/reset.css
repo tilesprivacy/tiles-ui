@@ -58,6 +58,10 @@ a {
 	outline-offset: 2px;
 }
 
+:where([data-input='pointer']) :focus-visible {
+	outline: none;
+}
+
 * {
 	scrollbar-width: thin;
 	scrollbar-color: var(--rule) transparent;

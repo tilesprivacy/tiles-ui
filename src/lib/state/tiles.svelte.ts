@@ -17,6 +17,8 @@ class Tiles {
 	offline = $state(false);
 	account = $state<Account | null>(null);
 	atproto = $state<Atproto | null>(null);
+	// the sign-in page has been handed to the browser
+	authorizing = $state(false);
 	// the inference server, and the model it has loaded
 	server = $state<'on' | 'off' | 'starting'>('off');
 	model = $state<LoadedModel | null>(null);
@@ -80,19 +82,28 @@ class Tiles {
 	// open `tab` right on the click, or the popup blocker stops it
 	async signIn(handle: string, tab: Window | null, signal: AbortSignal) {
 		const body = { user_handle: handle.trim().replace(/^@/, '') };
-		for await (const { event, data } of stream('atproto/login', { method: 'POST', body, signal })) {
-			const message = JSON.parse(data);
-			if (event === 'authorize') {
-				if (tab) tab.location.href = message.url;
-				// the app gives no tab, leaving for the link opens it in the browser
-				else if (desktop()) location.assign(message.url);
-				else window.open(message.url, '_blank', 'noopener');
-			} else if (event === 'signed_in') {
-				this.atproto = message;
-				return;
-			} else if (event === 'error') {
-				throw new Error(message.reason);
+		try {
+			for await (const { event, data } of stream('atproto/login', {
+				method: 'POST',
+				body,
+				signal
+			})) {
+				const message = JSON.parse(data);
+				if (event === 'authorize') {
+					this.authorizing = true;
+					if (tab) tab.location.href = message.url;
+					// the app gives no tab, leaving for the link opens it in the browser
+					else if (desktop()) location.assign(message.url);
+					else window.open(message.url, '_blank', 'noopener');
+				} else if (event === 'signed_in') {
+					this.atproto = message;
+					return;
+				} else if (event === 'error') {
+					throw new Error(message.reason);
+				}
 			}
+		} finally {
+			this.authorizing = false;
 		}
 		if (!signal.aborted) throw new Error('Sign-in stopped before it finished. Try again.');
 	}

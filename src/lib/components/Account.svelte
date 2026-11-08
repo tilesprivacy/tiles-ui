@@ -79,7 +79,11 @@
 			{:else if signIn}
 				<div class="row">
 					<span class="spin"></span>
-					<span>Waiting for your browser…</span>
+					{#if tiles.authorizing}
+						<span>Waiting for your browser…</span>
+					{:else}
+						<span>Getting the sign-in page ready…</span>
+					{/if}
 					<button class="link" onclick={() => signIn?.abort()}>Cancel</button>
 				</div>
 			{:else}
@@ -160,7 +164,7 @@
 		padding: 14px;
 		display: none;
 		gap: 14px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		background-color: var(--panel);
 		color: var(--bone);
 	}

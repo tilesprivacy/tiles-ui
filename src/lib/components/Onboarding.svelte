@@ -138,7 +138,11 @@
 			{#if signIn}
 				<div class="wait tile">
 					<span class="spin"></span>
-					<span>Waiting for your browser…</span>
+					{#if tiles.authorizing}
+						<span>Waiting for your browser…</span>
+					{:else}
+						<span>Getting the sign-in page ready…</span>
+					{/if}
 					<button class="link" onclick={() => signIn?.abort()}>Cancel</button>
 				</div>
 			{:else}
@@ -330,7 +334,7 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		padding: 12px 14px;
 		color: var(--ash);
 	}
@@ -349,7 +353,7 @@
 	.model {
 		display: grid;
 		gap: 12px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		padding: 14px;
 	}
 

@@ -202,7 +202,7 @@
 	}
 
 	.override {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		margin-bottom: 20px;
 		padding: 10px 12px;
 		font-size: var(--fs-body);
@@ -236,7 +236,7 @@
 	}
 
 	.card {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		display: grid;
 		align-content: start;
 		gap: 8px;

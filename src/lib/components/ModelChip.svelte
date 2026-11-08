@@ -112,7 +112,7 @@
 	}
 
 	.menu {
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		position: absolute;
 		right: 0;
 		bottom: calc(100% + 8px);

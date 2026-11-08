@@ -25,9 +25,11 @@
 </section>
 
 <style>
+	/* one column up to 620px wide, sized by the space beside the sidebar */
 	section {
 		flex: 1;
 		display: grid;
+		grid-template-columns: minmax(0, 620px);
 		place-content: center;
 		gap: 6px;
 		padding: 0 24px;
@@ -41,7 +43,6 @@
 	}
 
 	.box {
-		width: min(620px, calc(100vw - 48px));
 		margin-top: 16px;
 		text-align: left;
 	}

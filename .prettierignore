@@ -3,3 +3,4 @@ package-lock.json
 /.svelte-kit
 /desktop/target
 /desktop/gen
+/desktop/panel

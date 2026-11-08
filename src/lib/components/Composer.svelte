@@ -79,7 +79,7 @@
 </script>
 
 <form
-	class="composer frame"
+	class="composer tile"
 	onsubmit={(e) => {
 		e.preventDefault();
 		send();
@@ -131,8 +131,8 @@
 
 <style>
 	.composer {
-		--c: var(--cut-l);
-		--fill: var(--steel);
+		--r: var(--radius-l);
+		background-color: var(--steel);
 		display: grid;
 		gap: 10px;
 		padding: 12px 12px 10px 14px;
@@ -144,6 +144,8 @@
 
 	textarea {
 		max-height: 200px;
+		/* it wraps, and WebKit under the root zoom still thinks it's wider than it is */
+		overflow-x: hidden;
 		border: 0;
 		background: none;
 		outline: none;

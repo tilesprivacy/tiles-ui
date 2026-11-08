@@ -107,11 +107,14 @@ class Models {
 		await this.load();
 	}
 
-	// deletes its files and returns the bytes freed
-	async remove(model: string) {
-		const { freed } = await api<{ freed: number }>('model/delete', 'POST', { model });
+	// deletes its files. `unload` lets the model chats use go too, chats then use `current`
+	async remove(model: string, unload = false) {
+		const gone = await api<{ freed: number; current: string | null }>('model/delete', 'POST', {
+			model,
+			unload
+		});
 		await this.load();
-		return freed;
+		return gone;
 	}
 
 	async downloadToUse(model: string) {

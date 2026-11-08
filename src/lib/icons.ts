@@ -17,6 +17,10 @@ export const icons = {
 	check: '<path d="m5 12 5 5 9-10"/>',
 	chevron: '<path d="m6 9 6 6 6-6"/>',
 	x: '<path d="M6 6l12 12M18 6 6 18"/>',
+	minimize: '<path d="M6 12h12"/>',
+	maximize: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
+	restore:
+		'<rect x="5" y="9" width="10" height="10" rx="1.5"/><path d="M9 9V6.5A1.5 1.5 0 0 1 10.5 5h7A1.5 1.5 0 0 1 19 6.5v7a1.5 1.5 0 0 1-1.5 1.5H15"/>',
 	trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>'
 } as const;
 

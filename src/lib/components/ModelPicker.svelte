@@ -106,7 +106,7 @@
 		inset: calc(100% + 6px) 0 auto;
 		z-index: 10;
 		display: grid;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		padding: 4px;
 		list-style: none;
 		background-color: var(--panel);

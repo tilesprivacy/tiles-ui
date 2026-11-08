@@ -36,7 +36,7 @@
 		gap: 12px;
 		max-width: 360px;
 		padding: 10px 14px;
-		--c: var(--cut-m);
+		--r: var(--radius-m);
 		background-color: var(--steel);
 		font-size: var(--fs-body);
 	}
