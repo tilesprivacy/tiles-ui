@@ -40,9 +40,14 @@
 		return 'No model yet. Download one first';
 	});
 	let refused = $state(false);
+	// the reason, next to the button for a few seconds after a refused send
+	let note = $state('');
+	let noteTimer: ReturnType<typeof setTimeout> | undefined;
 
 	$effect(() => {
-		if (ready) refused = false;
+		if (!ready) return;
+		refused = false;
+		note = '';
 	});
 
 	function read() {
@@ -72,6 +77,9 @@
 		if (!text.trim() || streaming) return;
 		if (!ready) {
 			refused = true;
+			note = why;
+			clearTimeout(noteTimer);
+			noteTimer = setTimeout(() => (note = ''), 4000);
 			return;
 		}
 		const sent = text;
@@ -140,16 +148,19 @@
 				<Icon name="stop" size={15} />
 			</button>
 		{:else}
-			<button
-				class="send tile"
-				class:refused
-				aria-label="Send"
-				aria-disabled={!ready}
-				title={why || undefined}
-				disabled={!text.trim()}
-			>
-				<Icon name="up" size={15} />
-			</button>
+			<div class="send-spot">
+				<p class="refusal chip alert" class:shown={note} role="status">{note}</p>
+				<button
+					class="send tile"
+					class:refused
+					aria-label="Send"
+					aria-disabled={!ready}
+					title={why || undefined}
+					disabled={!text.trim()}
+				>
+					<Icon name="up" size={15} />
+				</button>
+			</div>
 		{/if}
 	</div>
 </form>
@@ -216,6 +227,25 @@
 		background-color: var(--lift);
 		color: var(--slate);
 		cursor: default;
+	}
+
+	.send-spot {
+		position: relative;
+	}
+
+	.refusal {
+		position: absolute;
+		right: 0;
+		bottom: calc(100% + 8px);
+		margin: 0;
+		background-color: var(--panel);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--dur-state);
+	}
+
+	.refusal.shown {
+		opacity: 1;
 	}
 
 	/* sent while no model can take it */
