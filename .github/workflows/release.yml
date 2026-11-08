@@ -53,6 +53,8 @@ jobs:
           mkdir "${NAME}"
           cp desktop/target/release/tiles-desktop desktop/linux/tiles.desktop "${NAME}/"
           cp desktop/icons/128x128@2x.png "${NAME}/tiles.png"
+          # the web UI the daemon serves, so Tiles fetches one file
+          cp -R build "${NAME}/ui"
           tar -czf "${NAME}.tar.gz" "${NAME}"
       - name: Publish
         env:
@@ -76,7 +78,14 @@ jobs:
       # one app for Apple silicon and Intel Macs
       - run: npx tauri build --bundles app --target universal-apple-darwin --config "{\"version\":\"${GITHUB_REF_NAME#v}\"}"
       - name: Package the app
-        run: ditto -c -k --keepParent desktop/target/universal-apple-darwin/release/bundle/macos/Tiles.app "tiles-desktop-${GITHUB_REF_NAME}-macos.zip"
+        run: |
+          NAME="tiles-desktop-${GITHUB_REF_NAME}-macos"
+          mkdir "${NAME}"
+          ditto desktop/target/universal-apple-darwin/release/bundle/macos/Tiles.app "${NAME}/Tiles.app"
+          # the web UI the daemon serves, without the menu bar panel built next to it
+          cp -R build "${NAME}/ui"
+          rm -rf "${NAME}/ui/panel"
+          ditto -c -k "${NAME}" "${NAME}.zip"
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
