@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,7 +31,7 @@ jobs:
   # the desktop app, with the UI built into it. unsigned for now
   desktop-linux:
     needs: release
-    runs-on: ubuntu-22.04
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,7 +62,7 @@ jobs:
 
   desktop-macos:
     needs: release
-    runs-on: macos-14
+    runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
