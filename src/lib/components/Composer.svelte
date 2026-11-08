@@ -30,6 +30,20 @@
 	const missing = $derived(model && !describe(model).ready);
 	const active = $derived(models.active);
 	const ready = $derived(tiles.server === 'on' && !missing && !blocked);
+	// why a message can't go yet, shown when one is sent anyway
+	const why = $derived.by(() => {
+		if (ready) return '';
+		if (blocked) return blocked;
+		if (tiles.server === 'off') return 'The model server is off. Start it first';
+		if (tiles.server === 'starting') return 'The model server is still starting';
+		if (active && active === model) return 'The model is still downloading';
+		return 'No model yet. Download one first';
+	});
+	let refused = $state(false);
+
+	$effect(() => {
+		if (ready) refused = false;
+	});
 
 	function read() {
 		try {
@@ -55,7 +69,11 @@
 	});
 
 	async function send() {
-		if (!text.trim() || !ready || streaming) return;
+		if (!text.trim() || streaming) return;
+		if (!ready) {
+			refused = true;
+			return;
+		}
 		const sent = text;
 		text = '';
 		if ((await onsend(sent)) === false) text = sent;
@@ -122,7 +140,14 @@
 				<Icon name="stop" size={15} />
 			</button>
 		{:else}
-			<button class="send tile" aria-label="Send" disabled={!ready || !text.trim()}>
+			<button
+				class="send tile"
+				class:refused
+				aria-label="Send"
+				aria-disabled={!ready}
+				title={why || undefined}
+				disabled={!text.trim()}
+			>
 				<Icon name="up" size={15} />
 			</button>
 		{/if}
@@ -185,11 +210,18 @@
 		color: var(--void);
 	}
 
-	.send:disabled {
+	.send:disabled,
+	.send[aria-disabled='true'] {
 		--line: var(--rule);
 		background-color: var(--lift);
 		color: var(--slate);
 		cursor: default;
+	}
+
+	/* sent while no model can take it */
+	.send.refused {
+		--line: var(--alert);
+		color: var(--alert);
 	}
 
 	/* a reply is running */
