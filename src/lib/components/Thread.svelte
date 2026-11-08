@@ -7,7 +7,9 @@
 	let { turns, onretry }: { turns: Turn[]; onretry?: (text: string) => void } = $props();
 
 	let scroller: HTMLElement;
+	let thread: HTMLElement;
 	let following = $state(true);
+	let lastTop = 0;
 
 	const atBottom = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40;
 
@@ -16,13 +18,27 @@
 		following = true;
 	}
 
-	// a new chat, or a reply growing while it's followed
-	$effect.pre(() => {
+	// moving up stops following, only coming back down to the bottom starts it again
+	function scrolled() {
+		const up = scroller.scrollTop < lastTop;
+		lastTop = scroller.scrollTop;
+		if (up && !atBottom()) following = false;
+		else if (!up && atBottom()) following = true;
+	}
+
+	// a message sent, or a chat opened
+	$effect(() => {
 		void turns.length;
-		void turns.at(-1)?.text;
-		void turns.at(-1)?.messages?.length;
-		void turns.at(-1)?.state;
-		if (following && settings.followReply) queueMicrotask(() => scroller && down());
+		if (settings.followReply) down();
+	});
+
+	// after layout and before paint, so a growing reply never shows a jump
+	$effect(() => {
+		const grown = new ResizeObserver(() => {
+			if (following && settings.followReply) scroller.scrollTop = scroller.scrollHeight;
+		});
+		grown.observe(thread);
+		return () => grown.disconnect();
 	});
 </script>
 
@@ -31,13 +47,13 @@
 <div
 	class="scroller"
 	bind:this={scroller}
-	onscroll={() => atBottom() && (following = true)}
+	onscroll={scrolled}
 	onwheel={(e) => e.deltaY < 0 && (following = false)}
 	ontouchmove={() => (following = atBottom())}
 	onkeydown={(e) => ['ArrowUp', 'PageUp', 'Home'].includes(e.key) && (following = false)}
 	role="log"
 >
-	<div class="thread">
+	<div class="thread" bind:this={thread}>
 		{#each turns as turn, i (i)}
 			<Message
 				{turn}

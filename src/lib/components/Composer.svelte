@@ -30,6 +30,25 @@
 	const missing = $derived(model && !describe(model).ready);
 	const active = $derived(models.active);
 	const ready = $derived(tiles.server === 'on' && !missing && !blocked);
+	// why a message can't go yet, shown when one is sent anyway
+	const why = $derived.by(() => {
+		if (ready) return '';
+		if (blocked) return blocked;
+		if (tiles.server === 'off') return 'The model server is off. Start it first';
+		if (tiles.server === 'starting') return 'The model server is still starting';
+		if (active && active === model) return 'The model is still downloading';
+		return 'No model yet. Download one first';
+	});
+	let refused = $state(false);
+	// the reason, next to the button for a few seconds after a refused send
+	let note = $state('');
+	let noteTimer: ReturnType<typeof setTimeout> | undefined;
+
+	$effect(() => {
+		if (!ready) return;
+		refused = false;
+		note = '';
+	});
 
 	function read() {
 		try {
@@ -55,7 +74,14 @@
 	});
 
 	async function send() {
-		if (!text.trim() || !ready || streaming) return;
+		if (!text.trim() || streaming) return;
+		if (!ready) {
+			refused = true;
+			note = why;
+			clearTimeout(noteTimer);
+			noteTimer = setTimeout(() => (note = ''), 4000);
+			return;
+		}
 		const sent = text;
 		text = '';
 		if ((await onsend(sent)) === false) text = sent;
@@ -122,9 +148,19 @@
 				<Icon name="stop" size={15} />
 			</button>
 		{:else}
-			<button class="send tile" aria-label="Send" disabled={!ready || !text.trim()}>
-				<Icon name="up" size={15} />
-			</button>
+			<div class="send-spot">
+				<p class="refusal chip alert" class:shown={note} role="status">{note}</p>
+				<button
+					class="send tile"
+					class:refused
+					aria-label="Send"
+					aria-disabled={!ready}
+					title={why || undefined}
+					disabled={!text.trim()}
+				>
+					<Icon name="up" size={15} />
+				</button>
+			</div>
 		{/if}
 	</div>
 </form>
@@ -185,11 +221,37 @@
 		color: var(--void);
 	}
 
-	.send:disabled {
+	.send:disabled,
+	.send[aria-disabled='true'] {
 		--line: var(--rule);
 		background-color: var(--lift);
 		color: var(--slate);
 		cursor: default;
+	}
+
+	.send-spot {
+		position: relative;
+	}
+
+	.refusal {
+		position: absolute;
+		right: 0;
+		bottom: calc(100% + 8px);
+		margin: 0;
+		background-color: var(--panel);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--dur-state);
+	}
+
+	.refusal.shown {
+		opacity: 1;
+	}
+
+	/* sent while no model can take it */
+	.send.refused {
+		--line: var(--alert);
+		color: var(--alert);
 	}
 
 	/* a reply is running */
