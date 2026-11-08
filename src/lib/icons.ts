@@ -21,7 +21,9 @@ export const icons = {
 	maximize: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
 	restore:
 		'<rect x="5" y="9" width="10" height="10" rx="1.5"/><path d="M9 9V6.5A1.5 1.5 0 0 1 10.5 5h7A1.5 1.5 0 0 1 19 6.5v7a1.5 1.5 0 0 1-1.5 1.5H15"/>',
-	trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>'
+	trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
+	device: '<rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/>',
+	sync: '<path d="M20 11A8 8 0 0 0 5.7 6.1L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/>'
 } as const;
 
 export type IconName = keyof typeof icons;

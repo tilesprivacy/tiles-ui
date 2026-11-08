@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Account from './Account.svelte';
+	import Devices from './Devices.svelte';
 	import Icon from './Icon.svelte';
 	import Logo from './Logo.svelte';
 	import { dragsWindow } from '#lib/drag.ts';
@@ -109,6 +110,8 @@
 			{/each}
 		</div>
 	{/if}
+
+	{#if !rail}<Devices />{/if}
 
 	<div class="foot"><Account compact={rail} /></div>
 </nav>

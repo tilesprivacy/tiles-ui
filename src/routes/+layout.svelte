@@ -9,6 +9,7 @@
 	import Splash from '#lib/components/Splash.svelte';
 	import Titlebar from '#lib/components/Titlebar.svelte';
 	import Toasts from '#lib/components/Toasts.svelte';
+	import { devices } from '#lib/state/devices.svelte.ts';
 	import { engine } from '#lib/state/engine.svelte.ts';
 	import { models } from '#lib/state/models.svelte.ts';
 	import { sessions } from '#lib/state/sessions.svelte.ts';
@@ -28,6 +29,7 @@
 	$effect(() => {
 		if (tiles.phase !== 'ready') return;
 		sessions.load();
+		devices.load();
 		models.load();
 		models.watch();
 		engine.load();

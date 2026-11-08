@@ -1,5 +1,8 @@
 export type Account = { id: string; nickname: string };
 
+// another device linked to this account. username is the name it was given here
+export type Device = { user_id: string; username: string | null };
+
 export type Atproto = { handle: string; did: string };
 
 export type LoadedModel = { state: 'none' | 'loading' | 'loaded'; path: string | null };
