@@ -123,8 +123,7 @@ class Models {
 	}
 
 	async pause(model: string) {
-		const query = encodeURIComponent(model);
-		this.#apply({ model, ...(await api<Download>(`model/download?model=${query}`, 'DELETE')) });
+		this.#apply({ model, ...(await api<Download>('model/download/pause', 'POST', { model })) });
 	}
 }
 

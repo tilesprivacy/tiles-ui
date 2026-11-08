@@ -70,7 +70,7 @@ class Engine {
 	}
 
 	async pause() {
-		this.#set(await api<EngineInstall>('engine/download', 'DELETE'));
+		this.#set(await api<EngineInstall>('engine/download/pause', 'POST'));
 	}
 
 	#set(install: EngineInstall) {
