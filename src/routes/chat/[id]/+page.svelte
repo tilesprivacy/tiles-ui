@@ -32,7 +32,10 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && conversation?.stop()} />
 
 {#if conversation}
-	<div class="top"><ShareChat {id} /></div>
+	<header class="top">
+		<h1>{title}</h1>
+		<ShareChat {id} />
+	</header>
 	<Thread turns={conversation.turns} onretry={(text) => conversation?.send(text)} />
 	<div class="bottom">
 		<Composer
@@ -46,16 +49,58 @@
 
 <style>
 	.top {
-		position: absolute;
-		top: 10px;
-		right: 12px;
+		position: relative;
 		z-index: 5;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 12px 10px 24px;
+	}
+
+	h1 {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: var(--fs-title);
+		font-weight: 500;
+		color: var(--ash);
+	}
+
+	/* the thread fades out under the header and over the composer */
+	.top::after,
+	.bottom::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: var(--fade);
+		pointer-events: none;
+	}
+
+	.top::after {
+		top: 100%;
+		background: linear-gradient(var(--void), transparent);
 	}
 
 	.bottom {
+		position: relative;
 		width: 100%;
 		max-width: 728px;
 		margin: 0 auto;
-		padding: 12px 24px 18px;
+		padding: 4px 24px 18px;
+	}
+
+	.bottom::before {
+		bottom: 100%;
+		background: linear-gradient(transparent, var(--void));
+	}
+
+	/* clear of the button that opens the sidebar */
+	@media (max-width: 767px) {
+		.top {
+			padding-left: 52px;
+		}
 	}
 </style>

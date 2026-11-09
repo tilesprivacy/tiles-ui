@@ -142,12 +142,18 @@
 	.user {
 		--r: var(--radius-m);
 		justify-self: end;
+		border-bottom-right-radius: var(--radius-s);
 		max-width: 80%;
 		padding: 9px 13px;
 		background-color: var(--steel);
 		font-size: var(--fs-read);
 		line-height: var(--lh-read);
 		white-space: pre-wrap;
+	}
+
+	/* a gap before each prompt keeps a prompt and its reply together */
+	.user:not(:first-child) {
+		margin-top: 16px;
 	}
 
 	.user :global(.md) {

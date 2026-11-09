@@ -169,6 +169,7 @@
 	.composer {
 		--r: var(--radius-l);
 		background-color: var(--steel);
+		box-shadow: var(--shadow-float);
 		display: grid;
 		gap: 10px;
 		padding: 12px 12px 10px 14px;

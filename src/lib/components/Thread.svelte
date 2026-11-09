@@ -83,7 +83,7 @@
 		width: 100%;
 		max-width: 728px;
 		margin: 0 auto;
-		padding: 26px 24px 24px;
+		padding: 14px 24px 32px;
 		display: grid;
 		align-content: start;
 		gap: 18px;

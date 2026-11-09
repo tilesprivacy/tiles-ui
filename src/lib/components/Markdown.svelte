@@ -43,14 +43,29 @@
 		gap: 4px;
 	}
 
+	.md :global(li::marker) {
+		color: var(--slate);
+	}
+
 	.md :global(:is(h1, h2, h3, h4)) {
 		font-size: 1.05em;
 		font-weight: 600;
-		margin-top: 6px;
+		line-height: 1.35;
+		letter-spacing: var(--tracking-display);
+		color: var(--bone);
+	}
+
+	/* a heading opens a new part of the reply, set apart from the one before */
+	.md :global(:is(h1, h2, h3, h4):not(:first-child)) {
+		margin-top: 12px;
 	}
 
 	.md :global(h1) {
-		font-size: 1.25em;
+		font-size: 1.35em;
+	}
+
+	.md :global(h2) {
+		font-size: 1.18em;
 	}
 
 	.md :global(:is(strong, b)) {
@@ -68,9 +83,9 @@
 	}
 
 	.md :global(blockquote) {
-		border-left: var(--hairline) solid var(--rule);
-		padding-left: 12px;
-		color: var(--ash);
+		padding: 2px 0 2px 14px;
+		border-left: 2px solid var(--edge);
+		color: var(--slate);
 	}
 
 	.md :global(hr) {
@@ -92,20 +107,31 @@
 		overflow-y: hidden;
 	}
 
+	/* a table is a tile, scrolled sideways when it's wider than the reply */
 	.md :global(table) {
-		border-collapse: collapse;
 		display: block;
+		width: fit-content;
+		max-width: 100%;
 		overflow-x: auto;
+		border: var(--hairline) solid var(--rule);
+		border-radius: var(--radius-m);
+		border-spacing: 0;
 	}
 
 	.md :global(:is(th, td)) {
-		padding: 6px 14px 6px 0;
+		padding: 7px 14px;
 		border-bottom: var(--hairline) solid var(--rule);
 		text-align: left;
 	}
 
+	.md :global(tr:last-child td) {
+		border-bottom: 0;
+	}
+
 	.md :global(th) {
+		background-color: var(--panel);
 		color: var(--slate);
+		font-size: var(--fs-body);
 		font-weight: 500;
 	}
 
@@ -142,36 +168,33 @@
 		tab-size: 4;
 	}
 
-	.md :global(.hljs-keyword),
-	.md :global(.hljs-built_in),
-	.md :global(.hljs-selector-tag) {
+	.md :global(:is(.hljs-keyword, .hljs-selector-tag, .hljs-section, .hljs-name)) {
 		color: var(--code-keyword);
-		font-weight: 500;
 	}
 
-	.md :global(.hljs-string),
-	.md :global(.hljs-attr) {
+	.md :global(:is(.hljs-string, .hljs-regexp, .hljs-symbol, .hljs-char)) {
 		color: var(--code-string);
 	}
 
-	.md :global(.hljs-number),
-	.md :global(.hljs-literal) {
+	.md :global(:is(.hljs-number, .hljs-literal)) {
 		color: var(--code-number);
 	}
 
+	.md :global(:is(.hljs-title, .hljs-function, .hljs-selector-id)) {
+		color: var(--code-function);
+	}
+
+	.md :global(:is(.hljs-type, .hljs-built_in, .hljs-title.class_, .hljs-selector-class)) {
+		color: var(--code-type);
+	}
+
+	.md :global(:is(.hljs-meta, .hljs-attr, .hljs-attribute, .hljs-property, .hljs-variable)) {
+		color: var(--code-meta);
+	}
+
 	.md :global(.hljs-comment) {
-		color: var(--slate);
+		color: var(--code-comment);
 		font-style: italic;
-	}
-
-	.md :global(.hljs-title),
-	.md :global(.hljs-function) {
-		color: var(--code-title);
-	}
-
-	.md :global(.hljs-type),
-	.md :global(.hljs-meta) {
-		color: var(--ash);
 	}
 
 	.md :global(.hljs-addition) {
@@ -179,6 +202,6 @@
 	}
 
 	.md :global(.hljs-deletion) {
-		color: var(--alert);
+		color: var(--code-removed);
 	}
 </style>

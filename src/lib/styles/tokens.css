@@ -13,14 +13,20 @@
 	--rule: rgba(255, 255, 255, 0.1);
 	--edge: rgba(255, 255, 255, 0.2); /* a rule that's hovered or holds focus */
 	--alert: #ff5f52;
+	/* under what sits above the page, the composer and menus */
+	--shadow-float: 0 10px 30px -8px rgb(0 0 0 / 0.6);
 
-	/* code keeps to the palette, literals take a muted signal */
+	/* code gets colours of its own, pale enough to sit beside the signal */
 	--code-text: var(--ash);
-	--code-keyword: var(--bone);
-	--code-string: #d4d98c;
-	--code-number: #eaef9f;
-	--code-title: var(--bone);
+	--code-keyword: #c3a6ff;
+	--code-string: #b6e38f;
+	--code-number: #ffb877;
+	--code-function: #7fc3ff;
+	--code-type: #6fdcce;
+	--code-meta: #ff9cc1;
+	--code-comment: var(--slate);
 	--code-added: #9fd4a3;
+	--code-removed: var(--alert);
 
 	/* zoom for the whole UI, sizes below are at 1 */
 	--zoom: 1.15;
@@ -39,9 +45,13 @@
 
 	/* the cut corner every tile has, larger on larger things */
 	--hairline: 1px;
+	--radius-s: 3px; /* the corner a prompt points from */
 	--radius: 6px; /* chips, buttons, fields and rows */
 	--radius-m: 10px; /* cards, menus and messages */
 	--radius-l: 14px; /* the composer and dialogs */
+
+	/* how far the thread fades under the header and the composer */
+	--fade: 28px;
 
 	--dur-push: 180ms;
 	--dur-state: 140ms;
