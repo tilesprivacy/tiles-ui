@@ -5,6 +5,8 @@ export const icons = {
 	sliders:
 		'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
 	sidebar: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/>',
+	back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+	forward: '<path d="M5 12h14M13 6l6 6-6 6"/>',
 	chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M10 2v4M14 2v4M10 18v4M14 18v4M2 10h4M2 14h4M18 10h4M18 14h4"/>',
 	box: '<path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
 	up: '<path d="M12 19V5M6 11l6-6 6 6"/>',

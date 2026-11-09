@@ -13,6 +13,10 @@
 	--rule: rgba(255, 255, 255, 0.1);
 	--edge: rgba(255, 255, 255, 0.2); /* a rule that's hovered or holds focus */
 	--alert: #ff5f52;
+	/* a small part raised off the surface, lit along its top edge */
+	--shadow-raised:
+		inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.55),
+		0 2px 6px -1px rgb(0 0 0 / 0.45);
 	/* under what sits above the page, the composer and menus */
 	--shadow-float: 0 10px 30px -8px rgb(0 0 0 / 0.6);
 
@@ -33,6 +37,10 @@
 
 	--font-ui: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--fs-brand: 16px; /* the name beside the logo */
+	--fs-badge: 7px; /* the release stage beside the name */
+	/* Geist's capitals sit above the middle of their line, this brings them to centre */
+	--brand-drop: 0.035em;
 	--fs-read: 14px; /* chat text */
 	--fs-title: 13px;
 	--fs-body: 12px;

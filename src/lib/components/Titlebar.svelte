@@ -19,7 +19,7 @@
 		return () => void stop.then((unlisten) => unlisten());
 	});
 
-	// the sidebar's own top row sits in the bar, the bar starts after it
+	// over the sidebar the bar holds its toggle with back and forward
 	const side = $derived(tiles.phase === 'ready' ? (settings.sidebarOpen ? 264 : 52) : 0);
 
 	const labels: Record<WindowButton, string> = {
@@ -64,7 +64,34 @@
 {/snippet}
 
 <header style:--side="{side}px">
-	<div class="lead"></div>
+	<div class="lead" use:dragsWindow>
+		{#if tiles.phase === 'ready'}
+			<button
+				class="nav tile row-tile"
+				aria-label={settings.sidebarOpen ? 'Close the sidebar' : 'Open the sidebar'}
+				title={settings.sidebarOpen ? 'Close the sidebar' : 'Open the sidebar'}
+				onclick={() => (settings.sidebarOpen = !settings.sidebarOpen)}
+			>
+				<Icon name="sidebar" size={15} />
+			</button>
+			<button
+				class="nav tile row-tile"
+				aria-label="Back"
+				title="Back"
+				onclick={() => history.back()}
+			>
+				<Icon name="back" size={15} />
+			</button>
+			<button
+				class="nav tile row-tile"
+				aria-label="Forward"
+				title="Forward"
+				onclick={() => history.forward()}
+			>
+				<Icon name="forward" size={15} />
+			</button>
+		{/if}
+	</div>
 	{@render buttons(left)}
 	<div class="grip" use:dragsWindow></div>
 	{@render buttons(right)}
@@ -95,9 +122,20 @@
 		user-select: none;
 	}
 
+	/* the toggle sits over the sidebar's column of icons, a rail lets the row run past it */
 	.lead {
 		width: var(--side);
+		min-width: fit-content;
 		flex: none;
+		align-self: stretch;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		padding: 0 8px 0 10px;
+	}
+
+	.lead:empty {
+		padding: 0;
 	}
 
 	.grip {
@@ -105,9 +143,14 @@
 		align-self: stretch;
 	}
 
+	.lead,
 	.grip,
 	button {
 		pointer-events: auto;
+	}
+
+	.nav {
+		width: 28px;
 	}
 
 	button {

@@ -4,7 +4,7 @@
 	import Devices from './Devices.svelte';
 	import Icon from './Icon.svelte';
 	import Logo from './Logo.svelte';
-	import { dragsWindow } from '#lib/drag.ts';
+	import { desktop } from '#lib/desktop.ts';
 	import { keys, percent, size, timeLeft } from '#lib/format.ts';
 	import { models } from '#lib/state/models.svelte.ts';
 	import { sessions } from '#lib/state/sessions.svelte.ts';
@@ -17,6 +17,7 @@
 
 	let query = $state('');
 	const rail = $derived(!settings.sidebarOpen);
+	const chrome = !!desktop()?.titlebar;
 
 	const active = $derived(models.active);
 	const progress = $derived(
@@ -35,16 +36,37 @@
 </script>
 
 <nav class:rail aria-label="Tiles">
-	<!-- in the app's own title bar on Linux, where its empty space moves the window -->
-	<div class="top" use:dragsWindow>
-		<a href="/" aria-label="New chat"><Logo /></a>
-		<button
-			class="icon tile row-tile"
-			aria-label={rail ? 'Open the sidebar' : 'Close the sidebar'}
-			onclick={() => (settings.sidebarOpen = !settings.sidebarOpen)}
-		>
-			<Icon name="sidebar" />
-		</button>
+	<div class="top">
+		<a class="brand" href="/" aria-label="New chat">
+			<Logo size={26} />
+			{#if !rail}
+				<span class="name">Tiles</span>
+				<span class="stage">Alpha</span>
+			{/if}
+		</a>
+		<div class="tools">
+			{#if !rail}
+				<button
+					class="icon tile row-tile"
+					aria-pressed={searching}
+					aria-label="Search chats"
+					title="Search chats  {keys('K')}"
+					onclick={() => (searching = !searching)}
+				>
+					<Icon name="search" />
+				</button>
+			{/if}
+			<!-- the app's own title bar on Linux holds it, with back and forward -->
+			{#if !chrome}
+				<button
+					class="icon tile row-tile"
+					aria-label={rail ? 'Open the sidebar' : 'Close the sidebar'}
+					onclick={() => (settings.sidebarOpen = !settings.sidebarOpen)}
+				>
+					<Icon name="sidebar" />
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	{#if searching && !rail}
@@ -58,13 +80,16 @@
 			<a class="act tile row-tile" href="/" title="New chat">
 				<Icon name="plus" size={15} /><span>New chat</span><kbd>{keys('O', true)}</kbd>
 			</a>
-			<button
-				class="act tile row-tile"
-				title="Search"
-				onclick={() => ((settings.sidebarOpen = true), (searching = true))}
-			>
-				<Icon name="search" size={15} /><span>Search</span><kbd>{keys('K')}</kbd>
-			</button>
+			<!-- an open sidebar has search beside the name -->
+			{#if rail}
+				<button
+					class="act tile row-tile"
+					title="Search"
+					onclick={() => ((settings.sidebarOpen = true), (searching = true))}
+				>
+					<Icon name="search" size={15} /><span>Search</span><kbd>{keys('K')}</kbd>
+				</button>
+			{/if}
 			<a
 				class="act tile row-tile"
 				class:on={page.url.pathname === '/models'}
@@ -122,6 +147,8 @@
 		height: 100%;
 		display: flex;
 		flex-direction: column;
+		/* below the app's own title bar on Linux */
+		padding-top: var(--titlebar, 0);
 		border-right: var(--hairline) solid var(--rule);
 		background: var(--panel);
 	}
@@ -137,12 +164,47 @@
 		padding: 12px 12px 8px 14px;
 	}
 
-	nav:not(.rail) .top {
-		min-height: var(--titlebar, 0);
+	.brand {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		color: var(--bone);
+		text-decoration: none;
 	}
 
-	:global(.chrome) nav:not(.rail) .top {
-		padding-block: 0;
+	/* capitals at six tenths of the drawn mark, centred on it */
+	.name {
+		position: relative;
+		top: var(--brand-drop);
+		font-size: var(--fs-brand);
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0.01em;
+	}
+
+	.stage {
+		margin-left: 1px;
+		/* centred on the letters, less the tracking after the last one */
+		padding: 1.5px calc(4.5px - 0.04em) 1.5px 4.5px;
+		border: var(--hairline) solid var(--edge);
+		border-radius: 999px;
+		box-shadow: var(--shadow-raised);
+		font-size: var(--fs-badge);
+		font-weight: 500;
+		line-height: 1;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--slate);
+	}
+
+	.tools {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+
+	.rail .tools {
+		flex-direction: column;
 	}
 
 	.rail .top {
@@ -151,12 +213,22 @@
 		padding: 12px 0 8px;
 	}
 
+	/* the title bar above already clears the top */
+	:global(.chrome) .top {
+		padding-top: 2px;
+	}
+
 	.icon {
 		width: 26px;
 		height: 26px;
 		display: grid;
 		place-items: center;
 		color: var(--slate);
+	}
+
+	.icon[aria-pressed='true'] {
+		color: var(--bone);
+		background-color: var(--steel);
 	}
 
 	.icon:hover {
