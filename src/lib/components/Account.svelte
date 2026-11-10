@@ -42,7 +42,12 @@
 </script>
 
 {#if account}
-	<button class="badge tile row-tile" popovertarget="account" aria-label="Your accounts">
+	<button
+		class="badge tile row-tile"
+		class:compact
+		popovertarget="account"
+		aria-label="Your accounts"
+	>
 		<span class="avatar tile" class:live={tiles.atproto}>{initial}</span>
 		{#if !compact}
 			<span class="who">
@@ -120,6 +125,16 @@
 
 	.badge:hover {
 		background-color: var(--steel);
+	}
+
+	/* on a rail the avatar is the whole tile, and lifts on hover itself */
+	.compact {
+		justify-content: center;
+		padding: 0;
+	}
+
+	.compact:hover .avatar {
+		background-color: var(--lift);
 	}
 
 	.avatar {

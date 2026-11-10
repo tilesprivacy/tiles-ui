@@ -61,6 +61,10 @@
 	/* how far the thread fades under the header and the composer */
 	--fade: 28px;
 
+	/* the sidebar, and the rail it closes to: a row's icon with the same space on both sides */
+	--sidebar: 264px;
+	--rail: 49px;
+
 	--dur-push: 180ms;
 	--dur-state: 140ms;
 	--ease-push: cubic-bezier(0.32, 0.72, 0, 1);

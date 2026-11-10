@@ -19,8 +19,9 @@
 		return () => void stop.then((unlisten) => unlisten());
 	});
 
+	const ready = $derived(tiles.phase === 'ready');
 	// over the sidebar the bar holds its toggle with back and forward
-	const side = $derived(tiles.phase === 'ready' ? (settings.sidebarOpen ? 264 : 52) : 0);
+	const side = $derived(ready ? (settings.sidebarOpen ? 'var(--sidebar)' : 'var(--rail)') : '0px');
 
 	const labels: Record<WindowButton, string> = {
 		minimize: 'Minimize',
@@ -63,27 +64,22 @@
 	{/each}
 {/snippet}
 
-<header style:--side="{side}px">
+<header class:frame={ready} style:--side={side}>
 	<div class="lead" use:dragsWindow>
-		{#if tiles.phase === 'ready'}
+		{#if ready}
 			<button
-				class="nav tile row-tile"
+				class="tile row-tile"
 				aria-label={settings.sidebarOpen ? 'Close the sidebar' : 'Open the sidebar'}
 				title={settings.sidebarOpen ? 'Close the sidebar' : 'Open the sidebar'}
 				onclick={() => (settings.sidebarOpen = !settings.sidebarOpen)}
 			>
 				<Icon name="sidebar" size={15} />
 			</button>
-			<button
-				class="nav tile row-tile"
-				aria-label="Back"
-				title="Back"
-				onclick={() => history.back()}
-			>
+			<button class="tile row-tile" aria-label="Back" title="Back" onclick={() => history.back()}>
 				<Icon name="back" size={15} />
 			</button>
 			<button
-				class="nav tile row-tile"
+				class="tile row-tile"
 				aria-label="Forward"
 				title="Forward"
 				onclick={() => history.forward()}
@@ -122,6 +118,43 @@
 		user-select: none;
 	}
 
+	/* one surface with the sidebar, the page sits in the corner the two make */
+	.frame {
+		--corner: var(--radius-m);
+		background: var(--panel);
+	}
+
+	/* the line under the bar, from where the corner ends */
+	.frame::after {
+		content: '';
+		position: absolute;
+		inset: auto 0 0 calc(var(--side) + var(--corner) - var(--hairline));
+		height: var(--hairline);
+		background: var(--rule);
+	}
+
+	/* the page's rounded corner: the page inside the curve, the line along it, the panel outside */
+	.frame::before {
+		content: '';
+		position: absolute;
+		top: calc(100% - var(--hairline));
+		left: calc(var(--side) - var(--hairline));
+		width: var(--corner);
+		height: var(--corner);
+		background:
+			radial-gradient(
+				circle at 100% 100%,
+				transparent calc(var(--corner) - var(--hairline) - 0.5px),
+				var(--rule) calc(var(--corner) - var(--hairline)) calc(var(--corner) - 0.5px),
+				transparent var(--corner)
+			),
+			radial-gradient(
+				circle at 100% 100%,
+				var(--void) calc(var(--corner) - var(--hairline)),
+				var(--panel) calc(var(--corner) - var(--hairline) + 0.5px)
+			);
+	}
+
 	/* the toggle sits over the sidebar's column of icons, a rail lets the row run past it */
 	.lead {
 		width: var(--side);
@@ -149,7 +182,7 @@
 		pointer-events: auto;
 	}
 
-	.nav {
+	.lead button {
 		width: 28px;
 	}
 

@@ -44,8 +44,8 @@
 				<span class="stage">Alpha</span>
 			{/if}
 		</a>
-		<div class="tools">
-			{#if !rail}
+		{#if !rail}
+			<div class="tools">
 				<button
 					class="icon tile row-tile"
 					aria-pressed={searching}
@@ -55,18 +55,18 @@
 				>
 					<Icon name="search" />
 				</button>
-			{/if}
-			<!-- the app's own title bar on Linux holds it, with back and forward -->
-			{#if !chrome}
-				<button
-					class="icon tile row-tile"
-					aria-label={rail ? 'Open the sidebar' : 'Close the sidebar'}
-					onclick={() => (settings.sidebarOpen = !settings.sidebarOpen)}
-				>
-					<Icon name="sidebar" />
-				</button>
-			{/if}
-		</div>
+				<!-- the app's own title bar on Linux holds it, with back and forward -->
+				{#if !chrome}
+					<button
+						class="icon tile row-tile"
+						aria-label="Close the sidebar"
+						onclick={() => (settings.sidebarOpen = false)}
+					>
+						<Icon name="sidebar" />
+					</button>
+				{/if}
+			</div>
+		{/if}
 	</div>
 
 	{#if searching && !rail}
@@ -77,6 +77,16 @@
 		</label>
 	{:else}
 		<div class="actions">
+			<!-- a rail opens again from its first tile, the app's title bar has a button of its own -->
+			{#if rail && !chrome}
+				<button
+					class="act tile row-tile"
+					title="Open the sidebar"
+					onclick={() => (settings.sidebarOpen = true)}
+				>
+					<Icon name="sidebar" size={15} /><span>Open the sidebar</span>
+				</button>
+			{/if}
 			<a class="act tile row-tile" href="/" title="New chat">
 				<Icon name="plus" size={15} /><span>New chat</span><kbd>{keys('O', true)}</kbd>
 			</a>
@@ -143,7 +153,7 @@
 
 <style>
 	nav {
-		width: 264px;
+		width: var(--sidebar);
 		height: 100%;
 		display: flex;
 		flex-direction: column;
@@ -154,20 +164,24 @@
 	}
 
 	nav.rail {
-		width: 52px;
+		width: var(--rail);
 	}
 
+	/* the mark sits on the line the rows' icons are on, open or closed, by its weight:
+	   it leans, and that is left of the middle of its outline. the tools end where
+	   the rows' shortcuts do */
 	.top {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 12px 12px 8px 14px;
+		padding: 12px 10px 8px 12px;
 	}
 
+	/* the name starts where the rows' labels do */
 	.brand {
 		display: flex;
 		align-items: center;
-		gap: 7px;
+		gap: 4px;
 		color: var(--bone);
 		text-decoration: none;
 	}
@@ -183,7 +197,7 @@
 	}
 
 	.stage {
-		margin-left: 1px;
+		margin-left: 4px;
 		/* centred on the letters, less the tracking after the last one */
 		padding: 1.5px calc(4.5px - 0.04em) 1.5px 4.5px;
 		border: var(--hairline) solid var(--edge);
@@ -203,19 +217,9 @@
 		gap: 2px;
 	}
 
-	.rail .tools {
-		flex-direction: column;
-	}
-
-	.rail .top {
-		flex-direction: column;
-		gap: 12px;
-		padding: 12px 0 8px;
-	}
-
-	/* the title bar above already clears the top */
+	/* halfway between the title bar's buttons and the first row, by the mark's weight */
 	:global(.chrome) .top {
-		padding-top: 2px;
+		padding-block: 8.5px 1.5px;
 	}
 
 	.icon {
@@ -242,7 +246,9 @@
 		padding: 4px 8px 10px;
 	}
 
+	/* as tall with its label as without, a rail's tiles stay where the rows were */
 	.act {
+		min-height: 32px;
 		display: flex;
 		align-items: center;
 		gap: 10px;
@@ -371,6 +377,6 @@
 	}
 
 	.rail .foot {
-		padding: 10px 7px;
+		padding: 10px 8px;
 	}
 </style>
