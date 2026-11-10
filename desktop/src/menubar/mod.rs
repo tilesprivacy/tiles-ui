@@ -1,6 +1,8 @@
 //! The Mac menu bar: the status item, its panel and keeping the Mac awake. The
 //! daemon watcher and what it reports run on Linux too, for the tray
 
+#[cfg(target_os = "macos")]
+mod about;
 #[cfg_attr(
     target_os = "linux",
     expect(dead_code, reason = "only the Mac panel reads it")

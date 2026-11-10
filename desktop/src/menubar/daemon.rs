@@ -4,7 +4,7 @@ use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
 
 #[cfg(target_os = "macos")]
-use super::lid;
+use super::{about, lid};
 use super::{account, atproto, inference, remote, sessions};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
@@ -86,6 +86,11 @@ fn set(app: &AppHandle, next: Health) {
     let came_up = matches!(next, Health::Up { .. });
     *health = next.clone();
     drop(health);
+
+    #[cfg(target_os = "macos")]
+    if let Health::Up { version } = &next {
+        about::show(app, version);
+    }
 
     let _ = app.emit(HEALTH_EVENT, next);
 
