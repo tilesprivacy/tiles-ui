@@ -7,7 +7,7 @@ export const about: Record<EngineName, string> = {
 	'cuda-12': 'Older NVIDIA GPUs and drivers',
 	vulkan: 'Most GPUs, from AMD, Intel and NVIDIA',
 	cpu: 'Any computer. The slowest, and it always works',
-	metal: 'The GPU in Apple silicon Macs'
+	metal: 'Uses the GPU on Apple silicon to run models.'
 };
 
 export const installing = (install: EngineInstall) =>

@@ -24,6 +24,6 @@ export const vram = (bytes: number) => `${Math.round(bytes / 2 ** 30)} GB`;
 
 const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
-// a shortcut's label, ⌘ on a Mac and Ctrl everywhere else
+// a shortcut's label, ⌘ on a Mac and Ctrl everywhere else. thin spaces keep a Mac's symbols apart
 export const keys = (key: string, shift = false) =>
-	mac ? `${shift ? '⇧' : ''}⌘${key}` : `Ctrl+${shift ? 'Shift+' : ''}${key}`;
+	mac ? `${shift ? '⇧ ' : ''}⌘ ${key}` : `Ctrl+${shift ? 'Shift+' : ''}${key}`;

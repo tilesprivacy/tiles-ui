@@ -74,8 +74,8 @@
 
 	<section>
 		<div class="head">
-			<h4>Engines</h4>
-			<span class="muted small">llama.cpp {status.llama_cpp}</span>
+			<h4>Hardware acceleration</h4>
+			<span class="muted small">Runtime: llama.cpp · {status.llama_cpp}</span>
 		</div>
 		{#if !engine.apple}
 			<label class="auto">
@@ -107,7 +107,7 @@
 					<header>
 						<b>{choice.label}</b>
 						{#if live}
-							<span class="chip"><span class="live-dot"></span>In use</span>
+							<span class="chip"><span class="live-dot"></span>Active</span>
 						{:else if choice.unavailable}
 							<span class="chip">Can't run here</span>
 						{:else if choice.engine === status.auto}
@@ -145,7 +145,7 @@
 						<footer>
 							<span class="muted small">
 								{choice.download === 0
-									? 'Comes with Tiles'
+									? 'Included with Tiles'
 									: onDisk(choice)
 										? 'On this computer'
 										: size(choice.download)}

@@ -46,7 +46,7 @@
 		aria-haspopup="menu"
 		aria-expanded={open}
 		disabled={!tiles.atproto || sharing}
-		title={tiles.atproto ? undefined : 'Sign in to an ATmosphere account in Settings to share'}
+		title={tiles.atproto ? undefined : 'Sign in to an Atmosphere account in Settings to share'}
 		onclick={() => (open = !open)}
 		onkeydown={close}
 	>
@@ -63,7 +63,7 @@
 				onkeydown={close}
 			>
 				<span>Private link</span>
-				<span class="muted">Encrypted, only people with the link can read it</span>
+				<span class="muted">This chat is encrypted. Anyone with the link can read it.</span>
 			</button>
 			<button
 				type="button"
@@ -73,7 +73,7 @@
 				onkeydown={close}
 			>
 				<span>Public link</span>
-				<span class="muted">Anyone can read it on your ATmosphere account</span>
+				<span class="muted">Publish this chat to your Atmosphere account for anyone to read.</span>
 			</button>
 		</div>
 	{/if}
@@ -112,7 +112,8 @@
 		right: 0;
 		top: calc(100% + 8px);
 		z-index: 10;
-		width: 300px;
+		/* each line of copy on one line */
+		width: max-content;
 		display: grid;
 		gap: 1px;
 		padding: 6px;
@@ -133,5 +134,12 @@
 
 	.muted {
 		font-size: var(--fs-label);
+	}
+
+	/* a narrow window has no room for that, the copy wraps */
+	@media (max-width: 767px) {
+		.menu {
+			width: 260px;
+		}
 	}
 </style>

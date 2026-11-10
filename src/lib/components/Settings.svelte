@@ -1,5 +1,8 @@
 <script lang="ts">
 	import EngineSettings from './EngineSettings.svelte';
+	import Icon from './Icon.svelte';
+	import Logo from './Logo.svelte';
+	import { desktop } from '#lib/desktop.ts';
 	import { defaultSettings, settings, type Settings } from '#lib/state/settings.svelte.ts';
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
@@ -7,27 +10,71 @@
 	let dialog: HTMLDialogElement;
 	const tabs = ['General', 'Display', 'Engine', 'About'] as const;
 	let tab = $state<(typeof tabs)[number]>('General');
+	let version = $state('');
 
 	$effect(() => {
 		if (open && !dialog.open) dialog.showModal();
 		if (!open && dialog.open) dialog.close();
 	});
 
+	// Tiles' own version. only the app reaches the daemon route that tells it
+	$effect(() => {
+		const daemon = desktop()?.daemon;
+		if (tab !== 'About' || version || !daemon) return;
+		fetch(`${daemon}/`)
+			.then((res) => (res.ok ? res.text() : ''))
+			.then((text) => (version = /^\d+\.\d+\.\d+\S*$/.test(text.trim()) ? text.trim() : ''))
+			.catch(() => {});
+	});
+
+	const links = [
+		['Read the docs', 'tiles.run/book', 'https://tiles.run/book'],
+		[
+			'Report an issue',
+			'github.com/tilesprivacy/tiles',
+			'https://github.com/tilesprivacy/tiles/issues'
+		]
+	];
+
 	const rows: Record<string, [keyof Settings, string, string][]> = {
 		General: [
-			['sendOnEnter', 'Send with Enter', 'Shift+Enter adds a new line. Off swaps them'],
-			['followReply', 'Follow the reply while it streams', 'Scrolling up stops following']
+			[
+				'sendOnEnter',
+				'Send with Enter',
+				'Press Enter to send and Shift+Enter for a new line. Turn off to swap these shortcuts.'
+			],
+			[
+				'followReply',
+				'Follow replies',
+				'Scroll automatically as replies appear. Scroll up to stop.'
+			]
 		],
 		Display: [
 			[
 				'openReasoning',
-				'Open reasoning while it streams',
-				'Otherwise it stays folded until you click it'
+				'Expand reasoning automatically',
+				'Show reasoning as it appears. Turn off to expand it manually.'
 			],
-			['toolDetails', 'Always show tool details', 'Otherwise a tool call opens on a click'],
-			['userMarkdown', 'Format your messages', 'Render your messages as markdown'],
-			['fullCode', 'Full-height code blocks', 'Otherwise long code scrolls inside its block'],
-			['sidebarOpen', 'Keep the sidebar open', 'Closed, it becomes a slim rail']
+			[
+				'toolDetails',
+				'Expand tool details automatically',
+				'Show tool details in full. Turn off to expand them manually.'
+			],
+			[
+				'userMarkdown',
+				'Format your messages',
+				'Show headings, lists, and other Markdown formatting in your messages.'
+			],
+			[
+				'fullCode',
+				'Expand code blocks',
+				'Show code blocks at full height. Turn off to scroll within long blocks.'
+			],
+			[
+				'sidebarOpen',
+				'Keep the sidebar open',
+				'Turn off to collapse the sidebar into a narrow bar.'
+			]
 		]
 	};
 </script>
@@ -47,13 +94,19 @@
 		{#if tab === 'Engine'}
 			<EngineSettings />
 		{:else if tab === 'About'}
-			<p>Tiles UI {__UI_VERSION__}</p>
-			<p><a href="https://tiles.run/book" target="_blank" rel="noreferrer">Read the docs</a></p>
-			<p>
-				<a href="https://github.com/tilesprivacy/tiles/issues" target="_blank" rel="noreferrer">
-					Report an issue
+			<div class="app">
+				<Logo size={40} />
+				<span
+					><b>Tiles</b>{#if version}<small class="muted">Version {version}</small>{/if}</span
+				>
+			</div>
+			{#each links as [label, where, href] (href)}
+				<a class="link tile" {href} target="_blank" rel="noreferrer">
+					<span>{label}<small class="muted">{where}</small></span>
+					<Icon name="open" size={14} />
 				</a>
-			</p>
+			{/each}
+			<p class="legal">© 2026 Tiles Privacy Technologies Pvt. Ltd.</p>
 		{:else}
 			{#each rows[tab] as [key, label, hint] (key)}
 				<label class="row">
@@ -67,7 +120,7 @@
 	<footer>
 		{#if tab === 'General' || tab === 'Display'}
 			<button class="plate ghost" onclick={() => Object.assign(settings, defaultSettings)}
-				>Reset</button
+				>Reset to defaults</button
 			>
 		{/if}
 		<button class="plate" onclick={() => (open = false)}>Done</button>
@@ -150,9 +203,43 @@
 		font-size: var(--fs-body);
 	}
 
-	.body p {
-		padding: 6px 0;
-		color: var(--ash);
+	.app {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding: 4px 0 16px;
+	}
+
+	.app b {
+		font-size: 15px;
+		font-weight: 600;
+	}
+
+	.link {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 4px;
+		padding: 10px 12px;
+		color: var(--bone);
+		text-decoration: none;
+	}
+
+	.link:hover {
+		--line: var(--edge);
+		background-color: var(--steel);
+	}
+
+	.link :global(svg) {
+		flex: none;
+		color: var(--slate);
+	}
+
+	.legal {
+		padding-top: 14px;
+		font-size: var(--fs-label);
+		color: var(--slate);
 	}
 
 	footer {

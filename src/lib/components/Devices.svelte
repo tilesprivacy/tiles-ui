@@ -50,7 +50,7 @@
 	{:else}
 		<button class="add tile row-tile" onclick={() => (view = 'link')}>
 			<span class="plus tile"><Icon name="plus" size={13} /></span>
-			<span>Link a device<small class="muted">Sync chats with your other devices</small></span>
+			<span>Link a device<small class="muted">Sync chats across your devices</small></span>
 		</button>
 	{/if}
 </section>

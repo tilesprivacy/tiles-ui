@@ -24,8 +24,7 @@
 	<Icon name="chip" size={18} />
 	{#if gpu?.vendor === 'apple' && gpu.name}
 		<span class="name">{gpu.name}</span>
-		{#if gpu.vram}<span class="chip">{vram(gpu.vram)}</span>{/if}
-		<span class="muted">Unified memory, runs models with Metal</span>
+		<span class="muted">{gpu.vram ? `${vram(gpu.vram)} unified memory` : 'Unified memory'}</span>
 	{:else if apple}
 		<span class="name">This Mac's GPU</span>
 		<span class="muted">Runs models with Metal, which comes with Tiles</span>

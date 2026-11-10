@@ -58,8 +58,13 @@
 </script>
 
 {#if turn.role === 'user'}
-	<div class="user tile">
-		{#if settings.userMarkdown}<Markdown text={turn.text} />{:else}<p>{turn.text}</p>{/if}
+	<div class="ask">
+		<div class="user tile">
+			{#if settings.userMarkdown}<Markdown text={turn.text} />{:else}<p>{turn.text}</p>{/if}
+		</div>
+		<button class="copy tile row-tile" onclick={copy} aria-label="Copy your message"
+			><Icon name="copy" size={13} /></button
+		>
 	</div>
 {:else}
 	<article class="reply">
@@ -139,9 +144,20 @@
 {/if}
 
 <style>
+	.ask {
+		display: grid;
+		justify-items: end;
+		gap: 4px;
+		min-width: 0;
+	}
+
+	/* a gap before each prompt keeps a prompt and its reply together */
+	.ask:not(:first-child) {
+		margin-top: 16px;
+	}
+
 	.user {
 		--r: var(--radius-m);
-		justify-self: end;
 		border-bottom-right-radius: var(--radius-s);
 		max-width: 80%;
 		padding: 9px 13px;
@@ -149,11 +165,6 @@
 		font-size: var(--fs-read);
 		line-height: var(--lh-read);
 		white-space: pre-wrap;
-	}
-
-	/* a gap before each prompt keeps a prompt and its reply together */
-	.user:not(:first-child) {
-		margin-top: 16px;
 	}
 
 	.user :global(.md) {
@@ -310,6 +321,13 @@
 		transition: opacity var(--dur-state);
 	}
 
+	/* under a prompt it sits in the gap before the reply */
+	.ask .copy {
+		justify-self: end;
+		margin-bottom: -14px;
+	}
+
+	.ask:hover .copy,
 	.reply:hover .copy,
 	.copy:focus-visible {
 		opacity: 1;

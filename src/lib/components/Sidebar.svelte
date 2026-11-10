@@ -73,7 +73,23 @@
 		<label class="search tile">
 			<Icon name="search" size={14} />
 			<!-- svelte-ignore a11y_autofocus -->
-			<input bind:value={query} placeholder="Search chats" autofocus />
+			<input
+				bind:value={query}
+				placeholder="Search chats"
+				spellcheck="false"
+				autocorrect="off"
+				autocapitalize="off"
+				autofocus
+			/>
+			<button
+				type="button"
+				class="close tile row-tile"
+				aria-label="Close search"
+				title="Close search"
+				onclick={() => (searching = false)}
+			>
+				<Icon name="x" size={13} />
+			</button>
 		</label>
 	{:else}
 		<div class="actions">
@@ -277,8 +293,8 @@
 
 	kbd {
 		margin-left: auto;
-		font-family: var(--font-mono);
-		font-size: var(--fs-chip);
+		font-family: var(--font-ui);
+		font-size: var(--fs-label);
 		color: var(--slate);
 	}
 
@@ -318,6 +334,21 @@
 		border: 0;
 		background: none;
 		outline: none;
+		color: var(--bone);
+	}
+
+	.close {
+		width: 18px;
+		height: 18px;
+		flex: none;
+		display: grid;
+		place-items: center;
+		margin-right: -3px;
+		color: var(--slate);
+	}
+
+	.close:hover {
+		background-color: var(--lift);
 		color: var(--bone);
 	}
 

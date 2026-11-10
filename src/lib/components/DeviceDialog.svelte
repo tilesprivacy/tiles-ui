@@ -129,7 +129,7 @@
 					class="field"
 					bind:value={name}
 					onblur={() => rename(device)}
-					placeholder="Work laptop"
+					placeholder="e.g. Work laptop"
 					spellcheck="false"
 				/>
 			</label>
@@ -162,8 +162,8 @@
 	{:else}
 		<div class="body">
 			<p class="muted">
-				Linked devices sync chats straight between each other, with Tiles open on both. Start on the
-				device you're adding.
+				Sync chats directly between your devices while Tiles is open on both. Start on the device
+				you want to add.
 			</p>
 			<div class="tabs" role="tablist">
 				<button
@@ -171,25 +171,25 @@
 					role="tab"
 					aria-selected={tab === 'join'}
 					class:on={tab === 'join'}
-					onclick={() => pick('join')}>This is the new device</button
+					onclick={() => pick('join')}>Set up this device</button
 				>
 				<button
 					class="tile row-tile"
 					role="tab"
 					aria-selected={tab === 'invite'}
 					class:on={tab === 'invite'}
-					onclick={() => pick('invite')}>Add one to this device</button
+					onclick={() => pick('invite')}>Add another device</button
 				>
 			</div>
 
 			{#if tab === 'join'}
 				<div class="label">
-					<span>1. Copy this device's ID</span>
+					<span>Copy this device's ID</span>
 					<button class="copy tile" onclick={() => tiles.account && copy(tiles.account.id)}>
 						<span>{tiles.account?.id}</span><Icon name="copy" size={13} />
 					</button>
 					<small class="muted">
-						On your other device, open Link a device, pick Add one to this device and paste it.
+						On your other device, open Link a device, choose Add another device, and paste this ID.
 					</small>
 				</div>
 				<form
@@ -200,20 +200,21 @@
 					}}
 				>
 					<label>
-						<span>2. Paste the code it gives you</span>
+						<span>Paste the linking code</span>
 						<textarea
 							class="field mono"
 							bind:value={input}
 							rows="3"
 							spellcheck="false"
 							disabled={busy}></textarea>
+						<small class="muted">Copy the code shown on your other device and paste it here.</small>
 					</label>
 					<label>
-						<span>Name the other device</span>
+						<span>Name your other device</span>
 						<input
 							class="field"
 							bind:value={name}
-							placeholder="Work laptop"
+							placeholder="e.g. Work laptop"
 							spellcheck="false"
 							disabled={busy}
 						/>
@@ -224,7 +225,7 @@
 							<span class="spin"></span>Linking with {name.trim() || 'it'}. Keep Tiles open on it.
 						</p>
 					{:else}
-						<button class="plate primary" disabled={!input.trim()}>Link</button>
+						<button class="plate primary" disabled={!input.trim()}>Link devices</button>
 					{/if}
 				</form>
 			{:else if joined}
@@ -232,10 +233,11 @@
 				<button class="plate primary" onclick={() => (view = null)}>Done</button>
 			{:else if code}
 				<div class="label">
-					<span>Paste this code on the other device</span>
+					<span>Copy this linking code</span>
 					<button class="copy tile code" onclick={() => copy(code)}>
 						<span>{code}</span><Icon name="copy" size={13} />
 					</button>
+					<small class="muted">On your other device, paste it under Paste the linking code.</small>
 				</div>
 				<p class="wait"><span class="spin"></span>Waiting for {name.trim() || 'it'} to join…</p>
 			{:else}
@@ -247,7 +249,7 @@
 					}}
 				>
 					<label>
-						<span>Paste the other device's ID</span>
+						<span>Paste your other device's ID</span>
 						<input
 							class="field mono"
 							bind:value={input}
@@ -255,15 +257,21 @@
 							spellcheck="false"
 						/>
 						<small class="muted">
-							On the other device, open Link a device and copy its ID from This is the new device.
+							On your other device, open Link a device, choose Set up this device, and copy its ID.
 						</small>
 					</label>
 					<label>
-						<span>Name it</span>
-						<input class="field" bind:value={name} placeholder="Work laptop" spellcheck="false" />
+						<span>Name your other device</span>
+						<input
+							class="field"
+							bind:value={name}
+							placeholder="e.g. Work laptop"
+							spellcheck="false"
+						/>
 					</label>
 					{#if error}<p class="error">{error}</p>{/if}
-					<button class="plate primary" disabled={!input.trim() || busy}>Make a code</button>
+					<button class="plate primary" disabled={!input.trim() || busy}>Create linking code</button
+					>
 				</form>
 			{/if}
 		</div>

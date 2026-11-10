@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
+	import Info from './Info.svelte';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
 
@@ -59,7 +60,12 @@
 
 	<div id="account" class="tile" popover>
 		<section>
-			<h2>Tiles Account</h2>
+			<h2>
+				Tiles Account
+				<Info
+					text="Your identity, generated on this device. It links your devices and keeps your chats end-to-end encrypted."
+				/>
+			</h2>
 			<div class="row">
 				<span class="plate initial">{initial}</span>
 				<b>{account.nickname}</b>
@@ -74,13 +80,21 @@
 		</section>
 
 		<section>
-			<h2>Atmosphere Account</h2>
+			<h2>
+				Atmosphere Account
+				<Info
+					text="Chats you share are published to your Personal Data Server (PDS), hosted wherever you choose."
+				/>
+			</h2>
 			{#if tiles.atproto}
 				<div class="row">
-					<span class="mono">@{tiles.atproto.handle}</span>
-					<button class="plate ghost" onclick={signOut}>Sign out</button>
+					<span class="plate initial">{tiles.atproto.handle.charAt(0).toUpperCase()}</span>
+					<span class="who">
+						<span class="mono handle">@{tiles.atproto.handle}</span>
+						<span class="mono muted">{short(tiles.atproto.did)}</span>
+					</span>
 				</div>
-				<p class="mono muted">{short(tiles.atproto.did)}</p>
+				<button class="plate ghost out" onclick={signOut}>Sign out</button>
 			{:else if signIn}
 				<div class="row">
 					<span class="spin"></span>
@@ -93,7 +107,7 @@
 				</div>
 			{:else}
 				<form
-					class="row"
+					class="connect"
 					onsubmit={(e) => {
 						e.preventDefault();
 						if (handle.trim()) connect();
@@ -172,9 +186,10 @@
 		white-space: nowrap;
 	}
 
+	/* as wide as the row that opens it, inside an open sidebar */
 	[popover] {
 		inset: auto auto 64px 12px;
-		width: min(330px, calc(100vw - 24px));
+		width: min(calc(var(--sidebar) - 24px), calc(100vw - 24px));
 		margin: 0;
 		padding: 14px;
 		display: none;
@@ -199,6 +214,10 @@
 	}
 
 	h2 {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 6px;
 		font-size: var(--fs-body);
 		font-weight: 500;
 		color: var(--slate);
@@ -210,14 +229,31 @@
 		gap: 10px;
 	}
 
-	.row .plate.ghost {
-		margin-left: auto;
+	.out {
+		justify-self: start;
 		padding: 5px 10px;
+	}
+
+	.connect {
+		display: grid;
+		gap: 8px;
+	}
+
+	.connect .plate {
+		justify-self: start;
 	}
 
 	.initial {
 		width: 30px;
+		flex: none;
 		padding: 6px 0;
+	}
+
+	.handle {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.did {
