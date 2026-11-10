@@ -88,6 +88,9 @@
 								{#if picked && tiles.server === 'on'}
 									<span class="chip"><span class="live-dot"></span>In use</span>
 								{/if}
+								{#if isListed(model) && (model.total ?? model.on_disk)}
+									<span class="muted">{size(model.total ?? model.on_disk)}</span>
+								{/if}
 							</span>
 						{:else}
 							<span class="muted">{[info.size, info.note].filter(Boolean).join(' · ')}</span>
@@ -106,34 +109,27 @@
 							{info.ready ? 'Delete' : 'Discard'}
 						</button>
 					{:else if info.ready}
-						{#if picked && tiles.server === 'starting'}
-							<button class="plate" disabled><span class="spin"></span>Starting…</button>
-						{:else if picked && tiles.server === 'on'}
-							<button class="plate ghost" disabled={ejecting} onclick={() => act(eject())}>
-								{#if ejecting}<span class="spin"></span>Ejecting…{:else}Eject model{/if}
-							</button>
-						{:else}
-							<button class="plate" onclick={() => act(run(model))}>Run model</button>
-						{/if}
 						<button
 							class="icon tile row-tile"
 							aria-label="Delete {model.label}"
 							title="Delete"
 							onclick={() => (confirming = model.model)}><Icon name="trash" size={15} /></button
 						>
+						{#if picked && tiles.server === 'starting'}
+							<button class="plate act" disabled><span class="spin"></span>Starting…</button>
+						{:else if picked && tiles.server === 'on'}
+							<button class="plate ghost act" disabled={ejecting} onclick={() => act(eject())}>
+								{#if ejecting}<span class="spin"></span>Ejecting…{:else}Eject model{/if}
+							</button>
+						{:else}
+							<button class="plate act" onclick={() => act(run(model))}>Run model</button>
+						{/if}
 					{:else if isListed(model) && !info.blocked}
 						{#if running(model.download)}
-							<button class="plate ghost" onclick={() => act(models.pause(model.model))}
+							<button class="plate ghost act" onclick={() => act(models.pause(model.model))}
 								>Pause</button
 							>
 						{:else}
-							<button
-								class="plate"
-								disabled={!!models.active}
-								onclick={() => act(models.download(model.model))}
-							>
-								{model.download.state === 'paused' ? 'Continue' : 'Download'}
-							</button>
 							{#if model.download.state === 'paused'}
 								<button
 									class="icon tile row-tile"
@@ -142,6 +138,13 @@
 									onclick={() => (confirming = model.model)}><Icon name="trash" size={15} /></button
 								>
 							{/if}
+							<button
+								class="plate act"
+								disabled={!!models.active}
+								onclick={() => act(models.download(model.model))}
+							>
+								{model.download.state === 'paused' ? 'Continue' : 'Download'}
+							</button>
 						{/if}
 					{/if}
 				</li>
@@ -216,7 +219,17 @@
 
 	.tags {
 		display: flex;
+		align-items: center;
 		gap: 6px;
+	}
+
+	/* one width, so the buttons line up down the list */
+	.act {
+		min-width: 92px;
+	}
+
+	.icon + .act {
+		margin-left: -6px;
 	}
 
 	.ask {

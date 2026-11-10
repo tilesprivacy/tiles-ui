@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Icon from './Icon.svelte';
 	import Info from './Info.svelte';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
@@ -13,11 +12,6 @@
 	const account = $derived(tiles.account);
 	const initial = $derived(account?.nickname.charAt(0).toUpperCase() ?? '?');
 	const short = (did: string) => (did.length > 24 ? `${did.slice(0, 14)}…${did.slice(-6)}` : did);
-
-	async function copy(text: string) {
-		await navigator.clipboard.writeText(text);
-		toasts.show('Copied');
-	}
 
 	async function connect() {
 		const tab = window.open('', '_blank');
@@ -63,20 +57,16 @@
 			<h2>
 				Tiles Account
 				<Info
-					text="Your identity, generated on this device. It links your devices and keeps your chats end-to-end encrypted."
+					text="Your account lives on this device. Its DID is how other devices and apps know it's you. It links your devices and keeps your chats end-to-end encrypted."
 				/>
 			</h2>
 			<div class="row">
 				<span class="plate initial">{initial}</span>
-				<b>{account.nickname}</b>
+				<span class="who">
+					<b>{account.nickname}</b>
+					<span class="mono muted">{short(account.id)}</span>
+				</span>
 			</div>
-			<button class="did tile" onclick={() => copy(account.id)} aria-label="Copy your DID">
-				<span>{account.id}</span>
-				<Icon name="copy" size={13} />
-			</button>
-			<p class="muted">
-				Your account lives on this device. Its DID is how other devices and apps know it's you.
-			</p>
 		</section>
 
 		<section>
@@ -254,23 +244,6 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	.did {
-		display: flex;
-		gap: 8px;
-		padding: 8px 10px;
-		background-color: var(--steel);
-		font-family: var(--font-mono);
-		font-size: var(--fs-mono);
-		color: var(--ash);
-		text-align: left;
-		word-break: break-all;
-	}
-
-	.did :global(svg) {
-		flex: none;
-		color: var(--slate);
 	}
 
 	p {
