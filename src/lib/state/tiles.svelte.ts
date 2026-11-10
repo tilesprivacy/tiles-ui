@@ -147,6 +147,13 @@ class Tiles {
 		throw new Error("The model server didn't start. Its log is logs/server.err.log");
 	}
 
+	// the loaded model goes with it
+	async stopServer() {
+		await api('server/stop', 'POST');
+		this.server = 'off';
+		this.model = null;
+	}
+
 	fail(err: unknown) {
 		this.phase = 'failed';
 		this.reason = reason(err);

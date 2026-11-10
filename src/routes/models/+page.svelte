@@ -31,6 +31,23 @@
 		}
 	}
 
+	let ejecting = $state(false);
+
+	// picks it, and starts the model server when it's off
+	async function run(model: Model) {
+		if (model !== models.inUse) await models.use(model.model!);
+		if (tiles.server === 'off') await tiles.startServer();
+	}
+
+	async function eject() {
+		ejecting = true;
+		try {
+			await tiles.stopServer();
+		} finally {
+			ejecting = false;
+		}
+	}
+
 	async function act(work: Promise<void>) {
 		try {
 			await work;
@@ -57,6 +74,7 @@
 		<ul class="tile">
 			{#each models.list as model (model.id)}
 				{@const info = describe(model)}
+				{@const picked = model === models.inUse}
 				<li class:off={info.blocked}>
 					<div class="info">
 						<b
@@ -64,6 +82,13 @@
 						>
 						{#if isListed(model) && (running(model.download) || model.download.state === 'paused')}
 							<Progress download={model.download} />
+						{:else if info.ready}
+							<span class="tags">
+								<span class="chip">{info.note}</span>
+								{#if picked && tiles.server === 'on'}
+									<span class="chip"><span class="live-dot"></span>In use</span>
+								{/if}
+							</span>
 						{:else}
 							<span class="muted">{[info.size, info.note].filter(Boolean).join(' · ')}</span>
 						{/if}
@@ -72,7 +97,7 @@
 						<span class="ask"
 							>{!info.ready
 								? 'Discard the download?'
-								: model === models.inUse
+								: picked
 									? 'Chats use it. Unload and delete it?'
 									: 'Delete it from this computer?'}</span
 						>
@@ -80,16 +105,16 @@
 						<button class="plate danger" onclick={() => remove(model)}>
 							{info.ready ? 'Delete' : 'Discard'}
 						</button>
-					{:else if model === models.inUse && info.ready}
-						<span class="chip"><span class="live-dot"></span>In use</span>
-						<button
-							class="icon tile row-tile"
-							aria-label="Delete {model.label}"
-							title="Delete"
-							onclick={() => (confirming = model.model)}><Icon name="trash" size={15} /></button
-						>
 					{:else if info.ready}
-						<button class="plate" onclick={() => act(models.use(model.model!))}>Use</button>
+						{#if picked && tiles.server === 'starting'}
+							<button class="plate" disabled><span class="spin"></span>Starting…</button>
+						{:else if picked && tiles.server === 'on'}
+							<button class="plate ghost" disabled={ejecting} onclick={() => act(eject())}>
+								{#if ejecting}<span class="spin"></span>Ejecting…{:else}Eject model{/if}
+							</button>
+						{:else}
+							<button class="plate" onclick={() => act(run(model))}>Run model</button>
+						{/if}
 						<button
 							class="icon tile row-tile"
 							aria-label="Delete {model.label}"
@@ -137,6 +162,12 @@
 		overflow-y: auto;
 	}
 
+	header {
+		display: grid;
+		gap: 4px;
+		margin-bottom: 12px;
+	}
+
 	h1 {
 		font-size: 22px;
 		font-weight: 600;
@@ -181,6 +212,11 @@
 		margin-left: 6px;
 		font-size: var(--fs-label);
 		color: var(--signal);
+	}
+
+	.tags {
+		display: flex;
+		gap: 6px;
 	}
 
 	.ask {

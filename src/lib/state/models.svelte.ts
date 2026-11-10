@@ -28,7 +28,7 @@ export function describe(model: Model) {
 	if (!isListed(model)) return { size: '', note: model.error, ready: false, blocked: true };
 	const { download: d, total } = model;
 	if (d.state === 'done' || total === null) {
-		return { size: '', note: 'On your computer', ready: true, blocked: false };
+		return { size: '', note: 'On device', ready: true, blocked: false };
 	}
 	const needed = total - (model.on_disk ?? 0) + SPARE;
 	const short = model.free_disk !== null && !running(d) && needed > model.free_disk;
