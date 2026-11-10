@@ -97,20 +97,21 @@
     opacity: 0.5;
   }
 
-  /* the rail, the only focus indicator in the app. no background wash */
+  /* the rail, the only focus indicator in the app. short, like the app's own */
   .row::before {
     content: "";
     position: absolute;
     left: 0;
-    top: 0;
-    bottom: 0;
+    top: 28%;
+    bottom: 28%;
     width: var(--rail-w);
+    border-radius: var(--rail-w);
     background: transparent;
     transition: background var(--dur-state) ease-out;
   }
 
   .row[data-active="true"] {
-    --row-mark: var(--signal);
+    --row-mark: var(--bone);
     --mark-frame: rgba(247, 255, 97, 0.8);
   }
 
@@ -176,8 +177,7 @@
     color: var(--slate);
   }
 
-  .row[data-tone="signal"] .row__title,
-  .row[data-active="true"] .row__title {
+  .row[data-tone="signal"] .row__title {
     color: var(--signal);
   }
 </style>

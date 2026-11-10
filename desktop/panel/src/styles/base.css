@@ -29,7 +29,7 @@ body,
   /* not 100%, the panel reports its content height and the window follows */
   height: auto;
   /* the window is clear, so the page owns the surface */
-  background: var(--void);
+  background: var(--panel);
   overflow: hidden;
 }
 

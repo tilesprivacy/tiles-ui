@@ -27,7 +27,7 @@
     <span class="masthead__glyph"><Mark size={22} /></span>
     <span class="masthead__word">Tiles</span>
   </span>
-  <span class="masthead__badge"><Chip text="alpha" size="small" /></span>
+  <span class="masthead__badge"><Chip text="ALPHA" size="small" /></span>
   <Switch
     {on}
     {pending}
@@ -47,7 +47,7 @@
     gap: 8px;
     min-height: var(--h-masthead);
     padding: 0 var(--pad-x);
-    background: var(--void);
+    background: var(--panel);
     color: var(--bone);
     transition:
       background var(--dur-state) ease-out,

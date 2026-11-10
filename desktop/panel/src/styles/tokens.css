@@ -51,8 +51,10 @@
 
   /* ── Colour ───────────────────────────────────────────── */
   --signal: #f7ff61;
-  /* the ground and the ink on the accent are the same colour */
+  /* the ink on the accent */
   --void: #111111;
+  /* the ground, the colour of the app's sidebar and menus */
+  --panel: #161616;
   --bone: #ffffff;
   --ash: #d4d4d8;
   --slate: #8f8f9a;

@@ -109,6 +109,6 @@
     overflow: hidden;
     /* black on a dark desktop needs an edge of its own */
     box-shadow: inset 0 0 0 var(--hairline) var(--rule);
-    background: var(--void);
+    background: var(--panel);
   }
 </style>

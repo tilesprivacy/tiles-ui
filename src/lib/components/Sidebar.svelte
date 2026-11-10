@@ -212,13 +212,13 @@
 		letter-spacing: 0.01em;
 	}
 
+	/* the menu bar's tag, a box with one corner cut */
 	.stage {
 		margin-left: 4px;
 		/* centred on the letters, less the tracking after the last one */
-		padding: 1.5px calc(4.5px - 0.04em) 1.5px 4.5px;
-		border: var(--hairline) solid var(--edge);
-		border-radius: 999px;
-		box-shadow: var(--shadow-raised);
+		padding: 2.5px calc(4.5px - 0.04em) 2.5px 4.5px;
+		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+		background-color: var(--steel);
 		font-size: var(--fs-badge);
 		font-weight: 500;
 		line-height: 1;
