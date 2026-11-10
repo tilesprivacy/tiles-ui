@@ -84,12 +84,9 @@
 							<Progress download={model.download} />
 						{:else if info.ready}
 							<span class="tags">
-								<span class="chip">{info.note}</span>
+								{#if info.size}<span class="muted">{info.size}</span>{/if}
 								{#if picked && tiles.server === 'on'}
 									<span class="chip"><span class="live-dot"></span>In use</span>
-								{/if}
-								{#if isListed(model) && (model.total ?? model.on_disk)}
-									<span class="muted">{size(model.total ?? model.on_disk)}</span>
 								{/if}
 							</span>
 						{:else}

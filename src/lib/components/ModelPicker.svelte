@@ -51,9 +51,10 @@
 						<span class="name">
 							{model.label}{#if model.default}<span class="tag">Default</span>{/if}
 						</span>
-						<span class="muted">{info.size}</span>
-						{#if info.note || fit(model, vram)}
-							<span class="note muted">{info.note || fit(model, vram)}</span>
+						{#if info.size || info.note || fit(model, vram)}
+							<span class="meta muted"
+								>{[info.size, info.note || fit(model, vram)].filter(Boolean).join(' · ')}</span
+							>
 						{/if}
 					</button>
 				</li>
@@ -115,8 +116,7 @@
 	li button {
 		width: 100%;
 		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 2px 12px;
+		gap: 2px;
 		padding: 8px 10px;
 		text-align: left;
 	}
@@ -135,8 +135,7 @@
 		font-weight: 500;
 	}
 
-	.note {
-		grid-column: 1 / -1;
+	.meta {
 		font-size: var(--fs-body);
 	}
 </style>
