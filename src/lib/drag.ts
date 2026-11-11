@@ -1,7 +1,7 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { desktop } from './desktop.ts';
 
-// moves the window by an element's empty space, for the title bar the app draws on Linux.
+// moves the window by an element's empty space, for the title bar the app draws.
 // the drag waits for the pointer to move: starting it on the press hands the pointer to
 // the window manager, and the second click of a double click never reaches the page
 export function dragsWindow(node: HTMLElement) {

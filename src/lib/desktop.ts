@@ -4,8 +4,8 @@ type Desktop = {
 	daemon: string;
 	// why the app couldn't start Tiles, like Tiles not being installed
 	problem?: string;
-	// on Linux the page draws the title bar, with the window buttons on the side the desktop puts them
-	titlebar?: { left: WindowButton[]; right: WindowButton[] };
+	// title bar drawn by the page. Linux names its window buttons by side, a Mac the width of its traffic lights
+	titlebar?: { left: WindowButton[]; right: WindowButton[]; lights?: number };
 };
 
 export type WindowButton = 'minimize' | 'maximize' | 'close';

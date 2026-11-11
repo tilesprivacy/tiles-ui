@@ -19,6 +19,13 @@ const MIN_HEIGHT: f64 = 480.0;
 /// the UI's --void, the window is never white before the page paints
 const GROUND: Color = Color(0x11, 0x11, 0x11, 0xff);
 
+/// traffic lights, centred in the title bar the UI draws
+#[cfg(target_os = "macos")]
+const LIGHTS_AT: (f64, f64) = (14.0, 15.0);
+/// width the UI leaves for them
+#[cfg(target_os = "macos")]
+const LIGHTS_WIDTH: u32 = 78;
+
 static TEXT_SCALE: OnceLock<f64> = OnceLock::new();
 static PROBLEM: OnceLock<String> = OnceLock::new();
 #[cfg(target_os = "linux")]
@@ -121,6 +128,11 @@ fn build(app: &AppHandle, url: WebviewUrl) -> tauri::Result<WebviewWindow> {
     // the UI draws the title bar, see Titlebar.svelte
     #[cfg(target_os = "linux")]
     let window = window.decorations(false);
+    #[cfg(target_os = "macos")]
+    let window = window
+        .title_bar_style(tauri::TitleBarStyle::Overlay)
+        .hidden_title(true)
+        .traffic_light_position(tauri::LogicalPosition::new(LIGHTS_AT.0, LIGHTS_AT.1));
     window.build()
 }
 
@@ -133,6 +145,11 @@ fn desktop_script() -> String {
     #[cfg(target_os = "linux")]
     if let Some(titlebar) = TITLEBAR.get() {
         desktop["titlebar"] = titlebar.clone();
+    }
+    #[cfg(target_os = "macos")]
+    {
+        desktop["titlebar"] =
+            serde_json::json!({ "left": [], "right": [], "lights": LIGHTS_WIDTH });
     }
     format!("window.__TILES_DESKTOP__ = {desktop};")
 }

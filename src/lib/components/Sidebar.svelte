@@ -55,7 +55,7 @@
 				>
 					<Icon name="search" />
 				</button>
-				<!-- the app's own title bar on Linux holds it, with back and forward -->
+				<!-- the app's own title bar holds it, with back and forward -->
 				{#if !chrome}
 					<button
 						class="icon tile row-tile"
@@ -173,7 +173,7 @@
 		height: 100%;
 		display: flex;
 		flex-direction: column;
-		/* below the app's own title bar on Linux */
+		/* below the app's own title bar */
 		padding-top: var(--titlebar, 0);
 		border-right: var(--hairline) solid var(--rule);
 		background: var(--panel);

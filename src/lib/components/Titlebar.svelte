@@ -8,12 +8,18 @@
 
 	type Edge = Parameters<ReturnType<typeof getCurrentWindow>['startResizeDragging']>[0];
 
-	const { left, right } = desktop()!.titlebar!;
+	const { left, right, lights = 0 } = desktop()!.titlebar!;
+	const mac = lights > 0;
 	const win = getCurrentWindow();
 	let maximized = $state(false);
+	let fullscreen = $state(false);
 
 	$effect(() => {
-		const check = async () => (maximized = await win.isMaximized());
+		const check = async () => {
+			maximized = await win.isMaximized();
+			// no traffic lights in full screen
+			if (mac) fullscreen = await win.isFullscreen();
+		};
 		void check();
 		const stop = win.onResized(check);
 		return () => void stop.then((unlisten) => unlisten());
@@ -64,7 +70,7 @@
 	{/each}
 {/snippet}
 
-<header class:frame={ready} style:--side={side}>
+<header class:frame={ready} style:--side={side} style:--lights="{fullscreen ? 0 : lights}px">
 	<div class="lead" use:dragsWindow>
 		{#if ready}
 			<button
@@ -93,7 +99,7 @@
 	{@render buttons(right)}
 </header>
 
-{#if !maximized}
+{#if !maximized && !mac}
 	{#each edges as edge (edge)}
 		<div
 			class="edge {edge.toLowerCase()}"
@@ -155,7 +161,8 @@
 			);
 	}
 
-	/* the toggle sits over the sidebar's column of icons, a rail lets the row run past it */
+	/* the toggle sits over the sidebar's column of icons, a rail lets the row run past it.
+	   on a Mac it starts after the traffic lights */
 	.lead {
 		width: var(--side);
 		min-width: fit-content;
@@ -164,7 +171,7 @@
 		display: flex;
 		align-items: center;
 		gap: 2px;
-		padding: 0 8px 0 10px;
+		padding: 0 8px 0 max(10px, calc(var(--lights) / var(--zoom)));
 	}
 
 	.lead:empty {
