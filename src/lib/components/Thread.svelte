@@ -40,6 +40,13 @@
 		grown.observe(thread);
 		return () => grown.disconnect();
 	});
+
+	// passive listener for wheel up
+	$effect(() => {
+		const up = (e: WheelEvent) => e.deltaY < 0 && (following = false);
+		scroller.addEventListener('wheel', up, { passive: true });
+		return () => scroller.removeEventListener('wheel', up);
+	});
 </script>
 
 <!-- only the reader scrolling up stops following -->
@@ -48,7 +55,6 @@
 	class="scroller"
 	bind:this={scroller}
 	onscroll={scrolled}
-	onwheel={(e) => e.deltaY < 0 && (following = false)}
 	ontouchmove={() => (following = atBottom())}
 	onkeydown={(e) => ['ArrowUp', 'PageUp', 'Home'].includes(e.key) && (following = false)}
 	role="log"
