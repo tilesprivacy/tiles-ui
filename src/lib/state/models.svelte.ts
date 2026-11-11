@@ -23,14 +23,37 @@ export function fit(model: Model, vram: number | null | undefined) {
 // free space a download must leave, same as the daemon's check
 const SPARE = 1e9;
 
-// what a model's row says, and whether it can be picked
+// no network, nothing new can be downloaded
+export const network = $state({ offline: !navigator.onLine });
+
+// also when Hugging Face doesn't answer for a model
+const OFFLINE = {
+	note: '',
+	hint: 'Tiles is offline. Please connect to the internet to download other models.',
+	ready: false,
+	blocked: true
+};
+
+// no Modelfile for it in this install
+const UNAVAILABLE = {
+	note: 'Unavailable',
+	hint: "This model can't be used with this install of Tiles.",
+	ready: false,
+	blocked: true
+};
+
+// what a model's row says, and whether it can be picked. `hint` shows on hover.
+// the daemon's own error text stays out of it
 export function describe(model: Model) {
-	if (!isListed(model)) return { size: '', note: model.error, ready: false, blocked: true };
+	if (!isListed(model)) {
+		return { size: '', ...(model.model === null && !network.offline ? UNAVAILABLE : OFFLINE) };
+	}
 	const { download: d, total } = model;
 	if (d.state === 'done' || total === null) {
 		const known = total ?? model.on_disk;
-		return { size: known ? size(known) : '', note: '', ready: true, blocked: false };
+		return { size: known ? size(known) : '', note: '', hint: '', ready: true, blocked: false };
 	}
+	if (network.offline && !running(d)) return { size: size(total), ...OFFLINE };
 	const needed = total - (model.on_disk ?? 0) + SPARE;
 	const short = model.free_disk !== null && !running(d) && needed > model.free_disk;
 	const note =
@@ -41,11 +64,12 @@ export function describe(model: Model) {
 				: d.state === 'paused'
 					? `Paused at ${size(d.done)} of ${size(d.total)}`
 					: d.state === 'failed'
-						? d.reason
+						? 'Download failed'
 						: short
 							? `Needs ${size(needed - model.free_disk!)} more free space`
 							: '';
-	return { size: size(total), note, ready: false, blocked: short };
+	const hint = d.state === 'failed' ? "The download didn't finish. Try it again." : '';
+	return { size: size(total), note, hint, ready: false, blocked: short };
 }
 
 class Models {
@@ -129,3 +153,10 @@ class Models {
 }
 
 export const models = new Models();
+
+window.addEventListener('offline', () => (network.offline = true));
+// sizes come back with the network
+window.addEventListener('online', () => {
+	network.offline = false;
+	void models.load();
+});

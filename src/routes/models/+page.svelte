@@ -55,6 +55,24 @@
 			toasts.show((err as Error).message);
 		}
 	}
+
+	const TIP_WIDTH = 260;
+
+	// pointer inside a row, for the hover window
+	let at = $state<{ id: string; x: number; y: number; width: number } | null>(null);
+
+	function follow(e: PointerEvent, id: string) {
+		const row = e.currentTarget as HTMLElement;
+		const box = row.getBoundingClientRect();
+		// the page is zoomed, the row's own units aren't
+		const scale = box.width / row.offsetWidth || 1;
+		at = {
+			id,
+			x: (e.clientX - box.left) / scale,
+			y: (e.clientY - box.top) / scale,
+			width: row.offsetWidth
+		};
+	}
 </script>
 
 <svelte:head><title>Models · Tiles</title></svelte:head>
@@ -75,7 +93,11 @@
 			{#each models.list as model (model.id)}
 				{@const info = describe(model)}
 				{@const picked = model === models.inUse}
-				<li class:off={info.blocked}>
+				<li
+					class:off={info.blocked}
+					onpointermove={info.hint ? (e) => follow(e, model.id) : undefined}
+					onpointerleave={() => (at = null)}
+				>
 					<div class="info">
 						<b
 							>{model.label}{#if model.default}<span class="tag">Default</span>{/if}</b
@@ -93,7 +115,7 @@
 							<span class="muted">{[info.size, info.note].filter(Boolean).join(' · ')}</span>
 						{/if}
 					</div>
-					{#if confirming === model.model}
+					{#if confirming && confirming === model.model}
 						<span class="ask"
 							>{!info.ready
 								? 'Discard the download?'
@@ -143,6 +165,22 @@
 								{model.download.state === 'paused' ? 'Continue' : 'Download'}
 							</button>
 						{/if}
+					{:else if info.hint}
+						<button class="plate act" disabled>
+							{isListed(model) && model.download.state === 'paused' ? 'Continue' : 'Download'}
+						</button>
+					{/if}
+					{#if info.hint && at?.id === model.id}
+						<!-- left of the pointer where the right has no room -->
+						{@const flip = at.x + TIP_WIDTH + 30 > at.width}
+						<span
+							class="tip tile"
+							role="tooltip"
+							style:left={flip ? undefined : `${at.x + 14}px`}
+							style:right={flip ? `${at.width - at.x + 14}px` : undefined}
+							style:top="{at.y + 18}px"
+							style:max-width="{TIP_WIDTH}px">{info.hint}</span
+						>
 					{/if}
 				</li>
 			{/each}
@@ -181,6 +219,7 @@
 	}
 
 	li {
+		position: relative;
 		display: flex;
 		align-items: center;
 		gap: 12px;
@@ -191,8 +230,28 @@
 		border-top: var(--hairline) solid var(--rule);
 	}
 
-	li.off {
+	/* the row greys, its hover window doesn't */
+	li.off > :not(.tip) {
 		opacity: 0.45;
+	}
+
+	/* small window that follows the pointer */
+	.tip {
+		position: absolute;
+		z-index: 2;
+		width: max-content;
+		padding: 7px 10px;
+		background-color: var(--steel);
+		box-shadow: var(--shadow-float);
+		font-size: var(--fs-label);
+		line-height: 1.4;
+		color: var(--ash);
+		pointer-events: none;
+	}
+
+	/* the row gets the pointer over its greyed button too */
+	.off .act:disabled {
+		pointer-events: none;
 	}
 
 	.info {

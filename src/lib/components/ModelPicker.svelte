@@ -41,7 +41,12 @@
 		<ul class="tile" role="listbox">
 			{#each options as model (model.id)}
 				{@const info = describe(model)}
-				<li role="option" aria-selected={model.model === value} aria-disabled={info.blocked}>
+				<li
+					role="option"
+					aria-selected={model.model === value}
+					aria-disabled={info.blocked}
+					title={info.hint || undefined}
+				>
 					<button
 						class="tile row-tile"
 						disabled={info.blocked}
