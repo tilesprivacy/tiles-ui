@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getCurrentWindow } from '@tauri-apps/api/window';
+	import Controls from './Controls.svelte';
 	import Icon from './Icon.svelte';
 	import { desktop, type WindowButton } from '#lib/desktop.ts';
 	import { dragsWindow } from '#lib/drag.ts';
@@ -96,6 +97,11 @@
 	</div>
 	{@render buttons(left)}
 	<div class="grip" use:dragsWindow></div>
+	<!-- Linux only -->
+	{#if !mac}
+		<Controls />
+		{#if right.length}<span class="rule"></span>{/if}
+	{/if}
 	{@render buttons(right)}
 </header>
 
@@ -181,6 +187,13 @@
 	.grip {
 		flex: 1;
 		align-self: stretch;
+	}
+
+	.rule {
+		width: var(--hairline);
+		height: 16px;
+		margin: 0 4px;
+		background: var(--rule);
 	}
 
 	.lead,

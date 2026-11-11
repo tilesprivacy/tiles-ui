@@ -43,7 +43,7 @@
 		popovertarget="account"
 		aria-label="Your accounts"
 	>
-		<span class="avatar tile" class:live={tiles.atproto}>{initial}</span>
+		<span class="cell" class:live={tiles.atproto}>{initial}</span>
 		{#if !compact}
 			<span class="who">
 				<span>{account.nickname}</span>
@@ -61,7 +61,7 @@
 				/>
 			</h2>
 			<div class="row">
-				<span class="plate initial">{initial}</span>
+				<span class="cell">{initial}</span>
 				<span class="who">
 					<b>{account.nickname}</b>
 					<span class="mono muted">{short(account.id)}</span>
@@ -78,7 +78,7 @@
 			</h2>
 			{#if tiles.atproto}
 				<div class="row">
-					<span class="plate initial">{tiles.atproto.handle.charAt(0).toUpperCase()}</span>
+					<span class="cell">{tiles.atproto.handle.charAt(0).toUpperCase()}</span>
 					<span class="who">
 						<span class="mono handle">@{tiles.atproto.handle}</span>
 						<span class="mono muted">{short(tiles.atproto.did)}</span>
@@ -137,22 +137,11 @@
 		padding: 0;
 	}
 
-	.compact:hover .avatar {
+	.compact:hover .cell::before {
 		background-color: var(--lift);
 	}
 
-	.avatar {
-		position: relative;
-		width: 30px;
-		height: 30px;
-		flex: none;
-		display: grid;
-		place-items: center;
-		background-color: var(--steel);
-		font-weight: 600;
-	}
-
-	.avatar.live::after {
+	.cell.live::after {
 		content: '';
 		position: absolute;
 		/* top right, the bottom right is cut off */
@@ -233,10 +222,28 @@
 		justify-self: start;
 	}
 
-	.initial {
+	/* menu bar's framed cell with a cut corner */
+	.cell {
+		position: relative;
+		isolation: isolate;
 		width: 30px;
+		height: 30px;
 		flex: none;
-		padding: 6px 0;
+		display: grid;
+		place-items: center;
+		background: var(--edge);
+		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+		font-weight: 500;
+	}
+
+	.cell::before {
+		content: '';
+		position: absolute;
+		inset: var(--hairline);
+		z-index: -1;
+		background: var(--steel);
+		/* same cut as the frame, for a full line on the cut edge */
+		clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
 	}
 
 	.handle {

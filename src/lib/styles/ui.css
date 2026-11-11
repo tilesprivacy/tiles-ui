@@ -111,7 +111,7 @@
 }
 
 /* an on/off switch, a tile track with a square knob */
-[role='switch'] {
+input[role='switch'] {
 	appearance: none;
 	position: relative;
 	width: 30px;
@@ -123,7 +123,7 @@
 	transition: background var(--dur-state);
 }
 
-[role='switch']::after {
+input[role='switch']::after {
 	content: '';
 	position: absolute;
 	top: 2px;
@@ -134,16 +134,16 @@
 	transition: translate var(--dur-state) var(--ease-push);
 }
 
-[role='switch']:checked {
+input[role='switch']:checked {
 	background: var(--signal);
 }
 
-[role='switch']:checked::after {
+input[role='switch']:checked::after {
 	translate: 13px 0;
 	background: var(--void);
 }
 
-[role='switch']:disabled {
+input[role='switch']:disabled {
 	cursor: default;
 	opacity: 0.5;
 }

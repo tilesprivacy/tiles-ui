@@ -1,6 +1,8 @@
 //! The Tiles desktop app, the UI in a window of its own, with the menu bar on a
 //! Mac and a tray on Linux. It starts the daemon the UI talks to, and Quit stops it
 
+#[cfg(target_os = "linux")]
+mod controls;
 mod daemon;
 mod login;
 mod menubar;
@@ -52,6 +54,19 @@ fn main() {
         ])
         .on_window_event(menubar::on_window_event);
 
+    #[cfg(target_os = "linux")]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        controls::controls,
+        controls::keep_awake,
+        controls::start_at_login,
+        controls::quit_app,
+        menubar::daemon::daemon_health,
+        menubar::inference::inference_state,
+        menubar::inference::inference_set,
+        menubar::remote::remote_state,
+        menubar::remote::remote_set
+    ]);
+
     builder
         .setup(|app| {
             // LSUIElement covers the launch, until the window asks for the Dock
@@ -64,6 +79,8 @@ fn main() {
             }
             window::init(problem);
             menubar::init(app.handle())?;
+            #[cfg(target_os = "linux")]
+            controls::init(app.handle());
             #[cfg(target_os = "macos")]
             let icon = true;
             #[cfg(target_os = "linux")]
