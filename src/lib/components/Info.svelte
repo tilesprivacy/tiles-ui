@@ -16,7 +16,7 @@
 		display: grid;
 		place-items: center;
 		color: var(--slate);
-		cursor: help;
+		cursor: default;
 	}
 
 	.info:hover,

@@ -21,10 +21,10 @@ const GROUND: Color = Color(0x11, 0x11, 0x11, 0xff);
 
 /// traffic lights, centred in the title bar the UI draws
 #[cfg(target_os = "macos")]
-const LIGHTS_AT: (f64, f64) = (14.0, 15.0);
+const LIGHTS_AT: (f64, f64) = (14.0, 22.5);
 /// width the UI leaves for them
 #[cfg(target_os = "macos")]
-const LIGHTS_WIDTH: u32 = 78;
+const LIGHTS_WIDTH: u32 = 84;
 
 static TEXT_SCALE: OnceLock<f64> = OnceLock::new();
 static PROBLEM: OnceLock<String> = OnceLock::new();

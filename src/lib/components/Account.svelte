@@ -57,7 +57,7 @@
 			<h2>
 				Tiles Account
 				<Info
-					text="Your account lives on this device. Its DID is how other devices and apps know it's you. It links your devices and keeps your chats end-to-end encrypted."
+					text="Your identity in Tiles, created on your device. Used to securely link devices and sync chats."
 				/>
 			</h2>
 			<div class="row">
@@ -73,7 +73,7 @@
 			<h2>
 				Atmosphere Account
 				<Info
-					text="Chats you share are published to your Personal Data Server (PDS), hosted wherever you choose."
+					text="Your identity across apps built on AT Protocol. Used in Tiles to share chats through your personal data server (PDS)."
 				/>
 			</h2>
 			{#if tiles.atproto}
