@@ -167,6 +167,7 @@
 	[popover] {
 		inset: auto auto 64px 12px;
 		width: min(calc(var(--sidebar) - 24px), calc(100vw - 24px));
+		height: auto;
 		margin: 0;
 		padding: 14px;
 		display: none;
