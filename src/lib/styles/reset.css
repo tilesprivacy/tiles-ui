@@ -10,6 +10,8 @@
 
 html {
 	zoom: var(--zoom);
+	/* the window doesn't rubber band on a mac. scroll areas keep theirs with contain */
+	overscroll-behavior: none;
 }
 
 html,

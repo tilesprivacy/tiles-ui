@@ -198,6 +198,7 @@
 		align-content: start;
 		gap: 20px;
 		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	header {

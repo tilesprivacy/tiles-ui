@@ -27,5 +27,6 @@
   .list {
     max-height: 280px;
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
 </style>

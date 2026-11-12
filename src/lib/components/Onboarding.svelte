@@ -277,6 +277,7 @@
 		place-items: center;
 		padding: 24px;
 		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	.step {

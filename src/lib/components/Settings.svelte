@@ -179,6 +179,7 @@
 	.body {
 		padding: 22px 26px;
 		overflow-y: auto;
+		overscroll-behavior: contain;
 		display: grid;
 		align-content: start;
 		gap: 4px;

@@ -356,6 +356,7 @@
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;
+		overscroll-behavior: contain;
 		padding: 4px 8px;
 		display: grid;
 		/* without the 0, a long title widens the sidebar instead of cutting off */
