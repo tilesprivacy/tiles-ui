@@ -55,6 +55,8 @@ class Engine {
 	// "auto" or an engine. a pick that failed its check is tried again
 	async select(engine: EngineName | 'auto') {
 		this.status = await api<EngineStatus>('engine/select', 'POST', { engine });
+		// auto starts its download itself
+		if (installing(this.status.download)) this.#follow();
 	}
 
 	async download() {
