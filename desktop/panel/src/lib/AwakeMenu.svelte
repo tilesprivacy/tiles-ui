@@ -123,11 +123,6 @@
     font-family: var(--font-ui);
   }
 
-  .menu__head :global(.info__tip) {
-    top: calc(100% - 4px);
-    text-align: left;
-  }
-
   .menu__heat {
     display: block;
     margin-top: 1lh;

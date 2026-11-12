@@ -45,17 +45,22 @@
   }}
   onpointerleave={() => (hovered = false)}
 >
-  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-    <circle cx="6" cy="6" r="5.2" fill="none" stroke="currentColor" stroke-width="1.2" />
-    <circle cx="6" cy="3.7" r="0.75" fill="currentColor" />
-    <path d="M6 5.4v3.4" stroke="currentColor" stroke-width="1.2" />
+  <svg
+    viewBox="0 0 24 24"
+    width="13"
+    height="13"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 7.5h.01" />
   </svg>
   <span class="info__tip" aria-hidden="true">
-    <!-- clip-path takes the drop shadow with it, so the halo is a sibling -->
-    <span class="info__halo"></span>
-    <span class="info__body">
-      {#if children}{@render children()}{:else}{text}{/if}
-    </span>
+    {#if children}{@render children()}{:else}{text}{/if}
   </span>
 </button>
 
@@ -80,29 +85,22 @@
     position: absolute;
     left: var(--pad-x);
     right: var(--pad-x);
-    top: 100%;
+    /* the app's 6px under the row, from the centred icon */
+    top: calc(50% + 14px);
     z-index: 3;
+    padding: 7px 10px;
+    border: var(--hairline) solid var(--rule);
+    border-radius: 6px;
+    background: var(--steel);
+    box-shadow: 0 10px 30px -8px rgb(0 0 0 / 0.6);
     color: var(--ash);
     font-size: var(--fs-label);
-    line-height: 1.35;
+    line-height: 1.4;
+    text-align: left;
     white-space: normal;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--dur-state) ease-out;
-  }
-
-  .info__halo {
-    position: absolute;
-    inset: 2px;
-    box-shadow: var(--lift);
-  }
-
-  .info__body {
-    position: relative;
-    display: block;
-    padding: 7px 10px;
-    clip-path: var(--clip-cut);
-    background: var(--steel);
   }
 
   .info[data-open="true"] .info__tip {
