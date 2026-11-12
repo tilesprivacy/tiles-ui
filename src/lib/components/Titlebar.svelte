@@ -26,6 +26,23 @@
 		return () => void stop.then((unlisten) => unlisten());
 	});
 
+	// where history can go. without the Navigation API both stay on
+	type Nav = EventTarget & { canGoBack: boolean; canGoForward: boolean };
+	const nav = (globalThis as { navigation?: Nav }).navigation;
+	let back = $state(true);
+	let forward = $state(true);
+
+	$effect(() => {
+		if (!nav) return;
+		const sync = () => {
+			back = nav.canGoBack;
+			forward = nav.canGoForward;
+		};
+		sync();
+		nav.addEventListener('currententrychange', sync);
+		return () => nav.removeEventListener('currententrychange', sync);
+	});
+
 	const ready = $derived(tiles.phase === 'ready');
 	// over the sidebar the bar holds its toggle with back and forward
 	const side = $derived(ready ? (settings.sidebarOpen ? 'var(--sidebar)' : 'var(--rail)') : '0px');
@@ -82,13 +99,20 @@
 			>
 				<Icon name="sidebar" size={15} />
 			</button>
-			<button class="tile row-tile" aria-label="Back" title="Back" onclick={() => history.back()}>
+			<button
+				class="tile row-tile"
+				aria-label="Back"
+				title="Back"
+				disabled={!back}
+				onclick={() => history.back()}
+			>
 				<Icon name="back" size={15} />
 			</button>
 			<button
 				class="tile row-tile"
 				aria-label="Forward"
 				title="Forward"
+				disabled={!forward}
 				onclick={() => history.forward()}
 			>
 				<Icon name="forward" size={15} />
@@ -214,9 +238,13 @@
 		color: var(--slate);
 	}
 
-	button:hover {
+	button:hover:not(:disabled) {
 		color: var(--bone);
 		background-color: var(--steel);
+	}
+
+	button:disabled {
+		opacity: 0.5;
 	}
 
 	button.close:hover {
