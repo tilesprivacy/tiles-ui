@@ -2,6 +2,8 @@
 	import Info from './Info.svelte';
 	import { toasts } from '#lib/state/toasts.svelte.ts';
 	import { tiles } from '#lib/state/tiles.svelte.ts';
+	// shared with the menu bar panel
+	import { accountInfo } from '#panel/lib/accounts.ts';
 
 	let { compact = false }: { compact?: boolean } = $props();
 
@@ -56,9 +58,7 @@
 		<section>
 			<h2>
 				Tiles Account
-				<Info
-					text="Your identity in Tiles, created on your device. Used to securely link devices and sync chats."
-				/>
+				<Info text={accountInfo.tiles} />
 			</h2>
 			<div class="row">
 				<span class="cell">{initial}</span>
@@ -72,9 +72,7 @@
 		<section>
 			<h2>
 				Atmosphere Account
-				<Info
-					text="Your identity across apps built on AT Protocol. Used in Tiles to share chats through your personal data server (PDS)."
-				/>
+				<Info text={accountInfo.atmosphere} />
 			</h2>
 			{#if tiles.atproto}
 				<div class="row">

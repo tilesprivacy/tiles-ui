@@ -6,6 +6,7 @@
   import Navbar from "../lib/Navbar.svelte";
   import Row from "../lib/Row.svelte";
   import Zone from "../lib/Zone.svelte";
+  import { accountInfo } from "../lib/accounts";
   import { Copier } from "../lib/copy.svelte";
   import { nav } from "../nav.svelte";
   import { atproto, held, truncateMiddle } from "../state.svelte";
@@ -33,11 +34,7 @@
   const host = $derived(session?.pds?.replace(/^https:\/\//, "") ?? null);
 </script>
 
-<Navbar
-  title="Atmosphere Account"
-  info="Chats you share are published to your Personal Data Server (PDS), hosted wherever you choose."
-  onback={() => nav.pop()}
-/>
+<Navbar title="Atmosphere Account" info={accountInfo.atmosphere} onback={() => nav.pop()} />
 
 <Zone>
   <Row

@@ -8,6 +8,7 @@
   import OpenMark from "../lib/OpenMark.svelte";
   import Row from "../lib/Row.svelte";
   import Zone from "../lib/Zone.svelte";
+  import { accountInfo } from "../lib/accounts";
   import { Copier } from "../lib/copy.svelte";
   import { nav } from "../nav.svelte";
   import { account, held, truncateMiddle } from "../state.svelte";
@@ -38,11 +39,7 @@
   const home = $derived(dataDir?.replace(/^\/Users\/[^/]+/, "~") ?? "—");
 </script>
 
-<Navbar
-  title="Tiles Account"
-  info="Your identity, generated on this Mac. It links your devices and keeps your chats end-to-end encrypted."
-  onback={() => nav.pop()}
-/>
+<Navbar title="Tiles Account" info={accountInfo.tiles} onback={() => nav.pop()} />
 
 <!-- no label, an avatar beside a name does not need one told -->
 <Zone>
