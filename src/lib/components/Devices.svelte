@@ -79,6 +79,7 @@
 	.list {
 		max-height: 30vh;
 		overflow-y: auto;
+		overscroll-behavior: contain;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
 		gap: 1px;
