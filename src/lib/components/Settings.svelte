@@ -128,9 +128,11 @@
 </dialog>
 
 <style>
+	/* centred under the title bar, clear of the traffic lights */
 	dialog {
+		top: var(--titlebar, 0px);
 		width: min(860px, calc(100vw - 32px));
-		height: min(600px, calc(100dvh - 32px));
+		height: min(600px, calc(100% - var(--titlebar, 0px) - 32px));
 		margin: auto;
 		padding: 0;
 		--r: var(--radius-l);
