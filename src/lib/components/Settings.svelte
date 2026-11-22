@@ -1,14 +1,17 @@
 <script lang="ts">
 	import EngineSettings from './EngineSettings.svelte';
 	import Icon from './Icon.svelte';
+	import InferenceSettings from './InferenceSettings.svelte';
 	import Logo from './Logo.svelte';
 	import { desktop } from '#lib/desktop.ts';
+	import { inference } from '#lib/state/inference.svelte.ts';
 	import { defaultSettings, settings, type Settings } from '#lib/state/settings.svelte.ts';
+	import { toasts } from '#lib/state/toasts.svelte.ts';
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 
 	let dialog: HTMLDialogElement;
-	const tabs = ['General', 'Display', 'Engine', 'About'] as const;
+	const tabs = ['General', 'Display', 'Engine', 'Inference', 'About'] as const;
 	let tab = $state<(typeof tabs)[number]>('General');
 	let version = $state('');
 
@@ -27,7 +30,10 @@
 			.catch(() => {});
 	});
 
+	const resetInference = () => inference.resetAll().catch((err: Error) => toasts.show(err.message));
+
 	const links = [
+		['About Tiles', 'tiles.run/about', 'https://tiles.run/about'],
 		['Read the docs', 'tiles.run/book', 'https://tiles.run/book'],
 		[
 			'Report an issue',
@@ -93,6 +99,8 @@
 		<h3>{tab}</h3>
 		{#if tab === 'Engine'}
 			<EngineSettings />
+		{:else if tab === 'Inference'}
+			<InferenceSettings />
 		{:else if tab === 'About'}
 			<div class="app">
 				<Logo size={40} />
@@ -101,7 +109,7 @@
 				>
 			</div>
 			{#each links as [label, where, href] (href)}
-				<a class="link tile" {href} target="_blank" rel="noreferrer">
+				<a class="link" {href} target="_blank" rel="noreferrer">
 					<span>{label}<small class="muted">{where}</small></span>
 					<Icon name="open" size={14} />
 				</a>
@@ -120,6 +128,10 @@
 	<footer>
 		{#if tab === 'General' || tab === 'Display'}
 			<button class="plate ghost" onclick={() => Object.assign(settings, defaultSettings)}
+				>Reset to defaults</button
+			>
+		{:else if tab === 'Inference'}
+			<button class="plate ghost" disabled={!inference.changed.length} onclick={resetInference}
 				>Reset to defaults</button
 			>
 		{/if}
@@ -218,25 +230,26 @@
 		font-weight: 600;
 	}
 
+	/* a row like the settings on the other tabs, not a card */
 	.link {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
-		margin-bottom: 4px;
-		padding: 10px 12px;
+		padding: 11px 0;
+		border-bottom: var(--hairline) solid var(--rule);
 		color: var(--bone);
 		text-decoration: none;
-	}
-
-	.link:hover {
-		--line: var(--edge);
-		background-color: var(--steel);
 	}
 
 	.link :global(svg) {
 		flex: none;
 		color: var(--slate);
+		transition: color var(--dur-state);
+	}
+
+	.link:hover :global(svg) {
+		color: var(--bone);
 	}
 
 	.legal {

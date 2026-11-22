@@ -69,6 +69,22 @@ export type EngineStatus = {
 	engines: EngineChoice[];
 };
 
+export type SettingChoice = { value: string; label: string };
+
+// one llama.cpp setting, as the daemon lists it
+export type LlamaSetting = {
+	name: string;
+	label: string;
+	// null while it's left to the default
+	value: number | boolean | string | null;
+	default: string;
+	kind: 'number' | 'flag' | 'choice';
+	// the smallest a number can be
+	min?: number;
+	choices?: SettingChoice[];
+	help: string;
+};
+
 export type Session = { id: string; name: string; created_at: number };
 
 export type Role = 'user' | 'assistant';

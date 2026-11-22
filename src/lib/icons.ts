@@ -28,7 +28,8 @@ export const icons = {
 	device: '<rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/>',
 	sync: '<path d="M20 11A8 8 0 0 0 5.7 6.1L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/>',
 	info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>',
-	open: '<path d="M7 17 17 7M9 7h8v8"/>'
+	open: '<path d="M7 17 17 7M9 7h8v8"/>',
+	undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'
 } as const;
 
 export type IconName = keyof typeof icons;
