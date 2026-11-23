@@ -74,8 +74,9 @@ class Tiles {
 	async loadAtproto() {
 		try {
 			this.atproto = await api<Atproto>('atproto/status');
-		} catch {
-			this.atproto = null;
+		} catch (err) {
+			// 404 is signed out, anything else keeps what's shown
+			if (status(err) === 404) this.atproto = null;
 		}
 	}
 

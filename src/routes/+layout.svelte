@@ -39,7 +39,16 @@
 			await tiles.ping();
 			if (wasOffline && !tiles.offline) sessions.load();
 		}, 4000);
-		return () => clearInterval(timer);
+		// the menu bar or the cli may have signed in or out. the daemon reports
+		// signed out during this window's own sign-in, so that one is left alone
+		const reload = () => {
+			if (!tiles.authorizing) tiles.loadAtproto();
+		};
+		window.addEventListener('focus', reload);
+		return () => {
+			clearInterval(timer);
+			window.removeEventListener('focus', reload);
+		};
 	});
 
 	// the menu bar app routes the page without a reload
