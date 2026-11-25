@@ -9,8 +9,6 @@ import type { Chat } from '#lib/types.ts';
 class Conversation {
 	turns = $state<Turn[]>([]);
 	streaming = $state(false);
-	// the last saved row, the parent of the next one
-	#parent: string | null = null;
 	#controller: AbortController | null = null;
 
 	constructor(readonly id: string) {}
@@ -18,7 +16,6 @@ class Conversation {
 	async load() {
 		const { chats } = await api<{ chats: Chat[] }>(`session/${this.id}/chats`);
 		this.turns = chats.map(({ role, content }) => ({ role, text: content, state: 'done' }));
-		this.#parent = chats.at(-1)?.id ?? null;
 	}
 
 	// returns false when nothing was sent
@@ -45,7 +42,7 @@ class Conversation {
 		this.turns.push(reply);
 		const live = this.turns[this.turns.length - 1];
 
-		const saved = this.#save('user', prompt).then(() => sessions.load());
+		let listed = false;
 		this.#controller = new AbortController();
 		// keeps the status line's loading state fresh
 		const loading = setInterval(() => {
@@ -58,7 +55,17 @@ class Conversation {
 				signal: this.#controller.signal
 			})) {
 				if (event === 'error') throw new Error(data);
-				apply(live, JSON.parse(data));
+				const update = JSON.parse(data);
+				if (event === 'save_failed') {
+					toasts.show(`Couldn't save this chat: ${update.reason}`);
+					continue;
+				}
+				// the daemon saves the message before its first event
+				if (!listed) {
+					listed = true;
+					sessions.load();
+				}
+				apply(live, update);
 			}
 			if (this.#controller.signal.aborted) live.state = 'stopped';
 			else if (live.state === 'streaming') live.state = 'done';
@@ -73,9 +80,7 @@ class Conversation {
 		this.streaming = false;
 		sessions.busy.delete(this.id);
 		this.#controller = null;
-		await saved;
-		// a reply stopped before any text has nothing worth keeping
-		if (live.text) await this.#save('assistant', live.text);
+		if (!listed) sessions.load();
 		return true;
 	}
 
@@ -100,21 +105,6 @@ class Conversation {
 
 	stop() {
 		this.#controller?.abort();
-	}
-
-	async #save(role: 'user' | 'assistant', text: string) {
-		const body = { text, session_id: this.id, role, parent_chat_id: this.#parent };
-		try {
-			this.#parent = (await api<Chat>('session/chat', 'POST', body)).id;
-		} catch (err) {
-			toasts.show(
-				`Couldn't save this ${role === 'user' ? 'message' : 'reply'}: ${(err as Error).message}`,
-				{
-					label: 'Retry',
-					run: () => this.#save(role, text)
-				}
-			);
-		}
 	}
 }
 
